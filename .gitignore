@@ -1,0 +1,13 @@
+ii_game/__pycache__/
+ii_game/scripts/__pycache__/
+lib/
+dist/
+bin/
+ii_game.egg-info/
+data/
+build/
+include/
+ii_game/images/3d/
+ii_game/images/Gimp/
+ii_game/images/Other/
+ii_game/images/SVG/

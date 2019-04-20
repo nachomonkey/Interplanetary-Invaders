@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+
+from setuptools import setup
+from ii_game.scripts.utils import fixPath
+import os, shutil, sys
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+def fmt(txt):
+    return fixPath(txt.replace("ii_game/", "") + "/*")
+
+img_data = []
+for r, d, f in os.walk(fixPath("ii_game/images/bitmap")):
+    if not fmt(r) in img_data:
+        img_data.append(fmt(r))
+
+if sys.platform == "linux":
+    if os.path.exists("/usr/share/icons"):
+        shutil.copyfile("ii_game/icon.png", "/usr/share/icons/ii_game-icon.png")
+    if os.path.exists("/usr/share/applications"):
+        shutil.copyfile("ii_game/ii_game.desktop", "/usr/share/applications/ii_game.desktop")
+
+setup(
+    name="ii_game",
+    version="0.0.1",
+    author="NachoMonkey",
+    description="Battle alien spiders across the solar system",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    zip_safe=False,
+    url="https://github.com/nachomonkey/interplanetary-invaders",
+    install_requires=["setuptools", "pygame>=1.9.5"],
+    packages=["ii_game", "ii_game.scripts"],
+    package_data={"ii_game":["*.png", fixPath("fonts/*"), fixPath("music/*"), fixPath("audio/*"), fixPath("data/*")] + img_data},
+    entry_points={
+        "console_scripts": [
+            "interplanetary-invaders = ii_game.main:run",
+            ]
+        },
+    python_requires=">=3.7",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Operating System :: OS Independent",
+    ],
+)
