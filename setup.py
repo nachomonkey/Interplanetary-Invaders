@@ -15,7 +15,7 @@ for r, d, f in os.walk(fixPath("ii_game/images/bitmap")):
     if not fmt(r) in img_data:
         img_data.append(fmt(r))
 
-if sys.platform == "linux":
+if sys.platform == "linux" and not "sdist" in sys.argv:
     if os.path.exists("/usr/share/icons"):
         shutil.copyfile("ii_game/icon.png", "/usr/share/icons/ii_game-icon.png")
     if os.path.exists("/usr/share/applications"):
@@ -25,7 +25,7 @@ setup(
     name="ii_game",
     version="0.0.1",
     author="NachoMonkey",
-    description="Battle alien spiders across the solar system",
+    description="Pygame-made space-invaders-esc game where you battle alien spiders across the solar system",
     long_description=long_description,
     long_description_content_type="text/markdown",
     zip_safe=False,

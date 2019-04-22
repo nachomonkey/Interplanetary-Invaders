@@ -12,7 +12,11 @@ Requires:
 
 Installation will also add a ".desktop" file in the Games catagory of your applications
 
-### Installation using pip
+### Installation using pip (recommended)
+
+	pip3 install ii_game
+
+### Installation using pip and git
 
 	pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
 
