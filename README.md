@@ -36,11 +36,11 @@ Run the console script:
 
 Or run the "ii\_game" module:
 
-	python3 -m ii\_game
+	python3 -m ii_game
 
 If you did an alternate install run this in the git repo:
 
-	python3 dev\_run.py
+	python3 dev_run.py
 	
 ## Using and playing the game
 
