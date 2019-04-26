@@ -1,5 +1,6 @@
 # Interplanetary Invaders
 
+
 *Computer game where you battle alien spiders across the solar system*
 
 *Note: this will work for Linux, but it has not been tested for Windows or Mac*
@@ -45,6 +46,8 @@ If you did an alternate install run this in the git repo:
 	python3 dev_run.py
 	
 ## Using and playing the game
+
+ ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/wiki_data/screenshot_gameplay1.png  "Gameplay Screenshot")
 
 After launching the game and selecting **Play**, a list of profiles appears. (*These profiles are 
 stored in $HOME/ii_game-data/*) Once a profile
