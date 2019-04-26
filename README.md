@@ -2,7 +2,9 @@
 
 *Computer game where you battle alien spiders across the solar system*
 
-## Installation
+*Note: this will work for Linux, but it has not been tested for Windows or Mac *
+
+## Installation for Linux
 
 Requires:
 	
