@@ -71,7 +71,7 @@ Press **F2** to take screenshots. Screenshots get stored in your *data* director
 when the game launches.
 
 # Acknowledgements
-Some images (described in the game's credits) were either directly used or modified versions of NASA images.
+Some images (described in the game's credits) are either directly used or modified versions of NASA images.
 
 # License
 Uses the GNU GPLv3 License. See the LICENSE file for the full license.
