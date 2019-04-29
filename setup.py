@@ -23,9 +23,9 @@ if sys.platform == "linux" and not "sdist" in sys.argv:
 
 setup(
     name="ii_game",
-    version="0.0.1",
+    version="0.0.2",
     author="NachoMonkey",
-    description="Pygame-made space-invaders-esc game where you battle alien spiders across the solar system",
+    description="Interplanetary Invaders: Pygame-made space-invaders-esc game where you battle alien spiders across the solar system",
     long_description=long_description,
     long_description_content_type="text/markdown",
     zip_safe=False,
