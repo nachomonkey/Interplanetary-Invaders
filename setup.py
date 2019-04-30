@@ -22,10 +22,10 @@ if sys.platform == "linux" and not "sdist" in sys.argv:
         shutil.copyfile("ii_game/ii_game.desktop", "/usr/share/applications/ii_game.desktop")
 
 setup(
-    name="ii_game",
+    name="Interplanetary Invaders",
     version="0.0.3",
     author="NachoMonkey",
-    description="Interplanetary Invaders: Pygame-made space-invaders-esc game where you battle alien spiders across the solar system",
+    description="Pygame-made space-invaders-esc game where you battle alien spiders across the solar system",
     long_description=long_description,
     long_description_content_type="text/markdown",
     zip_safe=False,

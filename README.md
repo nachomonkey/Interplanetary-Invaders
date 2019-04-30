@@ -17,17 +17,23 @@ Installation will also add a ".desktop" file in the Games catagory of your appli
 
 ### Installation using pip (recommended)
 
-	pip3 install ii_game
+```bash
+pip3 install interplanetary-invaders
+```
 
 ### Installation using pip and git
 
-	pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
+```bash
+pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
+```
 
 ### Alternate Installation
 
-	git clone git+https://github.com/nachomonkey/interplanetary-invaders
-	cd interplanetary-invaders
-	sudo python3 setup.py install
+```bash
+git clone git+https://github.com/nachomonkey/interplanetary-invaders
+cd interplanetary-invaders
+sudo python3 setup.py install
+```
 
 With the alternate install, by keeping the git repo, you can update anytime with a git pull, and optionally build afterwards, or just run:
 
@@ -35,16 +41,22 @@ With the alternate install, by keeping the git repo, you can update anytime with
 
 Run the console script:
 
-	interplanetary-invaders
+```bash
+interplanetary-invaders
+```
 
 Or run the "ii\_game" module:
 
-	python3 -m ii_game
+```bash
+python3 -m ii_game
+```
 
 If you did an alternate install run this in the git repo:
 
-	python3 dev_run.py
-	
+```bash
+python3 dev_run.py
+```
+
 ## Using and playing the game
 
  ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/wiki_data/screenshot_gameplay1.png  "Gameplay Screenshot")
@@ -61,7 +73,7 @@ After touching an item, it will disappear and go into your item storage ( ![Item
 An icon representing the item will be visible in your item storage.
 Press the number key on your keyboard that equals the one below the item's icon (i.e. If the item is in slot three, it
 will have a "3" under it, and you must press <**3**> to activate it.)  The items vary from mission to mission (and planet to planet)
- 
+
 ### Hints
 
 When using the "2x Fire Rate" item without the "Auto Gun" item, it is easiest to fire faster
