@@ -95,6 +95,9 @@ class Menu:
         self.text_rate = 0.1
         self.text = "Interplanetary Invaders"
         self.bool_images = [self.images["x"], self.images["check"]]
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(fixPath(get_file("audio/music/MainMenu.mp3")))
+        pygame.mixer.music.play(-1)
 
     def main(self):
         while not self.done:
@@ -102,6 +105,7 @@ class Menu:
             self.draw()
             self.update()
         if not self.options_lock:
+            pygame.mixer.music.fadeout(1000)
             transition(self.display, 5)
 
     def events(self):
