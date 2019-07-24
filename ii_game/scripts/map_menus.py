@@ -90,6 +90,8 @@ class SpaceMap:
             except KeyError:
                 print(colorize(f"No map for {planet.name} found!", "fail"))
         self.speed = 1
+        pygame.mixer.music.load(fixPath(get_file("AmbientSpace.mp3")))
+        pygame.mixer.music.play(-1)
 #        pygame.display.toggle_fullscreen()
 
     def main(self):
@@ -97,6 +99,7 @@ class SpaceMap:
             self.events()
             self.draw()
             self.update()
+        pygame.mixer.music.fadeout(1000)
         transition(self.Display, 5)
         return self.profile
 
