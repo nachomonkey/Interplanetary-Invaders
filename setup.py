@@ -2,6 +2,7 @@
 
 from setuptools import setup
 from ii_game.scripts.utils import fixPath
+from ii_game import __version__
 import os, shutil, sys
 
 with open("README.md", "r") as fh:
@@ -23,7 +24,7 @@ if sys.platform == "linux" and not "sdist" in sys.argv:
 
 setup(
     name="Interplanetary Invaders",
-    version="0.0.4",
+    version=__version__,
     author="NachoMonkey",
     description="Pygame-made space-invaders-esc game where you battle alien spiders across the solar system",
     long_description=long_description,
@@ -32,7 +33,7 @@ setup(
     url="https://github.com/nachomonkey/interplanetary-invaders",
     install_requires=["setuptools", "pygame>=1.9.5"],
     packages=["ii_game", "ii_game.scripts"],
-    package_data={"ii_game":["*.png", fixPath("fonts/*"), fixPath("music/*"), fixPath("audio/*"), fixPath("data/*")] + img_data},
+    package_data={"ii_game":["*.png", fixPath("fonts/*"), fixPath("music/*"), fixPath("audio/*"), fixPath("audio/music/*"), fixPath("data/*")] + img_data},
     entry_points={
         "console_scripts": [
             "interplanetary-invaders = ii_game.main:run",
