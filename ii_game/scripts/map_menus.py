@@ -15,7 +15,7 @@ from ii_game.scripts.menu import build_bar
 from ii_game.scripts import screenshot
 from ii_game.scripts.pause_menu import pause_menu
 from ii_game.scripts.stores import StoreUI
-from ii_game.scripts.utils import colorize
+from ii_game.scripts.utils import colorize, fixPath
 
 pygame.init()
 
