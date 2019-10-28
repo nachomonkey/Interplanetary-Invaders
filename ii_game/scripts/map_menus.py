@@ -16,6 +16,7 @@ from ii_game.scripts import screenshot
 from ii_game.scripts.pause_menu import pause_menu
 from ii_game.scripts.stores import StoreUI
 from ii_game.scripts.utils import colorize, fixPath
+from ii_game.scripts.get_file import get_file
 
 pygame.init()
 
@@ -90,7 +91,7 @@ class SpaceMap:
             except KeyError:
                 print(colorize(f"No map for {planet.name} found!", "fail"))
         self.speed = 1
-        pygame.mixer.music.load(fixPath(get_file("AmbientSpace.mp3")))
+        pygame.mixer.music.load(fixPath(get_file("audio/music/AmbientSpace.mp3")))
         pygame.mixer.music.play(-1)
 #        pygame.display.toggle_fullscreen()
 
