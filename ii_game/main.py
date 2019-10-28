@@ -51,7 +51,7 @@ class Main:
         pygame.display.set_caption("Interplanetary Invaders")
         pygame.display.set_icon(pygame.image.load(get_file("icon.png")))
         t1 = time.time()
-        self.images, num = auto_load.fetch_images()
+        self.images, num = auto_load.fetch_images(self.Display)
         t2 = time.time()
         print(colorize(f"Loaded {num} images in {round(t2-t1, 2)} seconds", "green"))
         self.menu()
@@ -163,7 +163,7 @@ def run():
         main = Main()
         main.main()
     except KeyboardInterrupt:
-        pass
+        print("\nExiting...")
 
 if __name__ == "__main__":
     run()
