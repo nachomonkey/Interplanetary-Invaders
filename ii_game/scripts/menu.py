@@ -78,6 +78,9 @@ class Menu:
             else:
                 with shelve.open(fixPath(get_file("data/menuStarsCache"))) as data:
                     stars.stars = data["stars"]
+                pygame.mixer.music.stop()
+                pygame.mixer.music.load(fixPath(get_file("audio/music/MainMenu.mp3")))
+                pygame.mixer.music.play(-1)
         self.frame = 1
         self.frame_rate = 1 / 120
         self.frame_time = 0
@@ -95,9 +98,7 @@ class Menu:
         self.text_rate = 0.1
         self.text = "Interplanetary Invaders"
         self.bool_images = [self.images["x"], self.images["check"]]
-        pygame.mixer.music.stop()
-        pygame.mixer.music.load(fixPath(get_file("audio/music/MainMenu.mp3")))
-        pygame.mixer.music.play(-1)
+
 
     def main(self):
         while not self.done:
@@ -113,14 +114,14 @@ class Menu:
             if event.type == pygame.QUIT:
                 self.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if not self.finished:
+                if not self.finished and not self.options_lock:
                     self.finished = True
                     print(self.text)
                     self.text = ""
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F2:
                     screenshot.capture("M", self.display)
-                if not self.finished:
+                if not self.finished and not self.options_lock:
                     self.finished = True
                     print(self.text)
                     self.text = ""
@@ -322,7 +323,7 @@ class Menu:
 
     def update(self):
         self.text_time += self.time_passed
-        if self.text_time >= self.text_rate and self.text:
+        if self.text_time >= self.text_rate and self.text and not self.options_lock:
             print(self.text[0], end = "", flush = True)
             self.text = self.text[1:]
             if not self.text:
