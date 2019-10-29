@@ -54,13 +54,13 @@ interplanetary-invaders
 Or run the "ii\_game" module:
 
 ```bash
-python3 -m ii_game
+python3.7 -m ii_game
 ```
 
 If you did an alternate install run this in the git repo:
 
 ```bash
-python3 dev_run.py
+python3.7 dev_run.py
 ```
 
 ## Using and playing the game
