@@ -15,13 +15,13 @@ Requires:
 
 Installation will also add a ".desktop" file in the Games catagory of your applications
 
-### Installation using pip (recommended)
+### Installation using pip via PyPI (recommended)
 
 ```bash
 pip3 install interplanetary-invaders
 ```
 
-### Installation using pip and git
+### Installation using pip via github
 
 ```bash
 pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
