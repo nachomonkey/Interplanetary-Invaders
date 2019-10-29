@@ -18,13 +18,19 @@ Installation will also add a ".desktop" file in the Games catagory of your appli
 ### Installation using pip via PyPI (recommended)
 
 ```bash
-pip3 install interplanetary-invaders
+sudo pip3 install interplanetary-invaders
+```
+#### For Ubuntu users:
+*Run as root*
+```bash
+apt install python3.7
+python3.7 -m pip install interplanetary-invaders
 ```
 
 ### Installation using pip via github
 
 ```bash
-pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
+sudo pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
 ```
 
 ### Alternate Installation
