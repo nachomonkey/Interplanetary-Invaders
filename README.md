@@ -11,7 +11,7 @@ Requires:
 	
  * python >= 3.7
 
- * pygame
+ * pygame >= 1.9.5
 
 Installation will also add a ".desktop" file in the Games catagory of your applications
 
