@@ -41,6 +41,7 @@ from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.credits import run_credits
 from ii_game.scripts.transition import transition
 from ii_game.scripts.utils import fixPath, colorize
+from ii_game.scripts import joystick
 from ii_game.scripts import screenshot
 from ii_game.scripts.get_file import get_file
 
@@ -111,19 +112,22 @@ class Menu:
 
     def events(self):
         for event in pygame.event.get():
+            joystick.Update(event)
             if event.type == pygame.QUIT:
                 self.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if not self.finished and not self.options_lock:
                     self.finished = True
-                    print(self.text)
+                    print(colorize(self.text, 'bold'))
                     self.text = ""
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                if not hasattr(event, "key"):
+                    event.key = None
                 if event.key == pygame.K_F2:
                     screenshot.capture("M", self.display)
                 if not self.finished and not self.options_lock:
                     self.finished = True
-                    print(self.text)
+                    print(colorize(self.text, 'bold'))
                     self.text = ""
                 else:
                     item = self.item_selected
@@ -134,11 +138,11 @@ class Menu:
                     if self.play_mode:
                         item = self.profile_selected
                         items = self.profiles
-                    if event.key == pygame.K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                         self.exit()
-                    if event.key == pygame.K_UP:
+                    if event.key == pygame.K_UP or joystick.JustWentUp():
                         item -= 1
-                    if event.key == pygame.K_DOWN:
+                    if (event.key == pygame.K_DOWN) or joystick.JustWentDown():
                         item += 1
                     if item < 0:
                         item = 0
@@ -156,9 +160,9 @@ class Menu:
                         op = self.options[self.option_selected]
                         if op == "Volume":
                             vol = self.options_dict["volume"]
-                            if event.key == pygame.K_LEFT:
+                            if event.key == pygame.K_LEFT or joystick.JustWentLeft():
                                 vol -= .1
-                            if event.key == pygame.K_RIGHT:
+                            if event.key == pygame.K_RIGHT or joystick.JustWentRight():
                                 vol += .1
                             if vol < 0:
                                 vol = 0
@@ -166,27 +170,30 @@ class Menu:
                                 vol = 1
                             self.options_dict["volume"] = vol
                         if op == "Cache Screenshots":
-                            if event.key == pygame.K_RETURN:
+                            if event.key == pygame.K_RETURN or joystick.JustPressedA():
                                 self.options_dict["cache_screen_shots"] = not self.options_dict["cache_screen_shots"]
                         if op == "Stretch to Fullscreen":
-                            if event.key == pygame.K_RETURN:
+                            if event.key == pygame.K_RETURN or joystick.JustPressedA():
                                 self.options_dict["fullscreen"] = not self.options_dict["fullscreen"]
                         if op == self.DEL:
-                            if event.key == pygame.K_RETURN:
+                            if event.key == pygame.K_RETURN or joystick.JustPressedA():
                                 try:
+                                    DID_SOMETHING = False
                                     for e, x in enumerate(os.listdir(fixPath(get_file("data/screenshots")))):
                                         os.remove(fixPath(get_file("data/screenshots/")) + x)
-                                    print(colorize(f"Deleted screenshots: {e+1}", "green"))
-                                    self.options[self.options.index(self.DEL)] = "Deleted screenshots"
-                                    self.DEL = "Deleted screenshots"
+                                        DID_SOMETHING = True
+                                    if DID_SOMETHING:
+                                        print(colorize(f"Deleted screenshots: {e+1}", "green"))
+                                        self.options[self.options.index(self.DEL)] = "Deleted screenshots"
+                                        self.DEL = "Deleted screenshots"
                                 except FileNotFoundError:
                                     print(colorize("Failed to delete screenshots!", "fail"))
                                     print(colorize("File not found error.", "fail"))
-                    if event.key == pygame.K_x:
+                    if event.key == pygame.K_x or joystick.JustPressedX():
                         if self.play_mode:
                             if self.profile_selected < 5 and not self.profiles[self.profile_selected].startswith("New"):
                                 self.confirm_delete()
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN or joystick.JustPressedA() or joystick.JustPressedStart():
                         if self.options_mode:
                             sel = self.option_selected
                             if self.options[sel] == "Cancel":
@@ -247,14 +254,17 @@ class Menu:
         done = False
         while not done:
             for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key in (pygame.K_UP, pygame.K_w):
+                joystick.Update(event)
+                if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                    if not hasattr(event, "key"):
+                        event.key = None
+                    if event.key in (pygame.K_UP, pygame.K_w) or joystick.JustWentUp():
                         sel = 0
-                    if event.key in (pygame.K_DOWN, pygame.K_s, pygame.K_x):
+                    if event.key in (pygame.K_DOWN, pygame.K_s, pygame.K_x) or joystick.JustWentDown():
                         sel = 1
                     if event.key == pygame.K_TAB:
                         sel = not sel
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN or joystick.JustPressedA():
                         if sel:
                             os.remove(fixPath(get_file(f"data/profile{self.profile_selected}")))
                             self.profiles[self.profile_selected] = f"New Profile #{self.profile_selected + 1}"

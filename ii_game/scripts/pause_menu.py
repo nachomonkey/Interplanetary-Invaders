@@ -1,5 +1,8 @@
+
 import pygame
 import sys
+
+from ii_game.scripts import joystick
 
 pygame.init()
 
@@ -25,21 +28,24 @@ def pause_menu(display, images, data, index, exit_lock = False):
     confirm = False
     while not done:
         for event in pygame.event.get():
+            joystick.Update(event)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                if not hasattr(event, "key"):
+                    event.key = None
+                if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     done = True
-                if event.key in (pygame.K_w, pygame.K_UP):
+                if event.key in (pygame.K_w, pygame.K_UP) or joystick.JustWentUp():
                     sel -= 1
-                if event.key in (pygame.K_s, pygame.K_DOWN):
+                if event.key in (pygame.K_s, pygame.K_DOWN) or joystick.JustWentDown():
                     sel += 1
                 if sel < 0:
                     sel = 0
                 if sel >= len(items):
                     sel = len(items) - 1
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN or joystick.JustPressedA():
                     i = items[sel]
                     if confirm:
                         if i == "Save":

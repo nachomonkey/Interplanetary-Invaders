@@ -4,6 +4,7 @@ from ii_game.scripts import saves
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.transition import transition
 from ii_game.scripts import screenshot
+from ii_game.scripts import joystick
 
 pygame.init()
 
@@ -23,7 +24,10 @@ def confirmExit(display, profile, num):
         click = False
         for event in pygame.event.get():
             mpos = pygame.mouse.get_pos()
-            if event.type == pygame.KEYDOWN:
+            joystick.Update(event)
+            if not hasattr(event, 'key'):
+                event.key = None
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
                 if event.key == pygame.K_F2:
                     screenshot.capture(num, display)
             if event.type == pygame.MOUSEMOTION:
@@ -35,18 +39,18 @@ def confirmExit(display, profile, num):
                 for rect in rects:
                     if rect.collidepoint(mpos):
                         click = True
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_ESCAPE:
+            if event.type == pygame.KEYUP or joystick.WasEvent():
+                if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     return
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_LEFT or joystick.JustWentLeft():
                     button_selected -= 1
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT or joystick.JustWentRight():
                     button_selected += 1
                 if button_selected < 0:
                     button_selected = 0
                 if button_selected > 2:
                     button_selected = 2
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN or joystick.JustPressedA():
                     click = True
         display.fill((125, 125, 125))
         retro_text((400, 302), display, 30, "Exit?", anchor="midbottom", bold=True, color=(0, 0, 0))
