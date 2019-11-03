@@ -77,7 +77,7 @@ class Alien:
             Type = "laser"
         if Num == 0 or Num == 4:
             Type = "heart"
-        if Num == 1:
+        if Num == 1 or Num == 5:
             Type = "moneyBag"
         if Num == 2:
             Type = "shield"

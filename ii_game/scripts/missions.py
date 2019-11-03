@@ -461,11 +461,16 @@ class MissionVenus3(MissionVenus1):
                 AlienPattern(rate=(.2, .3), amount=10, aliens=[VenusAlien]),
                 AlienPattern(rate=(.5, 1.5), amount=5, aliens=[YellowAlien])]
         self.bonus = 5000
-        self.temperature = 1000
+        self.temperature = 975
         self.backdrop = "venus_maatmons"
         self.briefing = """You have made it to the
-top of MaatMons. The temperatures are
+top of Maat Mons. The temperatures are
 very high."""
+        
+    def getGOs(self, images):
+        self.GOs = super().getGOs(images)
+        self.GOs.append(GameObject((350, 100), images, self, "block", value = items.AutoGun))
+        return self.GOs
 
 class MissionVenus4(MissionVenus1):
     def __init__(self):

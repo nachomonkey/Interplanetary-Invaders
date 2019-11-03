@@ -30,6 +30,7 @@ from ii_game.scripts import stores
 from ii_game.scripts.achievements import ACHIEVEMENTS
 from ii_game.scripts.get_file import get_file
 from ii_game.scripts.utils import colorize
+from ii_game.scripts import joystick
 import os
 import time
 
@@ -39,6 +40,11 @@ pygame.init()
 
 SIZE = (800, 600)
 from ii_game.scripts import game
+
+if joystick.hasJoystick:
+    print(colorize(f"Detected a \"{joystick.name}\" Joystick", "green" if joystick.IsSupported() else "fail"))
+    if not joystick.IsSupported():
+        print(colorize(f"This joystick may not be supported", "warning"))
 
 class Main:
     def __init__(self):

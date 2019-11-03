@@ -4,7 +4,8 @@ import sys
 import time
 import shelve
 import copy
-from math import sin, cos, pi, radians, sqrt
+import humanize
+from math import sin, cos, pi, radians, sqrt, isclose
 from ii_game.scripts import saves
 from ii_game.scripts.planets import Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, planetByName, Moons
 from ii_game.scripts.retro_text import retro_text
@@ -17,6 +18,7 @@ from ii_game.scripts.pause_menu import pause_menu
 from ii_game.scripts.stores import StoreUI
 from ii_game.scripts.utils import colorize, fixPath
 from ii_game.scripts.get_file import get_file
+from ii_game.scripts import joystick
 
 pygame.init()
 
@@ -49,7 +51,7 @@ class SpaceMap:
         self.offset = [0, 0]
         self.target_offset = [0, 0]
         self.zoom = 1
-        self.target_zoom = 1
+        self.target_zoom = 1.5
         self.scroll_speed = 300
         self.scroll_range = 10
         self.zoom_amount = .1
@@ -106,6 +108,7 @@ class SpaceMap:
 
     def events(self):
         for event in pygame.event.get():
+            joystick.Update(event)
             click = False
             if event.type == pygame.QUIT:
                 confirmExit(self.Display, self.profile, self.profile_number)
@@ -128,21 +131,33 @@ class SpaceMap:
                             self.focused = e
             if event.type == pygame.MOUSEBUTTONUP:
                 self.start_click = None
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                if not hasattr(event, 'key'):
+                    event.key = None
+                if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     self.done = True
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or joystick.GoEvent():
+                    click = True
+                if event.key == pygame.K_LEFT or joystick.JustWentLeft():
                     self.speed -= .1
                     if self.speed < 0:
                         self.speed = 0
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT or joystick.JustWentRight():
                     self.speed += .1
                     if self.speed > 2:
                         self.speed = 2
                 if event.key == pygame.K_F2:
                     screenshot.capture(self.profile_number, self.Display)
-            if event.type == pygame.KEYUP:
-                click = True
+                if event.key == pygame.K_COMMA or joystick.JustPressedLT():
+                    if self.focused == None:
+                        self.focused = 0
+                    self.focused = (self.focused + 1) % len(self.planets)
+                    self.target_zoom = 1.5
+                if event.key == pygame.K_PERIOD or joystick.JustPressedRT():
+                    if self.focused == None:
+                        self.focused = 0
+                    self.focused = (self.focused - 1) % len(self.planets)
+                    self.target_zoom = 1.5
             if event.type == pygame.MOUSEMOTION:
                 self.mouse_on = True
             if event.type == pygame.MOUSEBUTTONUP:
@@ -165,7 +180,6 @@ class SpaceMap:
             if not self.focused in ("theSun", None) and self.zoom >= 1.25 and click and self.planets[self.focused] in self.unlocked_planets:
                 self.profile["planet"] = self.planets[self.focused]
                 self.done = True
- 
 
     def blit(self, img, dest, offset = 1):
         self.display.blit(img, (dest[0] - self.offset[0] * offset, dest[1] - self.offset[1] * offset))
@@ -294,10 +308,7 @@ class SpaceMap:
         rect.midright = self.Display.get_rect().midright
         self.Display.blit(self.images["recenter"], rect)
         build_bar(self.Display, (400, 30), self.speed / 2, startmark = "0x", endmark = "2x")
-        text = "".join(reversed(str(round(self.money))))
-        for e in range(round(len(text) / 3)):
-            text = text[:e * 4 - 1] + "," + text[e * 4 - 1:]
-        retro_text(self.Display.get_rect().topright, self.Display, 20, f"Cash: {''.join(reversed(text))}", font = "impact", anchor = "topright")
+        retro_text(self.Display.get_rect().topright, self.Display, 20, f"Cash: {humanize.intcomma(int(self.money))}", font = "impact", anchor = "topright")
         if self.overlay_pos != None and self.overlay_pos[2].draw:
             tpos = list(self.overlay_pos[1])
             tpos[1] -= 50
@@ -458,6 +469,7 @@ class Map:
         self.base_rect.midbottom = display.get_rect().midbottom
         self.prev_dist = self.get_dist(self.avatar_pos, self.target_pos)
         self.pause_time = False
+        self.ForwardOrBack = False
 
     def set_velocity(self):
         diff = self.avatar_pos - self.target_pos
@@ -476,8 +488,54 @@ class Map:
         transition(self.display, 5)
         return self.map[self.selected_point].mission, self.selected_point
 
+    def GetDestDirection(self, p1, p2):  # 0 = up, 1 = right, 2 = down, 3 = left
+        P1 = self.get_point(p1)
+        P2 = self.get_point(p2)
+        angle = pygame.math.Vector2().angle_to(P1 - P2)
+#        angle = P1.angle_to(P2)
+        angle %= 360
+        if isclose(angle, 270, abs_tol = 45):
+            return 0
+        if isclose(angle, 0, abs_tol = 45):
+            return 3
+        if isclose(angle, 360, abs_tol = 45):
+            return 3
+        if isclose(angle, 90, abs_tol = 45):
+            return 2
+        if isclose(angle, 180, abs_tol = 45):
+            return 1
+
+    def GetInputDirection(self, event):
+        if event.key == pygame.K_UP or joystick.JustWentUp():
+            return 0
+        if event.key == pygame.K_LEFT or joystick.JustWentLeft():
+            return 1
+        if event.key == pygame.K_DOWN or joystick.JustWentDown():
+            return 2
+        if event.key == pygame.K_RIGHT or joystick.JustWentRight():
+            return 3
+
+    def GoForwardOrBack(self, event):
+        IsForward = False
+        IsBack = False
+        sel = self.selected_point
+        if sel > 0:  # Check back
+            if self.GetDestDirection(sel - 1, sel) == self.GetInputDirection(event):
+                IsBack = True
+        if sel < len(self.map) and not self.map[sel].alien_flag:
+            if self.GetDestDirection(sel + 1, sel) == self.GetInputDirection(event):
+                IsForward = True
+        if IsBack and IsForward:
+            self.ForwardOrBack = not self.ForwardOrBack
+            return self.ForwardOrBack
+        if IsBack:
+            return False
+        if IsForward:
+            return True
+
     def events(self):
         for event in pygame.event.get():
+            joystick.Update(event)
             click = False
             if event.type == pygame.QUIT:
                 confirmExit(self.display, self.profile, self.profile_number)
@@ -492,37 +550,46 @@ class Map:
                 if backrect.collidepoint(pygame.mouse.get_pos()):
                     self.toMenu = True
                     self.done = True
-            if event.type == pygame.KEYDOWN:
+            if not hasattr(event, "key"):
+                event.key = None
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
                 if event.key == pygame.K_F2:
                     screenshot.capture(self.profile_number, self.display)
                     self.pause_time = True
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or joystick.GoEvent():
                     click = True
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     tmm = pause_menu(self.display, self.images, self.profile, self.profile_number)
                     self.pause_time = True
                     if tmm:
                         self.toMenu = True
                         self.done = True
-            if event.type == pygame.KEYUP:
+            if event.type == pygame.KEYUP or joystick.WasEvent():
                 tabbed = False
                 sel = self.selected_point
-                if event.key == pygame.K_TAB and not self.map[self.selected_point].alien_flag:
+                if (event.key == pygame.K_TAB) and not self.map[self.selected_point].alien_flag:
                     sel += 1
                     tabbed = True
-                if event.key == pygame.K_LEFT:
-                    sel -= 1
-                if event.key == pygame.K_RIGHT and not self.map[self.selected_point].alien_flag:
+                FB = self.GoForwardOrBack(event)
+                if (FB):
                     sel += 1
-                if event.key == pygame.K_END:
+                if (FB == False):
+                    sel -= 1
+#                if (event.key == pygame.K_LEFT or joystick.JustWentLeft()):
+#                    sel -= 1
+#                if (event.key == pygame.K_RIGHT or joystick.JustWentRight()) and not self.map[self.selected_point].alien_flag:
+#                    sel += 1
+                if (event.key == pygame.K_END or joystick.JustPressedRT()):
                     if not self.waypoints:
+                        x = 0
                         for x in range(self.selected_point, len(self.map)):
                             self.waypoints.append(x)
                             if self.map[x].alien_flag:
                                 break
                         sel = x
-                if event.key == pygame.K_HOME:
+                if (event.key == pygame.K_HOME or joystick.JustPressedLT()):
                     if not self.waypoints:
+                        x = 0
                         for x in reversed(range(self.selected_point)):
                             self.waypoints.append(x)
                             if self.map[x].alien_flag:

@@ -6,6 +6,7 @@ pygame.init()
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.utils import fixPath
 from ii_game.scripts.get_file import get_file
+from ii_game.scripts import joystick
 
 credits_text = """
 Interplanetary Invaders
@@ -60,12 +61,15 @@ def run_credits(display, images):
     scroll_rate = 35
     while not done:
         for event in pygame.event.get():
+            joystick.Update(event)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key in (pygame.K_RETURN, pygame.K_ESCAPE):
                     done = True
+            if joystick.BackEvent() or joystick.JustPressedA():
+                done = True
         if scroll > 1000:
             done = True
         display.blit(images["background"], (0, 0))

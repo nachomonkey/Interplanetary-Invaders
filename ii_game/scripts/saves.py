@@ -29,6 +29,7 @@ def load_profile(index):
         profile["planet"] = data.get("planet", planets.Earth)
         profile["new"] = data.get("new", True)
         profile["map"] = data.get("map", maps.AllMaps)
+        profile["mapChecksum"] = data.get("mapChecksum", maps.CHECKSUM)
         profile["points"] = data.get("points", maps.SavedPoints)
         profile["finished_planets"] = data.get("finished_planets", [])
         profile["money_killed"] = data.get("money_killed", 0)
@@ -61,7 +62,10 @@ def load_profile(index):
                     yes = Z.was_store
                 if Z.type == "store" or yes:
                     M2[x].remove(Z)
-            if len(M1[x]) != len(M2[x]):
+            if maps.CHECKSUM != profile["mapChecksum"]:
+                print(maps.CHECKSUM)
+                print(profile["mapChecksum"])
+                profile["mapChecksum"] = maps.CHECKSUM
                 print(f"Invalid maps for profile {index}, attempting to rebuild")
                 names = []
                 for y in m2[x]:

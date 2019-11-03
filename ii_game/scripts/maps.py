@@ -3,7 +3,7 @@ from ii_game.scripts.missions import *
 from ii_game.scripts import store_data
 import random
 import pygame
-
+import hashlib
 
 MAP_POINT_SIZE = 64
 
@@ -30,6 +30,12 @@ class MapPoint:
         self.was_store = type == "store"
         self.completed = False
         self.lost = 0
+
+    def __str__(self):
+        return f"MapPoint<name={self.name}, pos={self.pos}>"
+
+    def __repr__(self):
+        return self.__str__()
 
 AllMaps = {
 "Mercury" : [
@@ -193,6 +199,8 @@ AllMaps = {
         MissionJupiter3,
         True)]
     ,}
+
+CHECKSUM = hashlib.sha1(str(AllMaps).encode()).hexdigest()
 
 SavedPoints = {}
 for x in planetByName:

@@ -124,7 +124,7 @@ class Game:
         if self.point:
             if self.point.lost > 7:        # Are you a loser?
                 self.loser = True          # You ARE a loser?!?
-                self.GOs.append(GameObject((300, 100), images, self.mission, "block", value = items.FireItem2x))
+                self.GOs.append(GameObject((250, 100), images, self.mission, "block", value = items.FireItem2x))
         self.notimer = True
         self.accuracy = []
         self.lasers_to_track = []
@@ -176,7 +176,7 @@ class Game:
                 self.update()
         except KeyboardInterrupt:
             if self.brought_items:
-                print(colorize("Hey! Complete the level!"))
+                print(colorize("Hey! Complete the level!", "fail"))
                 self.keepGoing()
             else:
                 exit_game()
@@ -309,10 +309,10 @@ class Game:
 
     def add_points(self, amount, pos, mseg = False):
         if not mseg:
-            if self.player.current_items:
+            if self.player.current_items and amount > 0:
                 if "2x Money Bonus" in self.player.current_items:
                     amount *= 2
-            if self.player.title == "Curiosity":
+            if self.player.title == "Curiosity" and amount > 0:
                amount *= 2
             amount = round(amount)
             self.score += amount

@@ -12,15 +12,16 @@ def fmt(txt):
     return fixPath(txt.replace("ii_game/", "") + "/*")
 
 img_data = []
-for r, d, f in os.walk(fixPath("ii_game/images/bitmap")):
-    if not fmt(r) in img_data:
-        img_data.append(fmt(r))
 
-if sys.platform == "linux" and not "sdist" in sys.argv:
-    if os.path.exists("/usr/share/icons"):
-        shutil.copyfile("ii_game/icon.png", "/usr/share/icons/ii_game-icon.png")
-    if os.path.exists("/usr/share/applications"):
-        shutil.copyfile("ii_game/ii_game.desktop", "/usr/share/applications/ii_game.desktop")
+if "install" in sys.argv:
+    for r, d, f in os.walk(fixPath("ii_game/images/bitmap")):
+        if not fmt(r) in img_data:
+            img_data.append(fmt(r))
+    if sys.platform == "linux" and not "sdist" in sys.argv:
+        if os.path.exists("/usr/share/icons"):
+            shutil.copyfile("ii_game/icon.png", "/usr/share/icons/ii_game-icon.png")
+        if os.path.exists("/usr/share/applications"):
+            shutil.copyfile("ii_game/ii_game.desktop", "/usr/share/applications/ii_game.desktop")
 
 setup(
     name="Interplanetary Invaders",
@@ -31,7 +32,7 @@ setup(
     long_description_content_type="text/markdown",
     zip_safe=False,
     url="https://github.com/nachomonkey/interplanetary-invaders",
-    install_requires=["setuptools", "pygame>=1.9.5"],
+    install_requires=["setuptools", "pygame>=1.9.5", "humanize>=0.5.0", "hashlib"],
     packages=["ii_game", "ii_game.scripts"],
     package_data={"ii_game":["*.png", fixPath("fonts/*"), fixPath("music/*"), fixPath("audio/*"), fixPath("audio/music/*"), fixPath("data/*")] + img_data},
     entry_points={
@@ -41,7 +42,8 @@ setup(
         },
     python_requires=">=3.7",
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
+        "Topic :: Game :: Arcade",
     ],
 )
