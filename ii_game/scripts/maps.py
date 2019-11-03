@@ -3,7 +3,6 @@ from ii_game.scripts.missions import *
 from ii_game.scripts import store_data
 import random
 import pygame
-import hashlib
 
 MAP_POINT_SIZE = 64
 
@@ -200,7 +199,7 @@ AllMaps = {
         True)]
     ,}
 
-CHECKSUM = hashlib.sha1(str(AllMaps).encode()).hexdigest()
+HASH = str(AllMaps)
 
 SavedPoints = {}
 for x in planetByName:
