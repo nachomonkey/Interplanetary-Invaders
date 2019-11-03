@@ -32,7 +32,7 @@ setup(
     long_description_content_type="text/markdown",
     zip_safe=False,
     url="https://github.com/nachomonkey/interplanetary-invaders",
-    install_requires=["setuptools", "pygame>=1.9.5", "humanize>=0.5.0", "hashlib"],
+    install_requires=["setuptools", "pygame>=1.9.5", "humanize>=0.5.0"],
     packages=["ii_game", "ii_game.scripts"],
     package_data={"ii_game":["*.png", fixPath("fonts/*"), fixPath("music/*"), fixPath("audio/*"), fixPath("audio/music/*"), fixPath("data/*")] + img_data},
     entry_points={
