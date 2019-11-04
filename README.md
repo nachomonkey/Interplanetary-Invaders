@@ -10,10 +10,10 @@
 Requires:
 	
  * python >= 3.7
- * pygame >= 1.9.5
+ * pygame between 1.9.5 and 2.0.0.dev1
  * humanize
 
-Installation will also add a ".desktop" file in the Games catagory of your applications
+Installation will also add a ".desktop" file in the Games catagory of your applications (on Linux)
 
 ### Installation using pip (recommended)
 
