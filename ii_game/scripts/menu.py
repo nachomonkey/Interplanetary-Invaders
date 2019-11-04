@@ -44,6 +44,7 @@ from ii_game.scripts.utils import fixPath, colorize
 from ii_game.scripts import joystick
 from ii_game.scripts import screenshot
 from ii_game.scripts.get_file import get_file
+from ii_game import __version__
 
 class Menu:
     def __init__(self, display, images, options = False, simple = False):
@@ -322,6 +323,7 @@ class Menu:
         if self.finished:
             self.draw_menu_box(stuff_rect)
             self.draw_items(self.items, self.item_selected, stuff_rect)
+            retro_text(stuff_rect.bottomright, self.display, 14, f"V{__version__}", anchor="bottomright")
 
     def draw_items(self, items, selected, stuff_rect, x_off = 100):
         for n, x in enumerate(items):

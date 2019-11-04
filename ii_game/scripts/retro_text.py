@@ -20,7 +20,7 @@ def retro_text(pos, display, size, text, font = "monospace", color = (255, 255, 
         scale = pygame.transform.smoothscale
     Text = pygame.transform.scale(Text, (int(Text.get_width() * (size / 8)), size))
     TextRect = Text.get_rect()
-    exec("TextRect.%s = pos" % anchor)
+    setattr(TextRect, anchor, pos)
     if render:
         if eraseColor:
             pygame.draw.rect(display, eraseColor, TextRect)
