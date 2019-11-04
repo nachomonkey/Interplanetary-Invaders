@@ -29,7 +29,6 @@ def load_profile(index):
         profile["planet"] = data.get("planet", planets.Earth)
         profile["new"] = data.get("new", True)
         profile["map"] = data.get("map", maps.AllMaps)
-        profile["mapHash"] = data.get("mapHash", maps.HASH)
         profile["points"] = data.get("points", maps.SavedPoints)
         profile["finished_planets"] = data.get("finished_planets", [])
         profile["money_killed"] = data.get("money_killed", 0)
@@ -38,57 +37,6 @@ def load_profile(index):
         if len(profile["inventory"]) == 4:
             profile["inventory"].append({})
         profile["addNewStore"] = data.get("addNewStore", 5)
-        m1 = profile["map"]
-        M1 = deepcopy(m1)
-        m2 = maps.AllMaps
-        M2 = deepcopy(m2)
-        for x in m1:
-            for y in m1[x]:
-                if not hasattr(y, "lost"):
-                    y.lost = 0
-        for x in m2:
-            if not x in m1:
-                m1[x] = m2[x]
-                continue
-            for Z in M1[x]:
-                yes = False
-                if hasattr(Z, "was_store"):
-                    yes = Z.was_store
-                if Z.type == "store" or yes:
-                    M1[x].remove(Z)
-            for Z in M2[x]:
-                yes = False
-                if hasattr(Z, "was_store"):
-                    yes = Z.was_store
-                if Z.type == "store" or yes:
-                    M2[x].remove(Z)
-            if maps.HASH != profile["mapHash"]:
-                profile["mapHash"] = maps.HASH
-                print(f"Invalid maps for profile {index}, attempting to rebuild")
-                names = []
-                for y in m2[x]:
-                    for z in m1[x]:
-                        c = False
-                        if hasattr(z, "completed"):
-                            c = z.completed
-                        if y.name == z.name and ((not z.alien_flag) or z.type in ("spaceport", "info", "store")) and c:
-                            names.append(y.old_name)
-                m1[x] = m2[x]
-                for z in m1[x]:
-                    if z.name in names or z.next_name in names or z.old_name in names:
-                        z.alien_flag = False
-                        z.type = z.will_be
-                        z.name = z.next_name
-        for planet in profile["map"]:
-            for point in profile["map"][planet]:
-                if (point.type == "store" or point.will_be == "store") and not hasattr(point, "store_data"):
-                    items = getStuff("items", profile)
-                    missiles = {}
-                    licenses = getStuff("licenses", profile)
-                    vehicles = getStuff("vehicles", profile, planet)
-                    drones = {}
-                    point.store_data = [items, missiles, licenses, vehicles, drones]
-    save_data(index, profile)
     return profile
 
 def load_options():

@@ -199,8 +199,6 @@ AllMaps = {
         True)]
     ,}
 
-HASH = str(AllMaps)
-
 SavedPoints = {}
 for x in planetByName:
     SavedPoints[x] = 0
