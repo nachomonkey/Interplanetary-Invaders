@@ -11,6 +11,7 @@ from ii_game.scripts.utils import fixPath
 from ii_game.scripts.get_file import get_file
 from ii_game.scripts.congrats import congrats
 from ii_game.scripts.info import display_info
+from ii_game.scripts import joystick
 
 pygame.init()
 
@@ -112,15 +113,19 @@ class StoreUI:
         done = False
         while not done:
             for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key in (pygame.K_UP, pygame.K_w):
+                joystick.Update(event)
+                if not hasattr(event, "key"):
+                    event.key = None
+                if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                    if event.key in (pygame.K_UP, pygame.K_w) or joystick.JustWentUp():
                         self.no_selected = False
-                    if event.key in (pygame.K_DOWN, pygame.K_d):
+                    if event.key in (pygame.K_DOWN, pygame.K_d) or joystick.JustWentDown():
                         self.no_selected = True
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN or joystick.JustPressedA():
                         if not self.no_selected:
                             self.done = True
                             self.mapPoint.visits_left -= 1
+                        joystick.Reset()
                         return
             self.display.blit(background, (0, 0))
             self.display.blit(main_surf, main_rect)
@@ -138,34 +143,37 @@ class StoreUI:
 
     def events(self):
         for event in pygame.event.get():
+            joystick.Update(event)
             cat = self.catagories[self.rect_sel]
             click = False
+            if not hasattr(event, 'key'):
+                event.key = None
             if event.type == pygame.QUIT:
                 self.confirmExit()
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_i and cat:
+            if event.type == pygame.KEYUP or joystick.WasEvent():
+                if (event.key == pygame.K_y or joystick.JustPressedY()) and cat:
                     selected = list(cat.keys())[self.sel_num[self.rect_sel]]
                     display_info(self.display, self.images, selected)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     self.confirmExit()
-                if event.key in (pygame.K_w, pygame.K_UP):
+                if event.key in (pygame.K_w, pygame.K_UP) or joystick.JustWentUp():
                     self.rect_sel -= 1
-                if event.key in (pygame.K_s, pygame.K_DOWN):
+                if event.key in (pygame.K_s, pygame.K_DOWN) or joystick.JustWentDown():
                     self.rect_sel += 1
                 if self.rect_sel < 0:
                     self.rect_sel = 0
                 if self.rect_sel >= len(self.rects):
                     self.rect_sel = len(self.rects) - 1
-                if event.key in (pygame.K_a, pygame.K_LEFT):
+                if event.key in (pygame.K_a, pygame.K_LEFT) or joystick.JustWentLeft():
                     self.sel_num[self.rect_sel] -= 1
-                if event.key in (pygame.K_d, pygame.K_RIGHT):
+                if event.key in (pygame.K_d, pygame.K_RIGHT) or joystick.JustWentRight():
                     self.sel_num[self.rect_sel] += 1
                 if self.sel_num[self.rect_sel] < 0:
                     self.sel_num[self.rect_sel] = 0
                 if self.sel_num[self.rect_sel] >= len(cat):
                     self.sel_num[self.rect_sel] = len(cat) - 1
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN or joystick.JustPressedA():
                     click = True
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.purchase_rect.collidepoint(pygame.mouse.get_pos()):
@@ -272,7 +280,7 @@ class StoreUI:
             retro_text(pic_rect.move(225, 20).midtop, self.display, 15, f"Cost: {selected.cost} Loot", anchor="midtop", bold=True)
             for e, l in enumerate(selected.description.split("\n")):
                 retro_text(pic_rect.move(230, 35 + e * 12).midtop, self.display, 12, l, anchor="midtop")
-            retro_text(self.data_rect.midbottom, self.display, 15, "Press <i> for info", anchor="midbottom")
+            retro_text(self.data_rect.midbottom, self.display, 15, "Press <Y> for info", anchor="midbottom")
 
             color = (0, 175, 0)
             if self.purchase_rect.collidepoint(pygame.mouse.get_pos()):

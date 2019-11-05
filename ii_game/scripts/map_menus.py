@@ -98,12 +98,14 @@ class SpaceMap:
 #        pygame.display.toggle_fullscreen()
 
     def main(self):
+        joystick.Reset()
         while not self.done:
             self.events()
             self.draw()
             self.update()
         pygame.mixer.music.fadeout(1000)
         transition(self.Display, 5)
+        joystick.Reset()
         return self.profile
 
     def events(self):
@@ -146,7 +148,7 @@ class SpaceMap:
                     self.speed += .1
                     if self.speed > 2:
                         self.speed = 2
-                if event.key == pygame.K_F2:
+                if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture(self.profile_number, self.Display)
                 if event.key == pygame.K_COMMA or joystick.JustPressedLT():
                     if self.focused == None:
@@ -481,11 +483,13 @@ class Map:
         return pygame.math.Vector2(self.map[index].rect.move(20, 55).topleft)
 
     def main(self):
+        joystick.Reset()
         while not self.done:
             self.events()
             self.draw()
             self.update()
         transition(self.display, 5)
+        joystick.Reset()
         return self.map[self.selected_point].mission, self.selected_point
 
     def GetDestDirection(self, p1, p2):  # 0 = up, 1 = right, 2 = down, 3 = left
@@ -553,7 +557,7 @@ class Map:
             if not hasattr(event, "key"):
                 event.key = None
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
-                if event.key == pygame.K_F2:
+                if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture(self.profile_number, self.display)
                     self.pause_time = True
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or joystick.GoEvent():

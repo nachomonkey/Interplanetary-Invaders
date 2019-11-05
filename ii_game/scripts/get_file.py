@@ -1,12 +1,14 @@
 from pkg_resources import resource_filename
 from ii_game.scripts.utils import fixPath
 import os
+import pathlib
 
 DEV_RUN = os.path.abspath(".").endswith("interplanetary-invaders")
 
 def get_file(filename):
     if filename.startswith("data"):
-        DIR = fixPath(f"{os.environ['HOME']}/.ii_game-data/")
+        HOME = str(pathlib.Path().home())
+        DIR = fixPath(f"{HOME}/.ii_game-data/") # Finds home directory
         if filename in ("data", fixPath("data/")):
             filename = ""
         else:

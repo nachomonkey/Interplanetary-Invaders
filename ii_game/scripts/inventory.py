@@ -5,6 +5,7 @@ from ii_game.scripts import store_data
 from ii_game.scripts.sound import Sound
 from ii_game.scripts.utils import fixPath
 from ii_game.scripts.info import display_info
+from ii_game.scripts import joystick
 from copy import copy
 
 pygame.init()
@@ -89,11 +90,14 @@ class Inventory:
     def events(self):
         for event in pygame.event.get():
             click = False
+            joystick.Update(event)
+            if not hasattr(event, "key"):
+                event.key = None
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.button_rect.collidepoint(pygame.mouse.get_pos()):
                     click = True
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_i:
+            if event.type == pygame.KEYUP or joystick.WasEvent():
+                if event.key == pygame.K_y or joystick.JustPressedY():
                     cat = self.catagories[self.selected]
                     sel = self.sel_num[self.selected]
                     if self.selected != 2:
@@ -102,28 +106,28 @@ class Inventory:
                         item = cat[sel][1]
                     if item:
                         display_info(self.display, self.images, item)
-            if event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_UP, pygame.K_w):
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                if event.key in (pygame.K_UP, pygame.K_w) or joystick.JustWentUp():
                     if not self.button_selected:
                         self.selected -= 1
                     else:
                         self.button_selected = False
-                if event.key in (pygame.K_DOWN, pygame.K_s):
+                if event.key in (pygame.K_DOWN, pygame.K_s) or joystick.JustWentDown():
                     self.selected += 1
                 if self.selected < 0:
                     self.selected = 0
                 if self.selected == len(self.rects):
                     self.selected = len(self.rects) - 1
                     self.button_selected = True
-                if event.key in (pygame.K_LEFT, pygame.K_a) and not self.button_selected:
+                if (event.key in (pygame.K_LEFT, pygame.K_a) or joystick.JustWentLeft()) and not self.button_selected:
                     self.sel_num[self.selected] -= 1
-                if event.key in (pygame.K_RIGHT, pygame.K_d) and not self.button_selected:
+                if (event.key in (pygame.K_RIGHT, pygame.K_d) or joystick.JustWentRight()) and not self.button_selected:
                     self.sel_num[self.selected] += 1
                 if self.sel_num[self.selected] < 0:
                     self.sel_num[self.selected] = 0
                 if self.sel_num[self.selected] == len(self.catagories[self.selected]):
                     self.sel_num[self.selected] = len(self.catagories[self.selected]) - 1
-                if event.key == pygame.K_RETURN and not self.button_selected:
+                if (event.key == pygame.K_RETURN or joystick.JustPressedA()) and not self.button_selected:
                     cat = self.catagories[self.selected]
                     lcat = list(cat)
                     sel = self.sel_num[self.selected]
@@ -139,7 +143,7 @@ class Inventory:
                                     cat.pop(lcat[sel])
                                 else:
                                     cat[lcat[sel]] -= 1
-                                break
+                                    break
                     if not didSomething:
                         Sound(fixPath("audio/donk.wav")).play()
                     if self.selected == 2 and cat[sel][1] != None:
@@ -151,7 +155,7 @@ class Inventory:
                         if not done:
                             self.catagories[1][cat[sel][1]] = 1
                         cat[sel][1] = None
-                if event.key == pygame.K_RETURN and self.button_selected:
+                if (event.key == pygame.K_RETURN or joystick.JustPressedA()) and self.button_selected:
                     click = True
             if click and not self.cannotContinue():
                 self.done = True
@@ -187,66 +191,66 @@ class Inventory:
                     title = copy(list(self.catagories[e])[self.sel_num[e]].title)
                 plus = ""
                 if title:
-                    title += " (press <i> for info)"
-                retro_text(rect.move(0, -9).midtop, self.display, 15, title, anchor="midbottom", color=(0, 0, 0))
-                retro_text(rect.move(0, -10).midtop, self.display, 15, title, anchor="midbottom", color=(0, 0, 255))
-        arrowrect = pygame.Rect(0, 0, 32, 32)
-        arrowrect.midtop = self.inv_rect.move(0, 10).midbottom
-        arrow = "down"
-        if self.selected == 2:
-            arrow = "up"
-        self.display.blit(pygame.transform.scale(self.images[f"{arrow}arrow"], (32, 32)), arrowrect)
-        for c in range(len(self.catagories)):
-            for e, v in enumerate(self.catagories[c]):
-                msel = c == self.selected
-                if c == 2:
-                    rect = v[0]
-                    if v[1] == None:
-                        v = None
+                    title += " (press <Y> for info)"
+                    retro_text(rect.move(0, -9).midtop, self.display, 15, title, anchor="midbottom", color=(0, 0, 0))
+                    retro_text(rect.move(0, -10).midtop, self.display, 15, title, anchor="midbottom", color=(0, 0, 255))
+            arrowrect = pygame.Rect(0, 0, 32, 32)
+            arrowrect.midtop = self.inv_rect.move(0, 10).midbottom
+            arrow = "down"
+            if self.selected == 2:
+                arrow = "up"
+            self.display.blit(pygame.transform.scale(self.images[f"{arrow}arrow"], (32, 32)), arrowrect)
+            for c in range(len(self.catagories)):
+                for e, v in enumerate(self.catagories[c]):
+                    msel = c == self.selected
+                    if c == 2:
+                        rect = v[0]
+                        if v[1] == None:
+                            v = None
+                        else:
+                            v = v[1]
                     else:
-                        v = v[1]
-                else:
-                    rect = pygame.Rect(0, 0, 50, 50)
-                    rect.left = self.rects[c].left + 5 + e * 60
-                    rect.centery = self.rects[c].centery
-                bcolor = (0, 0, 0)
-                color = (75, 75, 75)
-                thickness = 1
-                if msel and not self.button_selected:
-                    color = (100, 100, 100)
-                if e == self.sel_num[c]:
-                    bcolor = (255, 255, 0)
-                    thickness = 2
-                    if not msel or self.button_selected:
-                        thickness = 1
-                        bcolor = (0, 200, 0)
-                pygame.draw.rect(self.display, (0, 0, 0), rect.move(2, 2))
-                pygame.draw.rect(self.display, color, rect)
-                pygame.draw.rect(self.display, bcolor, rect, thickness)
-                if v:
-                    self.display.blit(pygame.transform.scale(self.images[v.icon], (50, 50)), rect)
-                    if c == 0:
-                        if self.getIfLocked(v):
-                            self.display.blit(self.images["nope"], rect)
-                            if e == self.sel_num[c]:
-                                retro_text((400, 50), self.display, 15, "Higher Space Transport License level needed for this  vehicle", anchor="center", font="impact")
-                                retro_text((400, 65), self.display, 15, f"to be transported from {self.catagories[c][v]}", anchor="center", font="impact")
-                if self.captions[c] == "Your Items and Drones":
-                    trect = pygame.Rect(0, 0, 15, 15)
-                    trect.bottomright = rect.bottomright
-                    pygame.draw.rect(self.display, (150, 0, 0), trect)
-                    retro_text(trect.center, self.display, 15, self.catagories[c][v], anchor="center")
-                    pygame.draw.rect(self.display, (0, 0, 0), trect, 1)
-        color = (0, 100, 0)
-        if self.button_selected or self.button_rect.collidepoint(pygame.mouse.get_pos()):
-            color = (0, 230, 0)
-        if self.cannotContinue():
-            color = (100, 0, 0)
+                        rect = pygame.Rect(0, 0, 50, 50)
+                        rect.left = self.rects[c].left + 5 + e * 60
+                        rect.centery = self.rects[c].centery
+                    bcolor = (0, 0, 0)
+                    color = (75, 75, 75)
+                    thickness = 1
+                    if msel and not self.button_selected:
+                        color = (100, 100, 100)
+                    if e == self.sel_num[c]:
+                        bcolor = (255, 255, 0)
+                        thickness = 2
+                        if not msel or self.button_selected:
+                            thickness = 1
+                            bcolor = (0, 200, 0)
+                    pygame.draw.rect(self.display, (0, 0, 0), rect.move(2, 2))
+                    pygame.draw.rect(self.display, color, rect)
+                    pygame.draw.rect(self.display, bcolor, rect, thickness)
+                    if v:
+                        self.display.blit(pygame.transform.scale(self.images[v.icon], (50, 50)), rect)
+                        if c == 0:
+                            if self.getIfLocked(v):
+                                self.display.blit(self.images["nope"], rect)
+                                if e == self.sel_num[c]:
+                                    retro_text((400, 50), self.display, 15, "Higher Space Transport License level needed for this  vehicle", anchor="center", font="impact")
+                                    retro_text((400, 65), self.display, 15, f"to be transported from {self.catagories[c][v]}", anchor="center", font="impact")
+                    if self.captions[c] == "Your Items and Drones":
+                        trect = pygame.Rect(0, 0, 15, 15)
+                        trect.bottomright = rect.bottomright
+                        pygame.draw.rect(self.display, (150, 0, 0), trect)
+                        retro_text(trect.center, self.display, 15, self.catagories[c][v], anchor="center")
+                        pygame.draw.rect(self.display, (0, 0, 0), trect, 1)
+            color = (0, 100, 0)
             if self.button_selected or self.button_rect.collidepoint(pygame.mouse.get_pos()):
-                color = (150, 0, 0)
-        pygame.draw.rect(self.display, color, self.button_rect)
-        retro_text(self.button_rect.move(0, 2).center, self.display, 15, "Continue Mission", anchor="center", color=(0, 0, 0))
-        retro_text(self.button_rect.center, self.display, 15, "Continue Mission", anchor="center")
+                color = (0, 230, 0)
+            if self.cannotContinue():
+                color = (100, 0, 0)
+                if self.button_selected or self.button_rect.collidepoint(pygame.mouse.get_pos()):
+                    color = (150, 0, 0)
+            pygame.draw.rect(self.display, color, self.button_rect)
+            retro_text(self.button_rect.move(0, 2).center, self.display, 15, "Continue Mission", anchor="center", color=(0, 0, 0))
+            retro_text(self.button_rect.center, self.display, 15, "Continue Mission", anchor="center")
 
     def cannotContinue(self):
         if self.getIfLocked(list(self.catagories[0])[self.sel_num[0]]):

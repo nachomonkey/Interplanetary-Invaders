@@ -124,7 +124,7 @@ class Menu:
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
                 if not hasattr(event, "key"):
                     event.key = None
-                if event.key == pygame.K_F2:
+                if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture("M", self.display)
                 if not self.finished and not self.options_lock:
                     self.finished = True

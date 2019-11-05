@@ -17,6 +17,7 @@ def pause_menu(display, images, data, index, exit_lock = False):
     from ii_game.scripts.menu import Menu
     from ii_game.scripts.saves import save_data
     from ii_game.scripts.retro_text import retro_text
+    joystick.Reset()
     background = display.copy()
     done = False
     sel = 0

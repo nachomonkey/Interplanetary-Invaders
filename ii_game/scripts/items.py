@@ -3,14 +3,13 @@ import random
 
 class Item:
     def __init__(self):
-        self.start_time = time.time()
         self.length = 10
+        self.total_time = 0
         self.activated = False
         self.name = "Item"
 
     def activate(self):
         self.activated = True
-        self.start_time = time.time()
 
 class GreenLaserItem(Item):
     cost = 10000
