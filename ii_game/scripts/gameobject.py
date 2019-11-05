@@ -147,6 +147,7 @@ class GameObject:
                 return
             surf.blit(self.images[f"aircraft_explode{self.frame}"], rect2)
         if self.type == "mine" and self.dead:
+            self.frame_rate = 1 / 25
             self.max_frame = 15
             rect = self.get_rect()
             rect2 = pygame.Rect((0, 0), (128, 128))

@@ -29,11 +29,6 @@ class Zapper:
         self.shield = 0
         self.max_health = 1
         self.max_shield = 1
-        self.hover_alt = 0
-        self.min_alt = 0
-        self.target_alt = 0
-        self.standard_alt = 0
-        self.alt_change_speed = 5
         self.hitBy = []
         self.items = []
         self.current_items = {}
@@ -73,10 +68,7 @@ class Zapper:
         if not self.hover:
             rect.bottom = self.mission.ground
         else:
-            rect.bottom = self.hover_alt
-        self.standard_alt = rect.bottom
-        self.target_alt = self.standard_alt
-        self.min_alt = self.mission.ground
+            rect.bottom = 430
         self.pos[1] = rect.top
         if not self.hover and self.mission.planet.gasgiant:
             self.dead = True
@@ -136,15 +128,13 @@ class Zapper:
 
     def events(self, event):
         """Handle user events for Zapper"""
-        if (event.type == pygame.KEYDOWN or joystick.WasEvent()) and not self.dead:
+        if event.type == pygame.KEYDOWN and not self.dead or joystick.WasEvent():
             if (event.key in (pygame.K_SPACE, pygame.K_UP, pygame.K_w) or joystick.JustPressedX()) and self.completeness == 1 and self.canFire:
                 obj = self.fire()
                 self.just_fired = obj
 
     def update(self, time_passed):
         """Update Zapper"""
-        for item in self.current_items:
-            self.current_items[item].total_time += time_passed
         self.just_fired = False
         if self.dead and self.health > 0:
             self.dead = False
@@ -166,13 +156,13 @@ class Zapper:
                 self.just_fired = obj
         if pressed[pygame.K_q] and self.rotate:
             self.rotation -= self.rotation_speed * time_passed
-        if joystick.CurrentState.LT_val >= .05 and self.rotate:
-            self.rotation -= self.rotation_speed * time_passed * joystick.CurrentState.LT_val
+        if joystick.LT_val >= .05 and self.rotate:
+            self.rotation -= self.rotation_speed * time_passed * joystick.LT_val
 
         if pressed[pygame.K_e] and self.rotate:
             self.rotation += self.rotation_speed * time_passed
-        if joystick.CurrentState.RT_val >= .05 and self.rotate:
-            self.rotation += self.rotation_speed * time_passed * joystick.CurrentState.RT_val
+        if joystick.RT_val >= .05 and self.rotate:
+            self.rotation += self.rotation_speed * time_passed * joystick.RT_val
 
         if self.rotation < -self.max_rotation:
             self.rotation = -self.max_rotation
@@ -196,10 +186,10 @@ class Zapper:
                 f"{self.name}{int(6 * (self.completeness / 1))}"], self.size)
         friction = (self.friction + self.mission.friction) * (self.mass * self.mission.planet.gravity) + 1
         acc = False
-        if (pressed[pygame.K_LEFT] or pressed[pygame.K_a] or joystick.CurrentState.joystick_left) and not self.dead:
+        if (pressed[pygame.K_LEFT] or pressed[pygame.K_a] or joystick.Left) and not self.dead:
             self.velocity[0] -= self.time_passed * self.speed * (friction)
             acc = True
-        if (pressed[pygame.K_RIGHT] or pressed[pygame.K_d] or joystick.CurrentState.joystick_right) and not self.dead:
+        if (pressed[pygame.K_RIGHT] or pressed[pygame.K_d]) and not self.dead:
             self.velocity[0] += self.time_passed * self.speed * (friction)
             acc = True
         if not acc:
@@ -225,15 +215,6 @@ class Zapper:
         self.pos[0] += self.velocity[0]
         self.pos[1] += self.velocity[1]
         self.rect = self.get_rect()
-        self.rect.bottom -= ((self.rect.bottom - self.target_alt) * self.alt_change_speed * self.time_passed)
-        self.pos[1] = self.rect.top
-        self.rect = self.get_rect()
-
-    def goToGround(self):
-        self.target_alt = self.min_alt
-
-    def goBackUp(self):
-        self.target_alt = self.standard_alt
 
 class VenusCrawler(Zapper):
     def __init__(self, pos, images, mission, dry = False):
@@ -288,10 +269,8 @@ class JupiterHover(Zapper):
         self.rect = self.get_rect()
         self.hover = True
         self.rotate = True
+        self.send_to_ground()
         self.mass = .75
         self.max_temp = 500
-        self.hover_alt = 430
         self.frame_rate = 1/35
-        self.send_to_ground()
         self.death_sound = Sound(fixPath("audio/jupiter_hover_explode.wav"))
-

@@ -13,6 +13,7 @@ from ii_game.scripts import lightning
 from ii_game.scripts import constants
 from ii_game.scripts import items
 from ii_game.scripts import screenshot
+from ii_game.scripts import joystick
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.transition import transition
 from ii_game.scripts.pause_menu import pause_menu
@@ -60,7 +61,7 @@ def draw_bar(prog, center, surf, max_health, max_shield, shield = 0):
     pygame.draw.rect(surf, (0, 255, 0), rect)
     pygame.draw.rect(surf, (0, 100, 150), rect3)
     for x in range(0, 150, 11):
-        pygame.draw.line(surf, (0, 0, 0), (rect.left + x, rect.top), (rect.left + x, rect.bottom - 1), 3)
+        pygame.draw.line(surf, (0, 0, 0), (rect.left + x, rect.top), (rect.left + x, rect.bottom - 1), 1)
 
 
 def exit_game():
@@ -181,6 +182,70 @@ class Game:
             else:
                 exit_game()
 
+    def deploy_item(self):
+        self.notimer = True
+        joystick.Reset()
+        done = False
+        sel = 0
+        num_boxes = 5
+        if self.i10l:
+            num_boxes = 10
+        bigBox = pygame.Rect(0, 0, 550, 300)
+        bigBox.center = self.Display.get_rect().center
+        boxHolder = pygame.Rect(0, 0, 0, 0)
+        BOX_SIZE = 50
+        boxHolder.w = BOX_SIZE * num_boxes
+        boxHolder.h = BOX_SIZE
+        boxHolder.center = self.Display.get_rect().center
+        boxes = []
+        for x in range(num_boxes):
+            boxes.append(pygame.Rect(boxHolder.x + (x * BOX_SIZE), boxHolder.y, BOX_SIZE, BOX_SIZE))
+        display = self.Display.copy()
+        for e, item in enumerate(self.player.items):
+            if item:
+                sel = e
+                break
+        while not done:
+            for event in pygame.event.get():
+                joystick.Update(event)
+                if not hasattr(event, "key"):
+                    event.key = None
+                if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                    if event.key == pygame.K_ESCAPE or joystick.BackEvent():
+                        done = True
+                    if event.key == pygame.K_LEFT or joystick.JustWentLeft():
+                        sel -= 1
+                    if event.key == pygame.K_RIGHT or joystick.JustWentRight():
+                        sel += 1
+                    if sel < 0:
+                        sel = 0
+                    if sel >= num_boxes:
+                        sel = num_boxes - 1
+                    if event.key == pygame.K_RETURN or joystick.JustPressedA():
+                        if (len(self.player.items) > sel):
+                            self.activate_item(sel)
+                        if not self.player.items:
+                            done = True
+            self.Display.blit(display, (0, 0))
+            pygame.draw.rect(self.Display, (45, 45, 45), bigBox)
+            pygame.draw.rect(self.Display, (255, 255, 0), bigBox, 1)
+            pygame.draw.rect(self.Display, (40, 40, 40), boxHolder)
+            retro_text((bigBox.move(0, 35).midtop), self.Display, 15, "Deploy Items", anchor="center", bold=True)
+            for e, box in enumerate(boxes):
+                color = (0, 0, 0)
+                if sel == e:
+                    color = (255, 255, 0)
+                pygame.draw.rect(self.Display, color, box, 1)
+                if (len(self.player.items) > e):
+                    item = self.player.items[e]
+                    if item:
+                        image = pygame.transform.scale(self.images[item.image], box.size)
+                        image_rect = image.get_rect()
+                        image_rect.center = box.center
+                        self.Display.blit(image, image_rect)
+            pygame.display.update()
+        joystick.Reset()
+
     def free_item(self):
         display = self.Display.copy()
         rect = pygame.Rect(0, 0, 600, 400)
@@ -188,10 +253,14 @@ class Game:
         done = False
         while not done:
             for event in pygame.event.get():
+                joystick.Update(event)
                 if event.type == pygame.QUIT:
                     done = True
                 if event.type == pygame.KEYDOWN:
                     if event.key in (pygame.K_q, pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_SPACE):
+                        done = True
+                if joystick.WasEvent():
+                    if joystick.GoEvent() or joystick.BackEvent():
                         done = True
             self.Display.blit(display, (0, 0))
             pygame.draw.rect(self.Display, (40, 40, 40), rect)
@@ -206,6 +275,7 @@ class Game:
             self.Display.blit(img, r)
             pygame.draw.rect(self.Display, (0, 0, 0), r, 1)
             pygame.display.update()
+        joystick.Reset()
 
     def victory(self):
         planet = self.profile["planet"]
@@ -246,14 +316,15 @@ class Game:
                 temp_diff = -mx_temp_diff
                 temp_dir *= -1
             for event in pygame.event.get():
+                joystick.Update(event)
+                if not hasattr(event, "key"):
+                    event.key = None
                 if event.type == pygame.QUIT:
                     exit_game()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        exit_game()
-                    if event.key == pygame.K_RETURN:
-                        return
-                    if event.key == pygame.K_F2:
+                if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                    if event.key == pygame.K_RETURN or joystick.GoEvent():
+                        done = True
+                    if event.key == pygame.K_F2 or joystick.JustPressedLB():
                         screenshot.capture(self.profile_selected, self.display)
             self.display.blit(self.images["briefing"], (0, 0))
             self.display.blit(self.images[f"flying_stars{star_frame}"], (390, 45))
@@ -286,6 +357,7 @@ class Game:
             star_frame_time += time_passed
             self.Display.blit(pygame.transform.scale(self.display, SIZE), (0, 0))
             pygame.display.update()
+        joystick.Reset()
 
     def calc_height(self):
         pos = [0, self.player.get_rect().centery]
@@ -340,57 +412,69 @@ class Game:
     def events(self):
         """Collect and handle user events"""
         for event in pygame.event.get():
+            joystick.Update(event)
+            if not hasattr(event, "key"):
+                event.key = None
             if event.type == pygame.QUIT and not self.brought_items:
                 exit_game()
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LSHIFT and "Flak Bursts" in self.player.current_items and self.player.completeness == 1:
+            if event.type == pygame.KEYUP or joystick.WasEvent():
+                if (event.key == pygame.K_LSHIFT or joystick.EndEvent("A")) and "Flak Bursts" in self.player.current_items and self.player.completeness == 1:
                     self.flaks.append(Flak(self.images, self.player.get_rect().center, self.mission, time.time() - self.charging, self.player.rotation))
                     self.player.completeness = 0
                     self.crg = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_F2:
+                if (event.key == pygame.K_DOWN or joystick.JustStoppedHalfDown()) and self.player.hover:
+                    self.player.goBackUp()
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture(self.profile_selected, self.display, True)
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     self.toMenu = pause_menu(self.Display, self.images, self.profile, self.profile_selected, self.brought_items)
                     self.done = self.toMenu
                     self.options = saves.load_options()
                     screenshot.options = self.options
                     self.notimer = True
-                if event.key == pygame.K_LSHIFT:
+                if (event.key == pygame.K_y or joystick.JustPressedY()) and not self.player.dead:
+                    self.deploy_item()
+                if event.key == pygame.K_LSHIFT or joystick.EndEvent("B"):
                     self.charging = time.time()
                     self.crg = True
                 for e, item in enumerate(self.player.items):
                     if event.key == NUM_KEYS[e] or event.key == NUMPAD_KEYS[e]:
-                        item = self.player.items.pop(e)
-                        if self.player.current_items:
-                            if item.name in self.player.current_items:
-                                self.player.current_items[item.name].length += item.length
-                                return
-                            else:
-                                self.player.current_items[item.name] = item
-                        item.activate()
-                        self.player.current_items[item.name] = item
-                        if item.name == "Green Laser":
-                            self.player.fireObject = GreenLaser
-                            if "Lightning" in self.player.current_items:
-                                lightning.GREEN_ON = True
-                        if item.name == "2x Fire Rate":
-                            self.player.fire_per_sec *= 2
-                            if "Lightning" in self.player.current_items:
-                                lightning.MAX_THINGS *= 3
-                        if item.name == "2x Speed":
-                            self.player.max_velocity *= 2
-                        if item.name == "Lightning":
-                            self.player.canFire = False
-                            if "Green Laser" in self.player.current_items:
-                                lightning.GREEN_ON = True
-                            if "2x Fire Rate" in self.player.current_items:
-                                lightning.MAX_THINGS *= 3
-                        if item.name == "Auto Gun":
-                            self.player.beam = True
-                        if item.name == "Shield Regenerator":
-                            self.player.regen = True
+                        self.activate_item(e)
+                if (event.key == pygame.K_DOWN or joystick.JustWentHalfDown()) and self.player.hover:
+                    self.player.goToGround()
             self.player.events(event)
+
+    def activate_item(self, e):
+        item = self.player.items.pop(e)
+        if self.player.current_items:
+            if item.name in self.player.current_items:
+                self.player.current_items[item.name].length += item.length
+                return
+        else:
+            self.player.current_items[item.name] = item
+        item.activate()
+        self.player.current_items[item.name] = item
+        if item.name == "Green Laser":
+            self.player.fireObject = GreenLaser
+            if "Lightning" in self.player.current_items:
+                lightning.GREEN_ON = True
+        if item.name == "2x Fire Rate":
+            self.player.fire_per_sec *= 2
+            if "Lightning" in self.player.current_items:
+                lightning.MAX_THINGS *= 3
+        if item.name == "2x Speed":
+            self.player.max_velocity *= 2
+        if item.name == "Lightning":
+            self.player.canFire = False
+            if "Green Laser" in self.player.current_items:
+                lightning.GREEN_ON = True
+            if "2x Fire Rate" in self.player.current_items:
+                lightning.MAX_THINGS *= 3
+        if item.name == "Auto Gun":
+            self.player.beam = True
+        if item.name == "Shield Regenerator":
+            self.player.regen = True
 
     def draw(self):
         """Render the game"""
@@ -452,7 +536,7 @@ class Game:
         Items = self.player.current_items
         for e, item in enumerate(self.player.current_items):
             self.display.blit(self.images[Items[item].image], (525, 140 + e * 20))
-            retro_text((600, 140 + e * 20), self.display, 18, round(Items[item].length - (time.time() - Items[item].start_time), 2), anchor = "midtop")
+            retro_text((600, 140 + e * 20), self.display, 18, round(Items[item].length - Items[item].total_time, 2), anchor = "midtop")
         for flak in self.flaks:
             flak.draw(self.display)
         for p in self.points:
@@ -498,8 +582,6 @@ class Game:
                 for go in self.GOs:
                     if go.type in ("mine", "moneyBag", "rock"):
                         go.dead = True
-                        if go.type == "mine":
-                            go.frame_rate = 1 / 25
                 for f in self.flaks:
                     f.dead = True
                 if self.mission.temperature + 500 > self.player.max_temp:
@@ -772,9 +854,11 @@ class Game:
             r2 = pygame.Rect((0, 0), (80, 80))
             r2.center = alien.get_rect().center
             for go in self.GOs:
-                if go.type == "moneyBag":
-                    if go.get_rect().colliderect(r2) and alien.grounded:
+                if go.get_rect().colliderect(r2) and alien.grounded:
+                    if go.type == "moneyBag":
                         go.health -= alien.impact_damage[0]
+                    if go.type == "mine":
+                        go.dead = True
             if r1.colliderect(r2) and not alien in self.player.hitBy:
                 if alien.grounded:
                     if self.player.shield:
@@ -806,7 +890,7 @@ class Game:
         Items = self.player.current_items
         newDict = copy.copy(Items)
         for item in newDict:
-            if time.time() - newDict[item].start_time >= newDict[item].length:
+            if newDict[item].total_time >= newDict[item].length:
                 self.disableItem(item)
         pygame.display.update()
         self.alien_time += self.time_passed

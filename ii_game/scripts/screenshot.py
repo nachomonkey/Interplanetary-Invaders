@@ -16,7 +16,13 @@ sound = Sound(fixPath("audio/click.wav"))
 options = saves.load_options()
 save_for_later = {}
 
+FirstScreenshot = True
+
 def capture(profile_num, surf, ingame = False):
+    global FirstScreenshot
+    if FirstScreenshot:
+        print(colorize(f"Saving screenshots at: {directory}", "bold"))
+        FirstScreenshot = False
     surf = copy.copy(surf)
     data = time.localtime()
     if not os.path.exists(directory):

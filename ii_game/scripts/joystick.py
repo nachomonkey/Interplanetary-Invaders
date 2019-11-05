@@ -19,6 +19,7 @@ class JoystickState:
         self.joystick_up = False
         self.joystick_left = False
         self.joystick_right = False
+        self.joystick_half_down = False
         self.A = False
         self.B = False
         self.X = False
@@ -29,13 +30,15 @@ class JoystickState:
         self.RT_val = -1
         self.LT = False
         self.RT = False
+        self.LB = False
+        self.RB = False
 
     def TransferFrom(self, Other):
         for X in Other.__dict__:
             self.__dict__[X] = copy.copy(Other.__dict__[X])
 
     def __str__(self):
-        return f"<JoystickState L={self.joystick_left} R={self.joystick_right} U={self.joystick_up} D={self.joystick_down} A={self.A} B={self.B} X={self.X} Y={self.Y} Bk={self.Back} Srt={self.Start} LT={self.LT_val} RT={self.RT_val}>"
+        return f"<JoystickState L={self.joystick_left} R={self.joystick_right} U={self.joystick_up} D={self.joystick_down} A={self.A} B={self.B} X={self.X} Y={self.Y} Bk={self.Back} Srt={self.Start} LT={self.LT_val} RT={self.RT_val} RB={self.RB} LB={self.LB}>"
 
 hasJoystick = False
 Joystick = None
@@ -67,6 +70,10 @@ def Update(event):
             CurrentState.X = True
         if event.button == 3:
             CurrentState.Y = True
+        if event.button == 4:
+            CurrentState.LB = True
+        if event.button == 5:
+            CurrentState.RB = True
         if event.button == 6:
             CurrentState.Back = True
         if event.button == 7:
@@ -80,6 +87,10 @@ def Update(event):
             CurrentState.X = False
         if event.button == 3:
             CurrentState.Y = False
+        if event.button == 4:
+            CurrentState.LB = False
+        if event.button == 5:
+            CurrentState.RB = False
         if event.button == 6:
             CurrentState.Back = False
         if event.button == 7:
@@ -100,6 +111,11 @@ def Update(event):
                 CurrentState.joystick_up = True
             if event.value > -.7:
                 CurrentState.joystick_up = False
+
+            if event.value >= .35:
+                CurrentState.joystick_half_down = True
+            if event.value < .35:
+                CurrentState.joystick_half_down = False
 
             if event.value >= .7:
                 CurrentState.joystick_down = True
@@ -161,8 +177,20 @@ def JustPressedBack():
 def JustPressedLT():
     return StartEvent("LT")
 
+def JustPressedLB():
+    return StartEvent("LB")
+
 def JustPressedRT():
     return StartEvent("RT")
+
+def JustPressedRB():
+    return StartEvent("RB")
+
+def JustWentHalfDown():
+    return StartEvent("joystick_half_down")
+
+def JustStoppedHalfDown():
+    return EndEvent("joystick_half_down")
 
 def BackEvent():
     return JustPressedBack() or JustPressedB()
@@ -171,4 +199,8 @@ def GoEvent():
     return JustPressedA() or JustPressedStart()
  
 def WasEvent():
-    return JustWentLeft() or JustWentRight() or JustWentUp() or JustWentDown() or JustPressedA() or JustPressedB() or JustPressedX() or JustPressedY() or JustPressedStart() or JustPressedBack() or JustPressedRT() or JustPressedLT() or GoEvent()
+    return JustWentLeft() or JustWentRight() or JustWentUp() or JustWentDown() or JustPressedA() or JustPressedB() or JustPressedX() or JustPressedY() or JustPressedStart() or JustPressedBack() or JustPressedRT() or JustPressedLT() or GoEvent() or JustPressedLB() or JustPressedRB() or JustWentHalfDown() or JustStoppedHalfDown()
+
+def Reset():
+    CurrentState.TransferFrom(JoystickState())
+    OldState.TransferFrom(JoystickState())

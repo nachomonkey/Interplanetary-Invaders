@@ -28,7 +28,7 @@ def confirmExit(display, profile, num):
             if not hasattr(event, 'key'):
                 event.key = None
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
-                if event.key == pygame.K_F2:
+                if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture(num, display)
             if event.type == pygame.MOUSEMOTION:
                 for rect in rects:

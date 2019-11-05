@@ -8,23 +8,27 @@
 ## Installation for Linux
 
 Requires:
-	
  * python >= 3.7
  * pygame between 1.9.5 and 2.0.0.dev1
  * humanize
 
-Installation will also add a ".desktop" file in the Games catagory of your applications (on Linux)
-
-### Installation using pip (recommended)
+Installation will also add a ".desktop" file in the Games catagory of your applications on Linux
+### Installation using pip via PyPI (recommended)
 
 ```bash
-pip3 install interplanetary-invaders
+sudo pip3 install interplanetary-invaders
+```
+#### For Ubuntu users:
+*Run as root*
+```bash
+apt install python3.7
+python3.7 -m pip install interplanetary-invaders
 ```
 
-### Installation using pip and git
+### Installation using pip via github
 
 ```bash
-pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
+sudo pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
 ```
 
 ### Alternate Installation
@@ -48,13 +52,13 @@ interplanetary-invaders
 Or run the "ii\_game" module:
 
 ```bash
-python3 -m ii_game
+python3.7 -m ii_game
 ```
 
 If you did an alternate install run this in the git repo:
 
 ```bash
-python3 dev_run.py
+python3.7 dev_run.py
 ```
 
 ## Using and playing the game
@@ -86,4 +90,4 @@ when the game launches.
 Some images (described in the game's credits) are either directly used or modified versions of NASA images.
 
 # License
-Uses the GNU GPLv3 License. See the LICENSE file for the full license.
+Uses the GNU GPLv3 License. See the [LICENSE](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/LICENSE) file for the full license.

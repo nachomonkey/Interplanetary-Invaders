@@ -1,5 +1,6 @@
 import pygame
 from ii_game.scripts.retro_text import retro_text
+from ii_game.scripts import joystick
 
 pygame.init()
 
@@ -15,11 +16,14 @@ def display_info(display, images, item):
     data_rect.midtop = stuff_rect.move(50, 5).midtop
     while not done:
         for event in pygame.event.get():
+            joystick.Update(event)
+            if not hasattr(event, "key"):
+                event.key = None
             if event.type == pygame.QUIT:
                 done = True
-            if event.type == pygame.KEYUP:
+            if event.type == pygame.KEYUP or joystick.WasEvent():
                 if event.key in (pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_q,
-                        pygame.K_SPACE, pygame.K_BACKSPACE, pygame.K_i):
+                        pygame.K_SPACE, pygame.K_BACKSPACE, pygame.K_y) or joystick.GoEvent() or joystick.BackEvent():
                     done = True
         display.blit(background, (0, 0))
         pygame.draw.rect(display, (50, 50, 50), stuff_rect)
@@ -34,6 +38,7 @@ def display_info(display, images, item):
         retro_text(stuff_rect.midbottom, display, 14, "Press <Enter> to exit", anchor="midbottom")
         pygame.display.update()
         clock.tick(25)
+    joystick.Reset()
 
 def dry_init(v):
     return v([0, 0], [], None, True)

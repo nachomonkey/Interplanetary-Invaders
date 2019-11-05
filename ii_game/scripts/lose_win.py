@@ -5,6 +5,7 @@ from ii_game.scripts.confirm import confirmExit
 from ii_game.scripts import screenshot
 from ii_game.scripts.sound import Sound
 from ii_game.scripts.utils import fixPath
+from ii_game.scripts import joystick
 
 pygame.init()
 
@@ -46,20 +47,23 @@ class LoseWin:
 
     def events(self):
         for event in pygame.event.get():
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_F2:
+            joystick.Update(event)
+            if not hasattr(event, "key"):
+                event.key = None
+            if event.type == pygame.KEYUP or joystick.WasEvent():
+                if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture("WL", self.display)
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     self.money_old = self.money_new
                 if event.key == pygame.K_TAB:
                     self.top_selected = not self.top_selected
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_UP or joystick.JustWentUp():
                     self.top_selected = True
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_DOWN or joystick.JustWentDown():
                     self.top_selected = False
-                if event.key == pygame.K_i:
+                if event.key == pygame.K_y or joystick.JustPressedY():
                     self.info()
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN or joystick.JustPressedA():
                     self.money_sound.stop()
                     if self.top_selected:
                         self.done = True
@@ -83,10 +87,15 @@ Total attempts to beat this level:{self.lost}
 Max Combo: {self.maxcombo}"""
         while not done:
             for event in pygame.event.get():
+                joystick.Update(event)
+                if not hasattr(event, "key"):
+                    event.key = None
                 if event.type == pygame.QUIT:
                     done = True
-                if event.type == pygame.KEYUP:
-                    if event.key in (pygame.K_q, pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_SPACE, pygame.K_i):
+                if event.type == pygame.KEYUP or joystick.WasEvent():
+                    if event.key == pygame.K_F2 or joystick.JustPressedLB():
+                        screenshot.capture("WL_info", self.display)
+                    if event.key in (pygame.K_q, pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_SPACE, pygame.K_y) or joystick.BackEvent() or joystick.GoEvent():
                         done = True
             self.display.blit(display, (0, 0))
             pygame.draw.rect(self.display, (40, 40, 40), rect)
@@ -95,6 +104,7 @@ Max Combo: {self.maxcombo}"""
                 retro_text((121, 142 + index * 14), self.display, 14, line, color=(0, 0, 0))
                 retro_text((120, 140 + index * 14), self.display, 14, line)
             pygame.display.update()
+        joystick.Reset()
 
     def draw(self):
         self.display.blit(self.images["background"], (0, 0))
@@ -117,7 +127,7 @@ Max Combo: {self.maxcombo}"""
             retro_text((400, 100), self.display, 14, round(self.bonus), anchor="center")
             retro_text((400, 125), self.display, 14, "Accuracy Bonus", anchor="center")
             retro_text((400, 150), self.display, 14, round(self.bonus1 * self.acc_per), anchor="center")
-        retro_text((400, 165), self.display, 14, "Press <i> for more info", anchor="center")
+        retro_text((400, 165), self.display, 14, "Press <Y> for more info", anchor="center")
 
     def update(self):
         self.frame_time += self.time_passed

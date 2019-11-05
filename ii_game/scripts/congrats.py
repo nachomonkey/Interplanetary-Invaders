@@ -2,6 +2,7 @@ import pygame
 
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts import screenshot
+from ii_game.scripts import joystick
 
 pygame.init()
 
@@ -19,10 +20,13 @@ def congrats(display, images, mode, data, profile=None):
         profile["achievements"].append(data[0])
     while not done:
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_RETURN, pygame.K_ESCAPE):
+            joystick.Update(event)
+            if not hasattr(event, "key"):
+                event.key = None
+            if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                if event.key in (pygame.K_RETURN, pygame.K_ESCAPE) or joystick.GoEvent() or joystick.BackEvent():
                     done = True
-                if event.key == pygame.K_F2:
+                if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture("_congrats", display)
         display.blit(images["background"], (0, 0))
         if not mode == "store":
