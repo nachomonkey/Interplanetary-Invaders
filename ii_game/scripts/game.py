@@ -46,21 +46,28 @@ pygame.K_KP0]
 
 pygame.mixer.set_num_channels(50)
 
-def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), width=150, height=20):
+def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), back=(10, 10, 10), width=150, height=20, r=True):
     if prog <= 0 and shield <= 0:
         return
     rect = pygame.Rect((0, 0), (width, height))
     rect.center = center
     rect2 = rect.copy()
     rect3 = rect.copy()
-    if prog < .97:
-        rect.w *= int(prog * 10) / 10 / max_health
-    if shield < .97:
-        rect3.w *= int(shield * 10) / 10 / max_shield
-    pygame.draw.rect(surf, (10, 10, 10), rect2)
+    if prog > max_health:
+        prog = max_health
+    if r:
+        if prog < .97:
+            rect.w *= int(prog * 10) / 10 / max_health
+        if shield < .97:
+            rect3.w *= int(shield * 10) / 10 / max_shield
+    else:
+        rect.w *= prog
+        rect3.w *= shield
+    pygame.draw.rect(surf, back, rect2)
     pygame.draw.rect(surf, color, rect)
-    pygame.draw.rect(surf, (0, 100, 150), rect3)
-    for x in range(0, 150, 11):
+    if shield:
+        pygame.draw.rect(surf, (0, 100, 150), rect3)
+    for x in range(0, width, 11):
         pygame.draw.line(surf, (0, 0, 0), (rect.left + x, rect.top), (rect.left + x, rect.bottom - 1), 1)
 
 
@@ -126,12 +133,15 @@ class Game:
             if self.point.lost > 7:        # Are you a loser?
                 self.loser = True          # You ARE a loser?!?
                 self.GOs.append(GameObject((250, 100), images, self.mission, "block", value = items.FireItem2x))
+                self.mission.item_mul *= 2
+                self.mission.items_dropped *= 2
         self.notimer = True
         self.accuracy = []
         self.lasers_to_track = []
         self.combo = 0
         self.combos = []
         self.i10l = store_data.ItemStorage10 in self.profile["inventory"][2]
+        self.item_progress = 0
 
     def main(self):
         """Running this method runs the game"""
@@ -518,9 +528,11 @@ class Game:
         retro_text((402, 2), self.display, 16, f"Aliens Killed: {self.aliens_killed} / {self.mission.aliens}", anchor = "midtop", font = "impact", color = (0, 0, 0))
         retro_text((400, 0), self.display, 16, f"Aliens Killed: {self.aliens_killed} / {self.mission.aliens}", anchor = "midtop", font = "impact")
         if self.combo:
-            retro_text((402, 18), self.display, 16, f"Combo: {self.combo}", anchor = "midtop", font = "impact", color = (0, 0, 0))
-            retro_text((400, 16), self.display, 16, f"Combo: {self.combo}", anchor = "midtop", font = "impact")
+            retro_text((402, 28), self.display, 16, f"Combo: {self.combo}", anchor = "midtop", font = "impact", color = (0, 0, 0))
+            retro_text((400, 30), self.display, 16, f"Combo: {self.combo}", anchor = "midtop", font = "impact")
         draw_bar(self.player.health, (600, 40), self.display, self.player.max_health, self.player.max_shield, self.player.shield)
+        draw_bar(self.item_progress, (400, 20), self.display, 1, 1, color=(150, 35, 0), back=(30, 30, 30), width=300, height=6, r=False)
+        draw_bar(self.mission.getProgTillNextItem(self.aliens_killed), (400, 27), self.display, 1, 1, color=(0, 150, 0), back=(30, 30, 30), width=300, height=6, r=False)
         image = "itemHolder"
         minus = 0
         if self.i10l:
@@ -579,6 +591,9 @@ class Game:
                             a.dead = 1
                             a.explode_sound.play()
                             self.aliens_killed += 1
+                            if self.aliens_killed in self.mission.programmed_items:
+                                GameObject((400, 100), self.images, self.mission, "block", value=self.mission.programmed_items[self.aliens_killed])
+                                self.mission.last_aliens_killed = self.aliens_killed
                 for go in self.GOs:
                     if go.type in ("mine", "moneyBag", "rock"):
                         go.dead = True
@@ -824,6 +839,7 @@ class Game:
                 self.doubleDie(alien)
             if alien.health <= 0:
                  if not alien.dead:
+                     self.item_progress += alien.__class__.item_value * self.mission.item_mul
                      self.aliens_killed += 1
                      alien.dead = 1
                      points = 0
@@ -888,6 +904,7 @@ class Game:
                     alien.health -= laser.damage
                     if alien.dead == 2 and not alien.grounded:
                         self.doubleDie(alien)
+                        self.item_progress += (alien.__class__.item_value / 3) * self.mission.item_mul
                     laser.hits += 1
                     alien.hitBy = laser
                     if alien.health >= 0:

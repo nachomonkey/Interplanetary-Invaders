@@ -14,6 +14,7 @@ METER = 0.006
 
 class Alien:
     difficulty = 1
+    item_value = (1 / 35)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         self.GOs = GOs
         self.flaks = flaks
@@ -177,6 +178,7 @@ class Alien:
             
 class MicroAlien(Alien):
     difficulty = .5
+    item_value = (1 / 50)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.size, self.exp_size = (32, 32), (64, 64)
@@ -186,6 +188,7 @@ class MicroAlien(Alien):
 
 class PurpleAlien(Alien):       # Carpet Bomber Alien
     difficulty = 1.5
+    item_value = (1 / 25)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "purpleAlien"
@@ -213,6 +216,7 @@ class MicroAlienMK2(PurpleAlien):
 
 class YellowAlien(Alien):   #Explosive-Bomb dropping alien (for Venus)
     difficulty = 6
+    item_value = (1 / 15)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "yellowAlien"
@@ -232,6 +236,7 @@ class YellowAlien(Alien):   #Explosive-Bomb dropping alien (for Venus)
 
 class GreenAlien(Alien):  # Mine dropping alien (for Mercury)
     difficulty = 4
+    item_value = (1 / 20)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "greenAlien"
@@ -253,6 +258,7 @@ class GreenAlien(Alien):  # Mine dropping alien (for Mercury)
 
 class VenusAlien(Alien):  # Medium-armor venus alien
     difficulty = 2
+    item_value = (1 / 25)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "venus_alien"
@@ -267,6 +273,7 @@ class VenusAlien(Alien):  # Medium-armor venus alien
 
 class FastAlien(Alien):
     difficulty = 3
+    item_value = (1 / 20)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "fast_alien"
@@ -284,6 +291,7 @@ class FastAlien(Alien):
 
 class JupiterAlien(Alien):
     difficulty = 1.5
+    item_value = (1 / 30)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "jupiter_alien"

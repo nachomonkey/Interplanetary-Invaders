@@ -25,9 +25,17 @@ class Mission:
         self.bounce = 3
         self.temperature = 75
         self.ground = 495
+        self.item_mul = 1
+        self.programmed_items = {}
+        self.last_aliens_killed = 0
 
     def getGOs(self, images):
         return self.GOs
+
+    def getProgTillNextItem(self, aliens_killed):
+        if not self.programmed_items:
+            return 0
+        return aliens_killed / (list(self.programmed_items)[0] - self.last_aliens_killed)
 
     def getItem(self):
         return random.choice(self.item_types)()
@@ -129,6 +137,7 @@ class MissionEarth1(Mission):
         self.friction = 4
         self.bonus = 100
         self.patterns = [AlienPattern(amount = 25)]
+        self.programmed_items = {20 : items.DoubleMoney}
         self.name = "First Mission"
         self.backdrop = "brick_with_grass"
         self.briefing = f"""Destroy a small detachment
