@@ -46,10 +46,10 @@ pygame.K_KP0]
 
 pygame.mixer.set_num_channels(50)
 
-def draw_bar(prog, center, surf, max_health, max_shield, shield = 0):
+def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), width=150, height=20):
     if prog <= 0 and shield <= 0:
         return
-    rect = pygame.Rect((0, 0), (150, 20))
+    rect = pygame.Rect((0, 0), (width, height))
     rect.center = center
     rect2 = rect.copy()
     rect3 = rect.copy()
@@ -58,7 +58,7 @@ def draw_bar(prog, center, surf, max_health, max_shield, shield = 0):
     if shield < .97:
         rect3.w *= int(shield * 10) / 10 / max_shield
     pygame.draw.rect(surf, (10, 10, 10), rect2)
-    pygame.draw.rect(surf, (0, 255, 0), rect)
+    pygame.draw.rect(surf, color, rect)
     pygame.draw.rect(surf, (0, 100, 150), rect3)
     for x in range(0, 150, 11):
         pygame.draw.line(surf, (0, 0, 0), (rect.left + x, rect.top), (rect.left + x, rect.bottom - 1), 1)
@@ -703,7 +703,7 @@ class Game:
             self.endgame = "lost"
         for laser in self.player.lasers:
             laser.update(self.time_passed)
-            if laser.dead:
+            if laser.kill:
                 self.kill_laser(laser)
             for go in self.GOs:
                 if laser.get_rect().colliderect(go.get_rect()) and not go.dead:
@@ -838,8 +838,13 @@ class Game:
                      alien.phase = 1
                      if alien.dead == 1:
                          if not random.randint(0, 29):
-                             alien.jackpot = True
                              self.add_points("JACKPOT!", alien.get_rect().center, True)
+                             MONEYBAGS = 20
+                             VELOCITIES = range(-MONEYBAGS // 2, MONEYBAGS // 2)
+                             POWER = 50
+                             for x in range(MONEYBAGS):
+                                 self.GOs.append(GameObject(alien.get_rect().center, self.images, self.mission, velocity=[(VELOCITIES[x] * random.uniform(.8, 1.2) * POWER), -random.uniform(200, 500)],\
+                                         type="moneyBag", amount=random.choice([75, 100, 125, 150, 150, 150, 150, 175, 200, 500])))
                          else:
                              self.add_points(alien.death_amount[0] + points, alien.get_rect().center)
                              alien.explode_sound.play()
@@ -879,14 +884,14 @@ class Game:
                     alien.dead = 1
                     alien.explode_sound.play()
             for laser in self.player.lasers:
-                if alien.get_rect().colliderect(laser.get_rect()) and alien.hitBy != laser:
+                if alien.get_rect().colliderect(laser.get_rect()) and alien.hitBy != laser and not laser.dead:
                     alien.health -= laser.damage
                     if alien.dead == 2 and not alien.grounded:
                         self.doubleDie(alien)
                     laser.hits += 1
                     alien.hitBy = laser
                     if alien.health >= 0:
-                        self.kill_laser(laser)
+                        laser.die()
         Items = self.player.current_items
         newDict = copy.copy(Items)
         for item in newDict:

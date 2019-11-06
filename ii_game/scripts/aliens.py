@@ -35,7 +35,6 @@ class Alien:
         self.velocity = Vector2([self.speed, 0])
         self.grounded = False
         self.player = player
-        self.jackpot = False
         self.hitBy = None
         self.mission = mission
         self.firesLaser = False
@@ -158,8 +157,6 @@ class Alien:
         if self.phase_time >= self.phase_rate and not (self.dead == 2 and not self.grounded):
             self.phase += 1
             self.phase_time = 0
-            if self.jackpot:
-                self.GOs.append(GameObject((self.get_rect().x + self.get_rect().width / self.phase, self.get_rect().centery), self.images, self.mission, type = "moneyBag", amount = random.choice([50, 100])))
         if self.phase == 4 and not self.dead:
             self.phase = 1
         if self.phase == self.maxPhase:
