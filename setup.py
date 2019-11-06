@@ -44,6 +44,5 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
-        "Topic :: Game :: Arcade",
     ],
 )

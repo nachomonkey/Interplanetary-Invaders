@@ -187,7 +187,15 @@ class GameObject:
             if round(self.velocity[1], 1) == 0:
                 self.velocity[0] = 0
                 self.velocity[1] = 0
+        if rect.bottom == self.mission.ground:
+            try:
+                self.velocity[0] *= (1 + self.mission.friction) * self.mission.planet.gravity
+            except ZeroDivisionError:
+                pass
         if not (self.type in ("moneyBag", "aircraft") and self.dead):
+            centerx = rect.centerx
+            if centerx < 0 or centerx > 800:
+                self.velocity[0] *= -1
             self.pos[0] += self.velocity[0] * self.time_passed
             self.pos[1] += self.velocity[1] * self.time_passed
         self.frame_time += time_passed

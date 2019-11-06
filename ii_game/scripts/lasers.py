@@ -17,8 +17,14 @@ class Laser:
         self.time_passed = 0
         self.speed = 1200    # Speed in pixels per second
         self.dead = False
+        self.kill = False
         self.damage = 1
         self.laserType = "laser"
+        self.impactAnimationName = "RedImpact"
+        self.impactAnimationLength = 7
+        self.impactAnimationFrame = 1
+        self.impactAnimationTime = 0
+        self.impactAnimationRate = 1 / 35
         self.hits = 0
         self.rotation = rotation
         self.green = False
@@ -29,9 +35,21 @@ class Laser:
         rect.topleft = self.pos
         return rect
 
+    def die(self):
+        self.dead = True
+        self.speed = 0
+
     def draw(self, surf):
         """Render Laser"""
-        surf.blit(pygame.transform.rotate(self.images[f"{self.laserType}{self.phase}"], -self.rotation), self.pos)
+        if not self.dead:
+            surf.blit(pygame.transform.rotate(self.images[f"{self.laserType}{self.phase}"], -self.rotation), self.pos)
+        if self.dead:
+            if self.impactAnimationFrame > self.impactAnimationLength:
+                self.impactAnimationFrame = self.impactAnimationLength
+            image = pygame.transform.rotate(self.images[f"{self.impactAnimationName}{self.impactAnimationFrame}"], -self.rotation)
+            image_rect = image.get_rect()
+            image_rect.center = self.get_rect().center
+            surf.blit(image, image_rect)
 
     def update(self, time_passed):
         """Update Laser"""
@@ -41,12 +59,19 @@ class Laser:
             self.phase_time = 0
         if self.phase == 6:
             self.phase = 1
+        if self.dead:
+            self.impactAnimationTime += time_passed
+            if self.impactAnimationTime >= self.impactAnimationRate:
+                self.impactAnimationTime = 0
+                self.impactAnimationFrame += 1
+            if self.impactAnimationFrame >= self.impactAnimationLength:
+                self.kill = True
         self.time_passed = time_passed
         self.pos[0] -= self.speed * self.time_passed * math.cos(math.radians(self.rotation + 90))
         self.pos[1] -= self.speed * self.time_passed * math.sin(math.radians(self.rotation + 90))
         display_rect = pygame.Rect((0, 0), (800, 600))
         if not display_rect.colliderect(self.get_rect()):
-            self.dead = True
+            self.kill = True
 
 class GreenLaser(Laser):
     def __init__(self, center, images, rotation = 0):

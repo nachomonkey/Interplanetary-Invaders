@@ -20,6 +20,7 @@ class JoystickState:
         self.joystick_left = False
         self.joystick_right = False
         self.joystick_half_down = False
+        self.X_val = 0
         self.A = False
         self.B = False
         self.X = False
@@ -32,6 +33,9 @@ class JoystickState:
         self.RT = False
         self.LB = False
         self.RB = False
+
+    def is_X_anywhere(self):
+        return self.X_val > .15 or self.X_val < -.15
 
     def TransferFrom(self, Other):
         for X in Other.__dict__:
@@ -97,6 +101,7 @@ def Update(event):
             CurrentState.Start = False
     if event.type == pygame.JOYAXISMOTION:
         if event.axis == 0:
+            CurrentState.X_val = event.value
             if event.value <= -.7:
                 CurrentState.joystick_left = True
             if event.value > -.7:
