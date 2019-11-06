@@ -189,7 +189,8 @@ class GameObject:
                 self.velocity[1] = 0
         if rect.bottom == self.mission.ground:
             try:
-                self.velocity[0] *= (1 + self.mission.friction) * self.mission.planet.gravity
+                if self.mission.planet.gravity * G > 1:
+                    self.velocity[0] /= self.mission.planet.gravity * G
             except ZeroDivisionError:
                 pass
         if not (self.type in ("moneyBag", "aircraft") and self.dead):
