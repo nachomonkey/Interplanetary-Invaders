@@ -34,4 +34,5 @@ ATTRACTION_WITH_MAGNET = {
         "rock" : -.75,
         "mine" : -.5,
         "bomb" : -1,
+        "laser" : -.015,
 }

@@ -58,13 +58,13 @@ def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255
     if prog > max_health:
         prog = max_health
     if r:
-        if prog < .97:
+        if prog / max_health < .97:
             rect.w *= int(prog * 10) / 10 / max_health
-        if shield < .97:
+        if shield / max_shield < .97:
             rect3.w *= int(shield * 10) / 10 / max_shield
     else:
-        rect.w *= prog
-        rect3.w *= shield
+        rect.w *= prog / max_health
+        rect3.w *= shield / max_shield
     pygame.draw.rect(surf, back, rect2)
     pygame.draw.rect(surf, color, rect)
     if shield:
@@ -239,6 +239,8 @@ class Game:
                     if event.key == pygame.K_RETURN or joystick.JustPressedA():
                         if (len(self.player.items) > sel):
                             self.activate_item(sel)
+                        else:
+                            Sound(fix_path("audio/donk.wav")).play()
                         if not self.player.items:
                             done = True
             self.Display.blit(display, (0, 0))
@@ -497,7 +499,7 @@ class Game:
             self.player.regen = True
         if item.name == "Magnet":
             for go in self.GOs:
-                go.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(go.type, 0)
+                go.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(go.type, 0) * self.mission.magnet_power
 
     def draw(self):
         """Render the game"""
