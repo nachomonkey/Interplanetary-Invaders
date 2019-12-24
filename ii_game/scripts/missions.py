@@ -30,6 +30,7 @@ class Mission:
         self.last_aliens_killed = 0
         self.bottomless_override = None
         self.unlocks_planets = []
+        self.magnet_power = 1
 
     def getProgTillNextItem(self, aliens_killed):
         if not self.programmed_items:
@@ -363,9 +364,7 @@ class MissionMars4(MissionMars1):
                 AlienPattern(rate=(.4, .4), amount=25, aliens=[PurpleAlien, Alien])]
         self.backdrop = "mars_encampment1"
         self.briefing = """You face heavy Martian Spider opposition
-as you near their homelands.
-
-HINT: Try to find a 2x Fire Rate item."""
+as you near their homelands."""
 
 class MissionMars5(MissionMars1):
     def __init__(self):
@@ -544,9 +543,11 @@ a whole bunch of alien spiders invade."""
 class MissionJupiter1(Mission):
     def __init__(self):
         super().__init__()
+        self.magnet_power = 20
         self.aliens = 25
         self.planet = Jupiter
         self.name = "Jupiter Mission 1"
+        self.programmed_items = {0 : items.ShieldRegen, 20 : items.MagnetItem}
         self.patterns = [AlienPattern(amount=25, aliens=[JupiterAlien])]
         self.bonus = 3500
         self.items = 0
@@ -566,15 +567,17 @@ class MissionJupiter2(MissionJupiter1):
         self.name = "Jupiter Havoc"
         self.bonus = 4500
         self.item_types = [items.FireItem2x]
-        self.programmed_items = {0 : items.ShieldRegen}
-        self.patterns = [AlienPattern(amount=10, rate=(.3, .55), aliens=[JupiterAlien, Alien]),
+        self.programmed_items = {0 : (items.ShieldRegen, items.MagnetItem)}
+        self.patterns = [AlienPattern(amount=10, rate=(.35, .55), aliens=[JupiterAlien, Alien]),
                 AlienPattern(amount=20, rate=(.4, 2), aliens=[JupiterAlien, JupiterAlien, Alien]),
                 AlienPattern(amount=10, rate=(.3, 1), aliens=[JupiterAlien])]
         self.items = 10
         self.backdrop = "jupiter_backdrop1"
         self.briefing = """The Earth-Spiders have
 arrived to assist the Jovian
-Spiders. Destroy them!"""
+Spiders. Destroy them!
+
+HINT: The magnet item will attract useful resources"""
 
 class MissionJupiter3(MissionJupiter1):
     def __init__(self):
@@ -582,7 +585,7 @@ class MissionJupiter3(MissionJupiter1):
         self.aliens = 125
         self.name = "Flak Time"
         self.item_types = [items.ShieldRegen]
-        self.programmed_items = {0 : [items.FlakItem, items.ShieldRegen]}
+        self.programmed_items = {0 : (items.FlakItem, items.ShieldRegen), 10 : items.MagnetItem}
         self.patterns = [AlienPattern(amount=1, rate=(3, 3), aliens=[JupiterAlien]),
                 AlienPattern(amount=124, rate=(.1, .3), aliens=[JupiterAlien])]
         self.items = 20
@@ -590,7 +593,7 @@ class MissionJupiter3(MissionJupiter1):
 UFOs is invading. Use the provided
 Flak and Shield items.
 
-HINT: Hold <Left Shift> to launch flak."""
+HINT: Hold <Left Shift> or [A] to launch flak."""
 
 class MissionTest(Mission):
     def __init__(self):

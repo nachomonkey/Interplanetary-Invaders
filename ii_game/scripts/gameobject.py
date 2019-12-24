@@ -103,7 +103,7 @@ class GameObject:
     def update_attraction(self):
         if self.player:
             if "Magnet" in self.player.current_items:
-                self.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(self.type, 0) # tracing velocity change in m/s
+                self.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(self.type, 0) * self.mission.magnet_power # tracing velocity change in m/s
             else:
                 self.tracking_speed = constants.ATTRACTION.get(self.type, 0)
 

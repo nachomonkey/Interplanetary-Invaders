@@ -208,8 +208,6 @@ class Menu:
                             if self.options[sel] == "Save":
                                 self.options_mode = False
                                 saves.save_data("options", self.options_dict)
-                            if not self.options_mode and self.options_lock:
-                                self.done = True
                         elif self.play_mode:
                             if self.profiles[self.profile_selected] == "Back":
                                 self.play_mode = False
@@ -236,7 +234,8 @@ of Interplanetary Invaders!!!\nErrors may occur!!!", "warning"))
                                 run_credits(self.display, self.images)
                                 pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.mp3")))
                                 pygame.mixer.music.play(-1)
-
+                if not self.options_mode and self.options_lock:
+                    self.done = True
 
     def exit(self):
         pygame.quit()
