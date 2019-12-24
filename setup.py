@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from setuptools import setup
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path
 from ii_game import __version__
 import os, shutil, sys
 
@@ -9,12 +9,12 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 def fmt(txt):
-    return fixPath(txt.replace("ii_game/", "") + "/*")
+    return fix_path(txt.replace("ii_game/", "") + "/*")
 
 img_data = []
 
 if "install" in sys.argv:
-    for r, d, f in os.walk(fixPath("ii_game/images/bitmap")):
+    for r, d, f in os.walk(fix_path("ii_game/images/bitmap")):
         if not fmt(r) in img_data:
             img_data.append(fmt(r))
     if sys.platform == "linux" and not "sdist" in sys.argv:
@@ -34,7 +34,7 @@ setup(
     url="https://github.com/nachomonkey/interplanetary-invaders",
     install_requires=["setuptools", "pygame >=1.9.5, <=2.0.0.dev1", "humanize>=0.5.0"],
     packages=["ii_game", "ii_game.scripts"],
-    package_data={"ii_game":["*.png", fixPath("fonts/*"), fixPath("music/*"), fixPath("audio/*"), fixPath("audio/music/*"), fixPath("data/*")] + img_data},
+    package_data={"ii_game":["*.png", fix_path("fonts/*"), fix_path("music/*"), fix_path("audio/*"), fix_path("audio/music/*"), fix_path("data/*")] + img_data},
     entry_points={
         "console_scripts": [
             "interplanetary-invaders = ii_game.main:run",
