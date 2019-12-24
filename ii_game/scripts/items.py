@@ -75,7 +75,15 @@ class ShieldRegen(Item):
         self.name = "Shield Regenerator"
         self.image = "shield_regen"
 
-items = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen]
+class MagnetItem(Item):
+    cost = 7000
+    def __init__(self):
+        super().__init__()
+        self.length = 30
+        self.name = "Magnet"
+        self.image = "magnet"
+
+items = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem]
 
 def getItem():
     return random.choice(items)()

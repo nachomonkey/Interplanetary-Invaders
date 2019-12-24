@@ -3,7 +3,7 @@ import os
 from copy import deepcopy
 
 from ii_game.scripts.get_file import get_file
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path
 
 debugMode = True
 
@@ -30,13 +30,14 @@ def load_profile(index):
         profile["new"] = data.get("new", True)
         profile["map"] = data.get("map", maps.AllMaps)
         profile["points"] = data.get("points", maps.SavedPoints)
-        profile["finished_planets"] = data.get("finished_planets", [])
+        profile["unlocked_planets"] = data.get("unlocked_planets", ["Earth"])
         profile["money_killed"] = data.get("money_killed", 0)
         profile["achievements"] = data.get("achievements", [])        # List of names of the achievements unlocked
         profile["inventory"] = data.get("inventory", [{}, {}, {TransportLicense1 : 1}, {StandardVehicle : 1}, {}])
         if len(profile["inventory"]) == 4:
             profile["inventory"].append({})
         profile["addNewStore"] = data.get("addNewStore", 5)
+        profile["version"] = data.get("version", "?")
     return profile
 
 def load_options():

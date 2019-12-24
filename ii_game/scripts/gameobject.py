@@ -1,7 +1,7 @@
 import pygame, random, copy
 from pygame.math import Vector2
 from ii_game.scripts import constants
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path
 from ii_game.scripts.sound import Sound
 
 pygame.init()
@@ -12,12 +12,15 @@ SIZE = (800, 600)
 shared = {"money_ser_num" : 0}
 
 class GameObject:
-    def __init__(self, center, images, mission, type = "moneyBag", velocity = Vector2([0, 0]), amount = None, value = None):
+    def __init__(self, center, images, mission, type="moneyBag", velocity=Vector2([0, 0]), amount=None, value=None, player=None, nobounce=False):
         self.images = images
         self.type = type
         self.size = (24, 24)
         self.physics = True
+        self.player = player
         self.gotShot = False
+        self.nobounce = nobounce
+        self.max_lifetime = -1
         if self.type == "moneyBag":
             self.size = (12, 16)
         if self.type == "rock":
@@ -47,7 +50,10 @@ class GameObject:
         self.jackpot = False
         self.mission = mission
         self.health = .1
+        self.has_touched_ground = False
         self.kaboom = False
+        self.tracking = True
+        self.update_attraction()
         if self.type == "block":
             self.max_frame = 30
         if self.type == "moneyBag":
@@ -73,12 +79,14 @@ class GameObject:
             rect.center = (x, y)
             self.pos = list(rect.topleft)
             self.velocity = Vector2([1 * self.direction, .5 * self.depart]) * 300 * random.uniform(.9, 1.1)
-            self.jet_sound = Sound(fixPath("audio/jet.wav"))
+            self.jet_sound = Sound(fix_path("audio/jet.wav"))
             self.jet_sound.play(-1)
         if self.type == "mine":
             self.frame_rate = .5
             self.max_frame = 3
             self.health = 1
+            self.tracking = True
+            self.max_lifetime = random.uniform(2.3, 2.8)
         if self.type == "laser":
             self.max_frame = 5
             self.frame_rate = 0.01
@@ -92,11 +100,32 @@ class GameObject:
         # Bounce equation:
 #        V = (V - GF) * (C + C2)
 
+    def update_attraction(self):
+        if self.player:
+            if "Magnet" in self.player.current_items:
+                self.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(self.type, 0) # tracing velocity change in m/s
+            else:
+                self.tracking_speed = constants.ATTRACTION.get(self.type, 0)
+
     def get_rect(self):
         """Returns a pygame.Rect object representing this GameObject"""
         rect = pygame.Rect((0, 0), self.rect_size)
         rect.topleft = self.pos
         return rect
+
+    def calculate_ground_impact(self):
+        """Calculates the point on the ground where this will impact"""
+        if self.has_touched_ground or not self.physics:
+            return self.get_rect().center
+        SIM_SPEED = 0.1  # Seconds / Simulation Tick
+        rect = copy.copy(self.get_rect())
+        pos = Vector2(rect.center)
+        vel = Vector2(copy.copy(self.velocity))
+        while rect.bottom < self.mission.ground:
+            vel[1] += (self.mission.planet.gravity * G) * SIM_SPEED / METER
+            pos += vel * SIM_SPEED
+            rect.center = pos
+        return pos
 
     def draw(self, surf):
         if self.type in ("moneyBag", "rock") and not self.dead:
@@ -158,9 +187,17 @@ class GameObject:
             surf.blit(self.images[f"mine_boom{self.frame}"], rect2)
 
     def update(self, time_passed):
+        """Update physics and animations of this GameObject"""
         self.lifetime += time_passed
         if self.type == None:
             return
+        if self.tracking and self.player and not self.dead and self.physics and not self.has_touched_ground and self.tracking_speed:
+            impact = self.calculate_ground_impact()
+            dest = self.player.get_rect().center
+            if impact[0] > dest[0]: # Need to move LEFT
+                self.velocity[0] -= self.tracking_speed * time_passed / METER
+            if impact[0] < dest[0]: # Need to move RIGHT
+                self.velocity[0] += self.tracking_speed * time_passed / METER
         rect = self.get_rect()
         if self.type == "aircraft":
             if not pygame.Rect(0, 0, 800, 600).colliderect(rect):
@@ -168,25 +205,29 @@ class GameObject:
                 self.kill = True
         if rect.bottom < self.mission.ground and self.physics:
             self.velocity[1] += (self.mission.planet.gravity * G) * time_passed / METER
-        if rect.bottom > self.mission.ground and self.physics:
-            if self.type == "rock":
+        if rect.bottom >= self.mission.ground and self.physics:
+            self.has_touched_ground = True
+            if self.type == "rock" and not self.dead:
                 self.dead = True
                 self.frame = 1
             if self.type == "laser":
                 self.kill = True
-            if self.type in ("block", "moneyBag", "heart", "shield") and self.mission.planet.gasgiant:
+            if self.type in ("block", "moneyBag", "heart", "shield", "mine") and self.mission.is_bottomless():
                 self.dead = True
                 self.frame = 1
                 self.physics = False
                 self.velocity[0] = 0
                 self.velocity[1] = 0
                 self.frame_rate = 1/30
+            if self.type == "mine":
+                self.phyiscs = False
             rect.bottom = self.mission.ground
             self.pos = list(rect.topleft)
-            self.velocity[1] = -((self.velocity[1] - (self.mission.planet.gravity * G) * time_passed / METER) / (constants.BOUNCE[self.type] + self.mission.bounce))
-            if round(self.velocity[1], 1) == 0:
-                self.velocity[0] = 0
-                self.velocity[1] = 0
+            if self.physics:
+                self.velocity[1] = -((self.velocity[1] - (self.mission.planet.gravity * G) * time_passed / METER) / (constants.BOUNCE[self.type] + self.mission.bounce))
+                if round(self.velocity[1], 1) == 0:
+                    self.velocity[0] = 0
+                    self.velocity[1] = 0
         if rect.bottom == self.mission.ground:
             try:
                 if self.mission.planet.gravity * G > 1:
@@ -195,7 +236,7 @@ class GameObject:
                 pass
         if not (self.type in ("moneyBag", "aircraft") and self.dead):
             centerx = rect.centerx
-            if centerx < 0 or centerx > 800:
+            if (centerx < 0 or centerx > 800) and not self.nobounce:
                 self.velocity[0] *= -1
             self.pos[0] += self.velocity[0] * self.time_passed
             self.pos[1] += self.velocity[1] * self.time_passed

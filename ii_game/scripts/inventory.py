@@ -3,7 +3,7 @@ import pygame
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts import store_data
 from ii_game.scripts.sound import Sound
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path
 from ii_game.scripts.info import display_info
 from ii_game.scripts import joystick
 from copy import copy
@@ -141,11 +141,12 @@ class Inventory:
                                 x[1] = lcat[sel]
                                 if cat[lcat[sel]] == 1:
                                     cat.pop(lcat[sel])
+                                    break
                                 else:
                                     cat[lcat[sel]] -= 1
                                     break
                     if not didSomething:
-                        Sound(fixPath("audio/donk.wav")).play()
+                        Sound(fix_path("audio/donk.wav")).play()
                     if self.selected == 2 and cat[sel][1] != None:
                         done = False
                         for x in self.catagories[1]:

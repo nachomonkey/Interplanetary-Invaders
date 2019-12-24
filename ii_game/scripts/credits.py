@@ -4,7 +4,7 @@ import sys
 pygame.init()
 
 from ii_game.scripts.retro_text import retro_text
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path
 from ii_game.scripts.get_file import get_file
 from ii_game.scripts import joystick
 
@@ -17,8 +17,10 @@ NachoMonkey
 
 Sound FX: NachoMonkey
 
-Animations, 3d images: NachoMonkey
+Flak Sound [MODIFIED]:
+zimbot (see README.md)
 
+Animations, 3d images: NachoMonkey
 
 Photo Credits
 
@@ -49,9 +51,9 @@ images/bitmaps/(un)lock_exoplanets: NASA"""
 
 
 def run_credits(display, images):
-    pygame.mixer.music.stop()
-    pygame.mixer.music.load(get_file(fixPath("music/stores.mp3")))
-    pygame.mixer.music.play()
+#    pygame.mixer.music.stop()
+    pygame.mixer.music.load(get_file(fix_path("audio/music/stores.mp3")))
+    pygame.mixer.music.play(-1)
     clock = pygame.time.Clock()
     done = False
     text = []

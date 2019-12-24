@@ -20,6 +20,11 @@ def confirmExit(display, profile, num):
     rect2.center = points[1]
     rect3.midright = points[2]
     rects = [rect1, rect2, rect3]
+    old_display = display.copy()
+    surf2 = old_display.copy()
+    surf2.fill((30, 30, 30))
+    surf2.set_alpha(150)
+    old_display.blit(surf2, (0, 0))
     while True:
         click = False
         for event in pygame.event.get():
@@ -52,7 +57,7 @@ def confirmExit(display, profile, num):
                     button_selected = 2
                 if event.key == pygame.K_RETURN or joystick.JustPressedA():
                     click = True
-        display.fill((125, 125, 125))
+        display.blit(old_display, (0, 0))
         retro_text((400, 302), display, 30, "Exit?", anchor="midbottom", bold=True, color=(0, 0, 0))
         retro_text((400, 300), display, 30, "Exit?", anchor="midbottom", bold=True)
         for n, rect in enumerate(rects):

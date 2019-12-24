@@ -54,7 +54,7 @@ def congrats(display, images, mode, data, profile=None):
             if not mode == "store":
                 retro_text((400, 300), display, 14, f"You have unlocked Planet {data.name}", anchor = "center")
             else:
-                retro_text((400, 300), display, 14, f"New Store on {data.name}", anchor = "center")
+                retro_text((400, 300), display, 14, f"Restocked Store on {data.name}", anchor = "center")
             pt += time_passed
             if pt >= pfr:
                 pf += 1
@@ -65,7 +65,7 @@ def congrats(display, images, mode, data, profile=None):
             retro_text((400, 250), display, 17, f"{data[0]} Achievement Unlocked!", anchor = "center", font = "Sans")
             retro_text((400, 280), display, 15, data[1], anchor = "center", bold = True, font = "Sans")
             retro_text((400, 300), display, 15, f"Money Earned: {data[2]}", bold = True, font = "Sans", anchor = "center")
-        if total_time_passed >= 7.5:
+        if total_time_passed >= 15:
             done = True
         pygame.display.update()
         time_passed = clock.tick(60) / 1000

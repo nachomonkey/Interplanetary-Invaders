@@ -4,15 +4,15 @@ import time
 import copy
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.sound import Sound
-from ii_game.scripts.utils import fixPath, colorize
+from ii_game.scripts.utils import fix_path, colorize
 from ii_game.scripts.get_file import get_file
 
 from ii_game.scripts import saves
-directory = get_file(fixPath("data/screenshots"))
+directory = get_file(fix_path("data/screenshots"))
 
 pygame.init()
 
-sound = Sound(fixPath("audio/click.wav"))
+sound = Sound(fix_path("audio/click.wav"))
 options = saves.load_options()
 save_for_later = {}
 
@@ -30,14 +30,14 @@ def capture(profile_num, surf, ingame = False):
         os.mkdir(directory)
     name = f"ii{profile_num}_{data.tm_year}{data.tm_mon}{data.tm_mday}{data.tm_hour}{data.tm_min}{data.tm_sec}"
     done_this = False
-    p = fixPath(directory+"/"+name+".png")
+    p = fix_path(directory+"/"+name+".png")
     while os.path.exists(p) or name in save_for_later:
         if not done_this:
             name += "_2"
             done_this = True
         else:
             name = name[:-1] + str(int(name[-1]) + 1)
-        p = fixPath(directory+"/"+name+".png")
+        p = fix_path(directory+"/"+name+".png")
     sound.play()
     if ingame and options["cache_screen_shots"]:
         print(colorize(f"Caching screenshot {name}", "blue"))
@@ -48,7 +48,7 @@ def capture(profile_num, surf, ingame = False):
 def save(surf, name):
     print(colorize("Saving screenshot...", "blue"))
     t1 = time.time()
-    pygame.image.save(surf, fixPath(f"{directory}/{name}.png"))
+    pygame.image.save(surf, fix_path(f"{directory}/{name}.png"))
     t2 = time.time()
     print(colorize(f"Saved screenshot \"{name}\" in {round(t2-t1, 2)} seconds", "green"))
 

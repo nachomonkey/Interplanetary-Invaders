@@ -21,3 +21,17 @@ MASS = {
         "rock" : 1,
         "heart" : .35,
 }
+
+ATTRACTION = {
+        "mine" : 1,
+}
+
+ATTRACTION_WITH_MAGNET = {
+        "moneyBag" : 5,
+        "block" : 5,
+        "heart" : 4,
+        "shield" : 7,
+        "rock" : -.75,
+        "mine" : -.5,
+        "bomb" : -1,
+}

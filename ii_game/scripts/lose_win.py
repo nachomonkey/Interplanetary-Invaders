@@ -4,7 +4,7 @@ from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.confirm import confirmExit
 from ii_game.scripts import screenshot
 from ii_game.scripts.sound import Sound
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path
 from ii_game.scripts import joystick
 
 pygame.init()
@@ -33,7 +33,7 @@ class LoseWin:
             self.acc_per2 = 0
         self.money_new += round(self.bonus)
         self.money_new += round(self.bonus1 * self.acc_per)
-        self.money_sound = Sound(fixPath("audio/money.wav"))
+        self.money_sound = Sound(fix_path("audio/money.wav"))
         if mode == "won":
             self.money_sound.play(-1)
         self.exit = False
