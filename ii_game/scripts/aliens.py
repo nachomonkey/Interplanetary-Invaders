@@ -2,7 +2,7 @@ import random
 import pygame
 from pygame.math import Vector2
 
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path, num_or_rand
 from ii_game.scripts.gameobject import GameObject
 from ii_game.scripts.game import Bomb
 from ii_game.scripts.sound import Sound
@@ -13,8 +13,9 @@ G = 9.81
 METER = 0.006
 
 class Alien:
+    """Base class of all aliens"""
     difficulty = 1
-    item_value = (1 / 35)
+    item_value = (1 / 45)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         self.GOs = GOs
         self.flaks = flaks
@@ -51,16 +52,28 @@ class Alien:
         self.death_amount = [30, 15, 50, 75]
         self.life_bar = False
         self.start_health = self.health
-        self.death_sound = Sound(fixPath("audio/alienDie.wav"))
-        self.explode_sound = Sound(fixPath("audio/alienExplode.wav"))
-        self.drop_sound = Sound(fixPath("audio/alienDrop1.wav"))
-        self.impact_damage = [.2, .4]
+        self.death_sound = Sound(fix_path("audio/alienDie.wav"))
+        self.explode_sound = Sound(fix_path("audio/alienExplode.wav"))
+        self.drop_sound = Sound(fix_path("audio/alienDrop1.wav"))
+        self.impact_damage = [.2, .4] # Impact damage: [DAMAGE_TO_HEALTH, DAMAGE_TO_SHIELD]
         self.drops_bombs = False
         self.isBoss = False
         self.drops_mines = False
+        self.explode_on_ground_impact = False
+        self.spread_weapons = False
+        self.num_spread = 3
+        self.spread_intensity = 250
 
-    def drop(self):
+        self.drop_velocity = Vector2()
+
+    def drop(self, no_spread=False, horz_velocity=None):
         if self.dead:
+            return
+        if not no_spread and self.spread_weapons:
+            AMOUNT = num_or_rand(self.num_spread) + 1
+            VELOCITIES = range(-AMOUNT // 2, AMOUNT // 2)
+            for v in VELOCITIES:
+                self.drop(True, v * self.spread_intensity)
             return
         num = 30
         if not random.randint(0, 3):
@@ -81,15 +94,18 @@ class Alien:
             Type = "moneyBag"
         if Num == 2:
             Type = "shield"
-        if num == 3 and not self.mission.items_dropped == self.mission.items:
+        if num == 3 and not self.mission.items_dropped == self.mission.items and not random.randint(0, 1):
             Type = "block"
             self.mission.items_dropped += 1
         rect = self.get_rect()
         pos = random.randint(rect.left, rect.right)
+        vel = self.drop_velocity
+        if horz_velocity:
+            vel[0] = horz_velocity
         if self.drop_from == "center":
             pos = rect.centerx
         if Type != "bomb":
-            self.GOs.append(GameObject((pos, rect.centery), self.images, self.mission, Type))
+            self.GOs.append(GameObject((pos, rect.centery), self.images, self.mission, Type, velocity=self.drop_velocity, player=self.player))
         else:
             self.flaks.append(Bomb(self.images, (pos, rect.centery), self.mission))
         if type(self.till_reg_drop) in (type(3), type(3.5)):
@@ -121,7 +137,7 @@ class Alien:
                 self.kill = True
                 return
             surf.blit(pygame.transform.scale(self.images[f"{exp_type}{self.phase}"], self.exp_size), rect2)
-        if self.life_bar:
+        if self.life_bar and not self.dead:
             rect = self.get_rect()
             rect1 = pygame.Rect((0, 0), (50, 3))
             rect1.center = rect.midbottom
@@ -154,7 +170,8 @@ class Alien:
                 self.phase_rate = .025
                 self.velocity.x, self.velocity.y = [0, 0]
             if self.dead == 2:
-                self.velocity[1] += (self.mission.planet.gravity * G) * time_passed / METER
+                if not (self.grounded and self.explode_on_ground_impact):
+                    self.velocity[1] += (self.mission.planet.gravity * G) * time_passed / METER
         if self.phase_time >= self.phase_rate and not (self.dead == 2 and not self.grounded):
             self.phase += 1
             self.phase_time = 0
@@ -167,6 +184,8 @@ class Alien:
                 self.grounded = True
                 self.velocity.x, self.velocity.y = [0, 0]
                 self.phase = 1
+                if self.explode_on_ground_impact:
+                    self.explode_sound.play()
         self.pos[0] += self.velocity[0] * self.direction * self.time_passed
         self.pos[1] += self.velocity[1] * self.time_passed
         if self.get_rect().left <= 0 and self.direction == -1:
@@ -177,6 +196,7 @@ class Alien:
             self.pos[1] += self.downshift
             
 class MicroAlien(Alien):
+    """Very Small Alien"""
     difficulty = .5
     item_value = (1 / 50)
     def __init__(self, pos, images, flaks, GOs, player, mission):
@@ -186,7 +206,8 @@ class MicroAlien(Alien):
         self.downshift = 32
         self.acc = 2
 
-class PurpleAlien(Alien):       # Carpet Bomber Alien
+class PurpleAlien(Alien):
+    """Carpet Bomber Alien"""
     difficulty = 1.5
     item_value = (1 / 25)
     def __init__(self, pos, images, flaks, GOs, player, mission):
@@ -207,6 +228,7 @@ class PurpleAlien(Alien):       # Carpet Bomber Alien
         self.impact_damage = [.5, 1]
 
 class MicroAlienMK2(PurpleAlien):
+    """Very Small Carpet-Bomber Alien"""
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.size, self.exp_size = (32, 32), (64, 64)
@@ -214,13 +236,14 @@ class MicroAlienMK2(PurpleAlien):
         self.downshift = 32
         self.acc = 3
 
-class YellowAlien(Alien):   #Explosive-Bomb dropping alien (for Venus)
+class YellowAlien(Alien):
+    """Bomb-dropping alien (for Venus)"""
     difficulty = 6
-    item_value = (1 / 15)
+    item_value = (1 / 13)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "yellowAlien"
-        self.death_amount = [250, 100, 150, 250]
+        self.death_amount = [300, 100, 150, 250]
         self.speed = random.uniform(150, 400)
         self.velocity = Vector2([self.speed, 0])
         self.drop_from = "center"
@@ -230,12 +253,15 @@ class YellowAlien(Alien):   #Explosive-Bomb dropping alien (for Venus)
         self.drops_bombs = True
         self.health = 5        # Lots of armor!
         self.start_health = 5
-        self.maxPhase = 15
-        self.exp_names = ["yellowAlienBoomSimple"] * 2
+        self.maxPhase = 14
+        self.exp_names = ["yellow_boom"] * 2
         self.impact_damage = [1, 1]
+        self.explode_on_ground_impact = True
+        self.explode_sound = Sound(fix_path("audio/alienExplode2.wav"))
 
-class GreenAlien(Alien):  # Mine dropping alien (for Mercury)
-    difficulty = 4
+class GreenAlien(Alien):
+    """Mine-dropping alien (for Mercury)"""
+    difficulty = 3.5
     item_value = (1 / 20)
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
@@ -253,10 +279,34 @@ class GreenAlien(Alien):  # Mine dropping alien (for Mercury)
         self.maxPhase = 15
         self.exp_names = ["green_boom", "green_boom_simple"]
         self.impact_damage = [.5, 1]
-        self.death_sound = Sound(fixPath("audio/alienDie2.wav"))
-        self.explode_sound = Sound(fixPath("audio/alienExplode2.wav"))
+        self.death_sound = Sound(fix_path("audio/alienDie2.wav"))
+        self.explode_sound = Sound(fix_path("audio/alienExplode2.wav"))
 
-class VenusAlien(Alien):  # Medium-armor venus alien
+class MineSpreaderAlien(GreenAlien):
+    """Alien that launches three mines (for Mercury)"""
+    diffuculty = 4
+    item_value = (1 / 15)
+    def __init__(self, pos, images, flaks, GOs, player, mission):
+        super().__init__(pos, images, flaks, GOs, player, mission)
+        self.name = "mineSpreader"
+        self.death_amount = [200, 50, 150, 150] # Money Money Money!!!
+        self.spead = random.uniform(160, 350)
+        self.velocity = Vector2([self.speed, 0])
+        self.drop_from = "center"
+        self.health = 3
+        self.start_health = 3
+        self.till_reg_drop = 3
+        self.acc = 4
+        self.maxPhase = 15
+        self.impact_damage = [.75, 1]
+        self.exp_names = ["mine_spreader_boom", "mine_spreader_boom"]
+        self.explode_on_ground_impact = True
+        self.spread_weapons = True
+        self.spread_amount = [2, 4]
+        self.drop_velocity = Vector2(0, -100)
+
+class VenusAlien(Alien):
+    """Medium-armor venus alien"""
     difficulty = 2
     item_value = (1 / 25)
     def __init__(self, pos, images, flaks, GOs, player, mission):
@@ -272,6 +322,7 @@ class VenusAlien(Alien):  # Medium-armor venus alien
         self.impact_damage = [.35, .7]
 
 class FastAlien(Alien):
+    """Very Fast Alien (aka Zipper)"""
     difficulty = 3
     item_value = (1 / 20)
     def __init__(self, pos, images, flaks, GOs, player, mission):
@@ -290,6 +341,7 @@ class FastAlien(Alien):
         self.acc = 6
 
 class JupiterAlien(Alien):
+    """Laser-firing Alien (for Jupiter)"""
     difficulty = 1.5
     item_value = (1 / 30)
     def __init__(self, pos, images, flaks, GOs, player, mission):
@@ -303,6 +355,6 @@ class JupiterAlien(Alien):
         self.till_reg_drop = (0, 4)
         self.exp_names = ["jupiter_alien_boom", "jupiter_alien_boom_simple"]
         self.firesLaser = True
-        self.death_sound = Sound(fixPath("audio/alienDie3.wav"))
-        self.explode_sound = Sound(fixPath("audio/alienExplode3.wav"))
-        self.drop_sound = Sound(fixPath("audio/alienLaser.wav"))
+        self.death_sound = Sound(fix_path("audio/alienDie3.wav"))
+        self.explode_sound = Sound(fix_path("audio/alienExplode3.wav"))
+        self.drop_sound = Sound(fix_path("audio/alienLaser.wav"))

@@ -18,7 +18,7 @@ from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.transition import transition
 from ii_game.scripts.pause_menu import pause_menu
 from ii_game.scripts.gameobject import GameObject
-from ii_game.scripts.utils import fixPath, colorize
+from ii_game.scripts.utils import fix_path, colorize
 from ii_game.scripts.sound import Sound
 from ii_game.scripts.lasers import *
 from ii_game.scripts import saves
@@ -49,6 +49,8 @@ pygame.mixer.set_num_channels(50)
 def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), back=(10, 10, 10), width=150, height=20, r=True):
     if prog <= 0 and shield <= 0:
         return
+    if prog < 0:
+        prog = 0
     rect = pygame.Rect((0, 0), (width, height))
     rect.center = center
     rect2 = rect.copy()
@@ -76,6 +78,8 @@ def exit_game():
     pygame.quit()
     sys.exit()
 
+MAIN_TEXT_COLOR = (200, 200, 200)
+
 class Game:
     """This class runs the game, and contains the game's logic"""
 
@@ -95,12 +99,12 @@ class Game:
         self.score = 0
         self.next_wave = self.mission.patterns.pop(0)
         self.next_alien = random.uniform(*self.next_wave.rate)
-        self.GOs = self.mission.getGOs(images)
         self.aliens_killed = 0
+        self.GOs = []
         self.bossed = False
         self.ran_out_of_aliens = False
-        self.green_lightning_sound = Sound(fixPath("audio/lightning2.wav"))
-        self.lightning_sound = Sound(fixPath("audio/lightning.wav"))
+        self.green_lightning_sound = Sound(fix_path("audio/lightning2.wav"))
+        self.lightning_sound = Sound(fix_path("audio/lightning.wav"))
         self.gls = self.green_lightning_sound.play(-1)
         self.gls.set_volume(0)
         self.ls = self.lightning_sound.play(-1)
@@ -132,9 +136,9 @@ class Game:
         if self.point:
             if self.point.lost > 7:        # Are you a loser?
                 self.loser = True          # You ARE a loser?!?
-                self.GOs.append(GameObject((250, 100), images, self.mission, "block", value = items.FireItem2x))
-                self.mission.item_mul *= 2
-                self.mission.items_dropped *= 2
+                self.GOs.append(GameObject((250, 0), images, self.mission, "block", value=items.FireItem2x))
+                self.mission.item_mul *= 1.5
+                self.mission.items *= 2
         self.notimer = True
         self.accuracy = []
         self.lasers_to_track = []
@@ -155,13 +159,14 @@ class Game:
         shared["cat"] = sel
         shared["mission"] = self.mission
         itms = cat[-1]
-        self.player = player([300, 431], self.images, self.mission)
+        self.player = player([400, 431], self.images, self.mission)
         for r, i in itms:
             if i:
                 self.player.items.append(i.link())
         if self.loser:
             self.free_item()
         self.brought_items = bool(self.player.items)
+        self.AddKilledAlien(True)
         self.keepGoing()
         self.combos.append(self.combo)
         self.gls.stop()
@@ -177,7 +182,7 @@ class Game:
                 else:
                     self.profile["inventory"][0][store_item] = 1
         screenshot.update(self.Display)
-        return self.score, self.endgame, self.accuracy, max(self.combos)
+        return self.score, self.endgame, self.accuracy, max(self.combos), self.player.im_back
 
     def keepGoing(self):
         try:
@@ -245,7 +250,6 @@ class Game:
                 color = (0, 0, 0)
                 if sel == e:
                     color = (255, 255, 0)
-                pygame.draw.rect(self.Display, color, box, 1)
                 if (len(self.player.items) > e):
                     item = self.player.items[e]
                     if item:
@@ -253,6 +257,9 @@ class Game:
                         image_rect = image.get_rect()
                         image_rect.center = box.center
                         self.Display.blit(image, image_rect)
+                    if sel == e:
+                        retro_text((boxHolder.move(0, 10).midbottom), self.Display, 14, item.name, anchor="midtop")
+                pygame.draw.rect(self.Display, color, box, 1)
             pygame.display.update()
         joystick.Reset()
 
@@ -430,6 +437,9 @@ class Game:
             if event.type == pygame.KEYUP or joystick.WasEvent():
                 if (event.key == pygame.K_LSHIFT or joystick.EndEvent("A")) and "Flak Bursts" in self.player.current_items and self.player.completeness == 1:
                     self.flaks.append(Flak(self.images, self.player.get_rect().center, self.mission, time.time() - self.charging, self.player.rotation))
+                    if "2x Fire Rate" in self.player.current_items:
+                        self.flaks.append(Flak(self.images, self.player.get_rect().center, self.mission, (time.time() - self.charging), self.player.rotation - 10))
+                        self.flaks.append(Flak(self.images, self.player.get_rect().center, self.mission, (time.time() - self.charging), self.player.rotation + 10))
                     self.player.completeness = 0
                     self.crg = False
                 if (event.key == pygame.K_DOWN or joystick.JustStoppedHalfDown()) and self.player.hover:
@@ -445,7 +455,7 @@ class Game:
                     self.notimer = True
                 if (event.key == pygame.K_y or joystick.JustPressedY()) and not self.player.dead:
                     self.deploy_item()
-                if event.key == pygame.K_LSHIFT or joystick.EndEvent("B"):
+                if (event.key == pygame.K_LSHIFT or joystick.StartEvent("A")) and "Flak Bursts" in self.player.current_items:
                     self.charging = time.time()
                     self.crg = True
                 for e, item in enumerate(self.player.items):
@@ -485,6 +495,9 @@ class Game:
             self.player.beam = True
         if item.name == "Shield Regenerator":
             self.player.regen = True
+        if item.name == "Magnet":
+            for go in self.GOs:
+                go.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(go.type, 0)
 
     def draw(self):
         """Render the game"""
@@ -508,7 +521,7 @@ class Game:
         for alien in self.aliens:
             alien.draw(self.display)
         lightning_on = len(self.aliens) > 0
-        if "Lightning" in self.player.current_items and pygame.key.get_pressed()[pygame.K_SPACE]:
+        if "Lightning" in self.player.current_items and (pygame.key.get_pressed()[pygame.K_SPACE] or joystick.CurrentState.X):
             lightning.run(self.player.get_rect().center, self.aliens, self.GOs, self.player, self.display, self.time_passed)
             if lightning_on:
                 if lightning.GREEN_ON:
@@ -522,16 +535,19 @@ class Game:
             self.gls.set_volume(0)
         self.player.draw(self.display)
         retro_text((602, 2), self.display, 18, "Health:", anchor = "midtop", color = (0, 0, 0))
-        retro_text((600, 0), self.display, 18, "Health:", anchor = "midtop")
+        retro_text((600, 0), self.display, 18, "Health:", anchor = "midtop", color=MAIN_TEXT_COLOR)
         retro_text((602, 77), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color = (0, 0, 0))
-        retro_text((600, 75), self.display, 18, f"Loot: {self.score}", anchor = "midtop")
+        retro_text((600, 75), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color=MAIN_TEXT_COLOR)
         retro_text((402, 2), self.display, 16, f"Aliens Killed: {self.aliens_killed} / {self.mission.aliens}", anchor = "midtop", font = "impact", color = (0, 0, 0))
-        retro_text((400, 0), self.display, 16, f"Aliens Killed: {self.aliens_killed} / {self.mission.aliens}", anchor = "midtop", font = "impact")
+        retro_text((400, 0), self.display, 16, f"Aliens Killed: {self.aliens_killed} / {self.mission.aliens}", anchor = "midtop", font = "impact", color=MAIN_TEXT_COLOR)
         if self.combo:
-            retro_text((402, 28), self.display, 16, f"Combo: {self.combo}", anchor = "midtop", font = "impact", color = (0, 0, 0))
-            retro_text((400, 30), self.display, 16, f"Combo: {self.combo}", anchor = "midtop", font = "impact")
+            retro_text((402, 28), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=(0, 0, 0))
+            retro_text((400, 30), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=MAIN_TEXT_COLOR)
         draw_bar(self.player.health, (600, 40), self.display, self.player.max_health, self.player.max_shield, self.player.shield)
-        draw_bar(self.item_progress, (400, 20), self.display, 1, 1, color=(150, 35, 0), back=(30, 30, 30), width=300, height=6, r=False)
+        color = (150, 35, 0)
+        if self.mission.items <= self.mission.items_dropped:
+            color = (210, 200, 0)
+        draw_bar(self.item_progress, (400, 20), self.display, 1, 1, color=color, back=(30, 30, 30), width=300, height=6, r=False)
         draw_bar(self.mission.getProgTillNextItem(self.aliens_killed), (400, 27), self.display, 1, 1, color=(0, 150, 0), back=(30, 30, 30), width=300, height=6, r=False)
         image = "itemHolder"
         minus = 0
@@ -575,6 +591,27 @@ class Game:
             self.lasers_to_track.remove(laser)
         del self.player.lasers[self.player.lasers.index(laser)]
 
+    def AddKilledAlien(self, start=False):
+        if not start:
+            self.aliens_killed += 1
+        if self.aliens_killed in self.mission.programmed_items and not start:
+            Val = self.mission.programmed_items.pop(self.aliens_killed)
+            if not type(Val) == list:
+                Val = [Val]
+            for i in Val:
+                self.GOs.append(GameObject((400, 0), self.images, self.mission, "block", value=i))
+            self.mission.last_aliens_killed = self.aliens_killed
+        if start:
+            if 0 in self.mission.programmed_items:
+                items = []
+                obj = self.mission.programmed_items.pop(0)
+                if type(obj) in (list, tuple, set):
+                    items = obj
+                else:
+                    items = [obj]
+                for item in items:
+                    self.player.items.append(item())
+
     def update(self):
         """Game Logic / Wait for next frame"""
         add_temp = False
@@ -590,10 +627,7 @@ class Game:
                             a.health = 0
                             a.dead = 1
                             a.explode_sound.play()
-                            self.aliens_killed += 1
-                            if self.aliens_killed in self.mission.programmed_items:
-                                GameObject((400, 100), self.images, self.mission, "block", value=self.mission.programmed_items[self.aliens_killed])
-                                self.mission.last_aliens_killed = self.aliens_killed
+                            self.AddKilledAlien()
                 for go in self.GOs:
                     if go.type in ("mine", "moneyBag", "rock"):
                         go.dead = True
@@ -632,7 +666,7 @@ class Game:
                 velY = random.randint(50, 75)
                 posX = random.randint(0, 800)
                 for x in range(num):
-                    self.GOs.append(GameObject((posX - (20 * x), 30 - (15 * x)), self.images, self.mission, type="rock", velocity = [velX * direction, velY]))
+                    self.GOs.append(GameObject((posX - (20 * x), 30 - (15 * x)), self.images, self.mission, type="rock", velocity = [velX * direction, velY], nobounce=True))
         if not len(self.aliens) and self.bossed and self.ran_out_of_aliens and not self.end_timer:
             self.end_timer = time.time()
         if self.end_timer:
@@ -660,7 +694,7 @@ class Game:
                     f.sound.play()
             if f.isBomb:
                 for l in self.player.lasers:
-                    if l.get_rect().colliderect(f.get_rect()) and not f.dead and (f.hitBy or l.green) and f.hitBy != l:
+                    if l.get_rect().colliderect(f.get_rect()) and not f.dead and (f.hitBy or l.green) and f.hitBy != l and not l.dead:
                         f.dead = True
                         f.sound.play()
                     if not f.hitBy and not l.green and l.get_rect().colliderect(f.get_rect()):
@@ -721,22 +755,26 @@ class Game:
             if laser.kill:
                 self.kill_laser(laser)
             for go in self.GOs:
-                if laser.get_rect().colliderect(go.get_rect()) and not go.dead:
+                if laser.get_rect().colliderect(go.get_rect()) and not go.dead and not laser.dead:
                     if go.type == "rock":
                         go.dead = True
                         go.frame = 1
                     if go.type == "mine" and not go.hitBy == laser:
                         go.health -= laser.damage / 2
+                        go.lifetime += 1
                         go.hitBy = laser
         for go in self.GOs:
+            if not go.player:
+                go.player = self.player
+                go.update_attraction()
             go.update(self.time_passed)
             for l in self.player.lasers:
-                if l.get_rect().colliderect(go.get_rect()) and go.type == "aircraft" and not go.dead:
+                if l.get_rect().colliderect(go.get_rect()) and go.type == "aircraft" and not go.dead and not laser.dead:
                     self.player.lasers.remove(l)
                     go.dead = True
                     go.gotShot = True
                     go.frame_rate = 1 / 25
-                    Sound(fixPath("audio/flak.wav")).play()
+                    Sound(fix_path("audio/flak.wav")).play()
             if go.kill:
                 if go.type == "aircraft" and go.gotShot:
                     self.endgame = "lost"
@@ -754,7 +792,7 @@ class Game:
             if go.health < go.start_health and not go.dead and not go.life_bar:
                 go.life_bar = True
             kaboom = False
-            if go.lifetime > 2.5 and go.type == "mine" and not go.dead:
+            if go.lifetime > go.max_lifetime and go.type == "mine" and not go.dead:
                 kaboom = True
             if go.get_rect().colliderect(self.player.get_rect()):
                 if go.type == "moneyBag" and not go.dead:
@@ -766,10 +804,10 @@ class Game:
                 if go.type == "heart":
                     self.player.health = self.player.max_health
                     self.add_points(150, go.get_rect().center)
-                    Sound(fixPath("audio/heart.wav")).play()
+                    Sound(fix_path("audio/heart.wav")).play()
                     del self.GOs[self.GOs.index(go)]
                 if go.type == "shield":
-                    Sound(fixPath("audio/shield.wav")).play()
+                    Sound(fix_path("audio/shield.wav")).play()
                     self.add_points(150, go.get_rect().center)
                     self.player.shield += 1
                     if self.player.shield > self.player.max_shield:
@@ -786,7 +824,7 @@ class Game:
                         self.player.health -= .5
                         self.add_points(-100, go.get_rect().center)
                 if go.type == "block":
-                    Sound(fixPath("audio/item.wav")).play()
+                    Sound(fix_path("audio/item.wav")).play()
                     self.GOs.remove(go)
                     if go.value == None:
                         item = self.mission.getItem()
@@ -805,7 +843,7 @@ class Game:
             if (kaboom or go.health <= 0 or go.kaboom) and not go.dead:
                 go.dead = True
                 go.frame_rate = 1 / 25
-                Sound(fixPath("audio/alienExplode.wav")).play()
+                Sound(fix_path("audio/alienExplode.wav")).play()
                 cx1, cy1 = self.player.get_rect().center
                 cx2, cy2 = go.get_rect().center
                 dist = math.hypot(cx1 - cx2, cy1 - cy2)
@@ -840,7 +878,16 @@ class Game:
             if alien.health <= 0:
                  if not alien.dead:
                      self.item_progress += alien.__class__.item_value * self.mission.item_mul
-                     self.aliens_killed += 1
+                     self.AddKilledAlien()
+                     if self.item_progress >= 1:
+                         self.item_progress -= 1
+                         if self.mission.items_dropped < self.mission.items:
+                             self.GOs.append(GameObject((425, 0), self.images, self.mission, "block"))
+                             self.mission.items_dropped += 1
+                         if self.mission.items_dropped >= self.mission.items:
+                             _go = GameObject((425, 0), self.images, self.mission, "moneyBag", amount=1500)
+                             _go.health *= 10
+                             self.GOs.append(_go)
                      alien.dead = 1
                      points = 0
                      if alien.health == 0:
@@ -893,14 +940,14 @@ class Game:
                 if not alien.dead:
                     if self.player.shield:
                         self.player.shield = 0
-                        self.aliens_killed += 1
+                        self.AddKilledAlien()
                     else:
                         self.player.health = 0
                     self.add_points(-500, alien.get_rect().center)
                     alien.dead = 1
                     alien.explode_sound.play()
             for laser in self.player.lasers:
-                if alien.get_rect().colliderect(laser.get_rect()) and alien.hitBy != laser and not laser.dead:
+                if alien.get_rect().colliderect(laser.get_rect()) and alien.hitBy != laser and not laser.dead and alien.dead != 1:
                     alien.health -= laser.damage
                     if alien.dead == 2 and not alien.grounded:
                         self.doubleDie(alien)
@@ -960,9 +1007,12 @@ class Game:
         if Items[item].name == "Lightning":
             self.player.canFire = True
         if Items[item].name == "Auto Gun":
-            self.player.beam = False
+            self.player.beam = self.player.always_beam
         if Items[item].name == "Shield Regenerator":
             self.player.regen = False
+        if Items[item].name == "Magnet":
+            for go in self.GOs:
+                go.tracking_speed = constants.ATTRACTION.get(go.type, 0)
         Items.pop(item)
 
 class Flak:
@@ -982,7 +1032,7 @@ class Flak:
         self.frame = 1
         self.frame_rate = 1 / 25
         self.frame_time = 0
-        self.sound = Sound(fixPath("audio/flak.wav"))
+        self.sound = Sound(fix_path("audio/flak.wav"))
         self.first_run = 0
         self.lastDead = False
         self.isBomb = False

@@ -40,7 +40,7 @@ from ii_game.scripts import saves
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.credits import run_credits
 from ii_game.scripts.transition import transition
-from ii_game.scripts.utils import fixPath, colorize
+from ii_game.scripts.utils import fix_path, colorize
 from ii_game.scripts import joystick
 from ii_game.scripts import screenshot
 from ii_game.scripts.get_file import get_file
@@ -54,7 +54,7 @@ class Menu:
         if options:
             self.background = display.copy()
         try:
-            screenshot_count = len(os.listdir(fixPath(get_file("data/screenshots"))))
+            screenshot_count = len(os.listdir(fix_path(get_file("data/screenshots"))))
         except FileNotFoundError:
             screenshot_count = 0
         s = "s"
@@ -72,16 +72,16 @@ class Menu:
         if simple:
             return
         if not options:
-            if not os.path.exists(fixPath(get_file("data/menuStarsCache"))):
+            if not os.path.exists(fix_path(get_file("data/menuStarsCache"))):
                 for x in range(300):
                     stars.main()
-                with shelve.open(fixPath(get_file("data/menuStarsCache"))) as data:
+                with shelve.open(fix_path(get_file("data/menuStarsCache"))) as data:
                     data["stars"] = stars.stars
             else:
-                with shelve.open(fixPath(get_file("data/menuStarsCache"))) as data:
+                with shelve.open(fix_path(get_file("data/menuStarsCache"))) as data:
                     stars.stars = data["stars"]
                 pygame.mixer.music.stop()
-                pygame.mixer.music.load(fixPath(get_file("audio/music/MainMenu.mp3")))
+                pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.mp3")))
                 pygame.mixer.music.play(-1)
         self.frame = 1
         self.frame_rate = 1 / 120
@@ -100,7 +100,6 @@ class Menu:
         self.text_rate = 0.1
         self.text = "Interplanetary Invaders"
         self.bool_images = [self.images["x"], self.images["check"]]
-
 
     def main(self):
         while not self.done:
@@ -140,7 +139,13 @@ class Menu:
                         item = self.profile_selected
                         items = self.profiles
                     if event.key == pygame.K_ESCAPE or joystick.BackEvent():
-                        self.exit()
+                        if self.play_mode:
+                            self.play_mode = False
+                        elif self.options_mode:
+                            self.options_mode = False
+                            self.options_dict = saves.load_options()
+                        else:
+                            self.exit()
                     if event.key == pygame.K_UP or joystick.JustWentUp():
                         item -= 1
                     if (event.key == pygame.K_DOWN) or joystick.JustWentDown():
@@ -180,8 +185,8 @@ class Menu:
                             if event.key == pygame.K_RETURN or joystick.JustPressedA():
                                 try:
                                     DID_SOMETHING = False
-                                    for e, x in enumerate(os.listdir(fixPath(get_file("data/screenshots")))):
-                                        os.remove(fixPath(get_file("data/screenshots/")) + x)
+                                    for e, x in enumerate(os.listdir(fix_path(get_file("data/screenshots")))):
+                                        os.remove(fix_path(get_file("data/screenshots/")) + x)
                                         DID_SOMETHING = True
                                     if DID_SOMETHING:
                                         print(colorize(f"Deleted screenshots: {e+1}", "green"))
@@ -210,6 +215,12 @@ class Menu:
                                 self.play_mode = False
                             else:
                                 profile = saves.load_profile(self.profile_selected)
+                                if profile["version"] != __version__:
+                                    if profile["new"]:
+                                        profile["version"] = __version__
+                                    else:
+                                        print(colorize("Warning!!! This profile is from a different version \
+of Interplanetary Invaders!!!\nErrors may occur!!!", "warning"))
                                 profile["new"] = False
                                 saves.save_data(self.profile_selected, profile)
                                 self.done = True
@@ -223,6 +234,9 @@ class Menu:
                                 self.exit()
                             if self.items[sel] == "Credits":
                                 run_credits(self.display, self.images)
+                                pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.mp3")))
+                                pygame.mixer.music.play(-1)
+
 
     def exit(self):
         pygame.quit()
@@ -267,7 +281,7 @@ class Menu:
                         sel = not sel
                     if event.key == pygame.K_RETURN or joystick.JustPressedA():
                         if sel:
-                            os.remove(fixPath(get_file(f"data/profile{self.profile_selected}")))
+                            os.remove(fix_path(get_file(f"data/profile{self.profile_selected}")))
                             self.profiles[self.profile_selected] = f"New Profile #{self.profile_selected + 1}"
                         self.pause_motion = True
                         done = True

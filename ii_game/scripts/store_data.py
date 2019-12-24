@@ -1,6 +1,7 @@
 from ii_game.scripts import items
-from ii_game.scripts.vehicles import Zapper as zapper, VenusCrawler as venuscrawler, JupiterHover as jupiterhover
+from ii_game.scripts.vehicles import Zapper as zapper, VenusCrawler as venuscrawler, JupiterHover as jupiterhover, Curiosity as curiosity
 import random
+from copy import copy
 
 ITEM_AMOUNT = (3, 10)
 LISENCE_AMOUNT = (1, 4)
@@ -15,6 +16,7 @@ class StoreItem:
     icon = "x"
     max_mass = 0
     Onlyplanet = None
+    banned_planets = []
 
 class FireItem2x(StoreItem):
     icon = "2xfireitem"
@@ -37,6 +39,7 @@ class GreenLaserItem(StoreItem):
     type = "Item"
     cost = 15000
     rarity = .6
+    banned_planets = ["Earth"]
     description = """
 Via increasing the light
 frequency in the laser
@@ -50,7 +53,7 @@ class DoubleMoney(StoreItem):
     link = items.DoubleMoney
     type = "Item"
     cost = 5000
-    rarity = .8
+    rarity = .7
     description = """
 For unknown scientific
 reasons, this item makes
@@ -76,7 +79,8 @@ class Lightning(StoreItem):
     type = "Item"
     cost = 50000
     link = items.Lightning
-    rarity = .2
+    rarity = .3
+    banned_planets = ["Earth", "Venus", "Mars"]
     description = """
 This very high-value and
 expensive upgrades your
@@ -99,6 +103,7 @@ class FlakItem(StoreItem):
     cost = 30000
     rarity = .2
     link = items.FlakItem
+    banned_planets = ["Earth", "Mars", "Mercury"]
     description = """
 Augments your spaceship by
 adding a flak launcher.
@@ -114,6 +119,7 @@ class AutoGun(StoreItem):
     cost = 7500
     rarity = .8
     link = items.AutoGun
+    banned_planets = ["Earth", "Mars"]
     description = """
 Rearranges some parts
 in spaceship's firing
@@ -131,10 +137,26 @@ class ShieldRegen(StoreItem):
     cost = 15000
     rarity = .2
     link = items.ShieldRegen
+    banned_planets = ["Earth", "Venus", "Mars"]
     description = """
 Adds a shield regenerator
 to your vehicle for some
 time."""
+
+class MagnetItem(StoreItem):
+    icon = "magnet"
+    title = "Magnet"
+    type = "Item"
+    cost = 7000
+    rarity = .3
+    link = items.MagnetItem
+    banned_planets = []
+    description = """
+This is an extremely
+powerful magnet that
+attracts useful objects
+and repels harmful
+weapons."""
 
 class TransportLicense1(StoreItem):
     title = "Space Transport License 1"
@@ -152,7 +174,7 @@ is 1.5 tons"""
 class TransportLicense2(StoreItem):
     title = "SpaceTransportLicense2"
     type = "License"
-    cost = 150000
+    cost = 75000
     rarity = 1
     icon = "stl2"
     max_mass = 3
@@ -203,7 +225,7 @@ degrees F"""
 class JupiterHover(StoreItem):
     title = "Jupiter Hovercraft"
     type = "Vehicle"
-    cost = 65000
+    cost = 45000
     rarity = 1
     icon = "jupiter_hover6"
     link = jupiterhover
@@ -216,6 +238,23 @@ base to hover. Designed
 for use on Gas Giant
 planets."""
 
+class Curiosity(StoreItem):
+    title = "Curiosity Rover"
+    type = "Vehicle"
+    cost = 25000
+    rarity = 1
+    icon = "curiosity_icon"
+    link = curiosity
+    planet = "Earth"
+    Onlyplanet = "Mars"
+    description = """
+NASA realized that they
+could modify the laser
+system on the Curiosity
+rover to shoot down
+aliens with a constant
+beam."""
+
 class StandardVehicle(StoreItem):
     title = "Standard Vehicle"
     type = "Vehicle"
@@ -224,30 +263,36 @@ class StandardVehicle(StoreItem):
     link = zapper
     description = "Standard Vehicle"
 
-ITEMS = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen] # MUST be same order and length as items.items!!!
+ITEMS = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem] # MUST be same order and length as items.items!!!
 LISENCES = [TransportLicense2, DronesLicense, ItemStorage10]
-VEHICLES = [VenusCrawler, JupiterHover]
+VEHICLES = [VenusCrawler, JupiterHover, Curiosity]
 
-def getStuff(t, profile, PLANET = None):
+def getStuff(t, profile, PLANET=None):
     if PLANET == None:
-        PLANET = profile["planet"]
+        PLANET = profile["planet"].name
     if t == "items":
         AMOUNT = ITEM_AMOUNT
-        LIST = ITEMS[:]
+        LIST1 = copy(ITEMS)
     if t == "licenses":
         AMOUNT = LISENCE_AMOUNT
-        LIST = LISENCES[:]
+        LIST1 = copy(LISENCES)
     if t == "vehicles":
         AMOUNT = VEHICLE_AMOUNT
-        LIST = VEHICLES[:]
+        LIST1 = copy(VEHICLES)
+    LIST = copy(LIST1)
     for x in profile["inventory"]:
         for y in x:
             if y.type in ("Vehicle", "License") and y in LIST:
                 LIST.remove(y)
-    for x in LIST:
+    for x in LIST1:
+        if not x in LIST:
+            continue
         if x.Onlyplanet:
             if x.Onlyplanet != PLANET:
                 LIST.remove(x)
+                continue
+        if PLANET in x.banned_planets:
+            LIST.remove(x)
     items = {}
     amount = random.randint(*AMOUNT)
     picked = 0

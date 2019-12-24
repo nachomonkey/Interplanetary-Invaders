@@ -6,12 +6,12 @@ import time
 import pygame
 
 from ii_game.scripts.get_file import get_file
-from ii_game.scripts.utils import colorize, fixPath
+from ii_game.scripts.utils import colorize, fix_path
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts import joystick
 from ii_game import __version__
 
-IMAGE_PATH = get_file(fixPath("images/bitmap/"))
+IMAGE_PATH = get_file(fix_path("images/bitmap/"))
 
 BAR_WIDTH = 200
 BAR_HEIGHT = 30
@@ -43,6 +43,7 @@ with pygame.Surface objects as values and their names as keys"""
     barRect.h = BAR_HEIGHT
     barRect.center = borderRect.center
     LastRefresh = 0
+    pygame.display.update()
     for data in os.walk(IMAGE_PATH):
         for collect_file in data[2]:
             if not collect_file.startswith("."):
@@ -67,7 +68,7 @@ with pygame.Surface objects as values and their names as keys"""
                             img = img.convert_alpha()
                 images.append(img)
                 print(f"\rLoaded {colorize(num, 'blue' if num!=mx else 'green')} / {colorize(mx, 'green')} images   %s" % colorize(collect_file + (" " * (40 - len(collect_file))), 'bold'), flush = True, end = "")
-            if time.time() - LastRefresh >= .1:
+            if time.time() - LastRefresh >= .15:
                 LastRefresh = time.time()
                 barRect.w = BAR_WIDTH * (num / mx)
                 pygame.draw.rect(display, (0, 255, 0), barRect)
@@ -75,7 +76,7 @@ with pygame.Surface objects as values and their names as keys"""
                     X_Val = barRect.x + x
                     pygame.draw.line(display, (0, 0, 0), (X_Val, borderRect.y), (X_Val, borderRect.y + borderRect.h), 2)
                 pygame.draw.rect(display, (25, 25, 25), borderRect, 1)
-                retro_text(display.get_rect().move(0, 30).center, display, 18, f"{round(num/mx*100)}%", anchor="center", eraseColor=(0, 0, 0))
-                pygame.display.update()
+                text, text_rect = retro_text(display.get_rect().move(0, 30).center, display, 18, f"{round(num/mx*100)}%", anchor="center", eraseColor=(0, 0, 0))
+                pygame.display.update([barRect, text_rect])
     print()
     return dict(zip(names, images)), num

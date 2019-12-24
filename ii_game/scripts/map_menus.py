@@ -1,5 +1,6 @@
 import pygame
 import pygame.gfxdraw
+from pygame import Vector2
 import sys
 import time
 import shelve
@@ -7,7 +8,7 @@ import copy
 import humanize
 from math import sin, cos, pi, radians, sqrt, isclose
 from ii_game.scripts import saves
-from ii_game.scripts.planets import Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, planetByName, Moons
+from ii_game.scripts.planets import Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, PLANET_BY_NAME, MOONS
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.maps import AllMaps, MapPoint
 from ii_game.scripts.confirm import confirmExit
@@ -16,7 +17,7 @@ from ii_game.scripts.menu import build_bar
 from ii_game.scripts import screenshot
 from ii_game.scripts.pause_menu import pause_menu
 from ii_game.scripts.stores import StoreUI
-from ii_game.scripts.utils import colorize, fixPath
+from ii_game.scripts.utils import colorize, fix_path
 from ii_game.scripts.get_file import get_file
 from ii_game.scripts import joystick
 
@@ -38,8 +39,8 @@ class SpaceMap:
         self.done = False
         self.time_passed = 0
         self.planets1 = [Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune]
-        for planet in Moons:
-            for moon in Moons[planet]:
+        for planet in MOONS:
+            for moon in MOONS[planet]:
                 self.planets1.append(moon)
         self.planets1.reverse()
         self.planets = []
@@ -62,8 +63,8 @@ class SpaceMap:
         self.overlay_pos = None
         self.moving_start = 0
         self.moving = False
-        if focus in planetByName:
-            focus = self.planets1.index(planetByName[focus])
+        if focus in PLANET_BY_NAME:
+            focus = self.planets1.index(PLANET_BY_NAME[focus])
         self.focused = focus
         self.mouse_on = False
         self.profile = profile
@@ -74,15 +75,12 @@ class SpaceMap:
         self.text_time = 0
         self.start_click = None
         self.last_sample = None
+        unlocked_planets = self.profile["unlocked_planets"]
         self.unlocked_planets = []
-        for planet in self.profile["finished_planets"]:
+        for u in unlocked_planets:
             for p in self.planets:
-                if p.name == planet:
+                if isinstance(p, PLANET_BY_NAME[u]):
                     self.unlocked_planets.append(p)
-                    for u in p.unlocks:
-                        for p2 in self.planets:
-                            if p2.name == u:
-                                self.unlocked_planets.append(p2)
         self.missions_left = {}
         for planet in self.unlocked_planets:
             self.missions_left[planet.name] = 0
@@ -93,7 +91,7 @@ class SpaceMap:
             except KeyError:
                 print(colorize(f"No map for {planet.name} found!", "fail"))
         self.speed = 1
-        pygame.mixer.music.load(fixPath(get_file("audio/music/AmbientSpace.mp3")))
+        pygame.mixer.music.load(fix_path(get_file("audio/music/AmbientSpace.mp3")))
         pygame.mixer.music.play(-1)
 #        pygame.display.toggle_fullscreen()
 
@@ -249,7 +247,7 @@ class SpaceMap:
                             if self.planets[self.focused].name == p.name:
                                 draw = True
                             else:
-                                for m in Moons[p.name]:
+                                for m in MOONS[p.name]:
                                     if self.planets[self.focused].name == m.name:
                                         draw = True
                         parent = planet
@@ -452,7 +450,7 @@ class Map:
         self.avatar_frame = 1
         self.frame_rate = 1 / 4
         self.frame_time = 0
-        self.avatar_frames = 3
+        self.avatar_frames = 2
         self.avatar_idle_frame = 1
         self.idle_frame_rate = 1
         self.idle_frame_time = 0
@@ -472,6 +470,9 @@ class Map:
         self.prev_dist = self.get_dist(self.avatar_pos, self.target_pos)
         self.pause_time = False
         self.ForwardOrBack = False
+        self.ForwardOrBack2 = False
+        self.click = False
+        self.last_hit_point = point
 
     def set_velocity(self):
         diff = self.avatar_pos - self.target_pos
@@ -480,7 +481,10 @@ class Map:
         self.velocity = diff
 
     def get_point(self, index):
-        return pygame.math.Vector2(self.map[index].rect.move(20, 55).topleft)
+        try:
+            return pygame.math.Vector2(self.map[index].rect.move(20, 55).topleft)
+        except IndexError:
+            return self.get_point(len(self.map) - 1)
 
     def main(self):
         joystick.Reset()
@@ -519,7 +523,10 @@ class Map:
         if event.key == pygame.K_RIGHT or joystick.JustWentRight():
             return 3
 
-    def GoForwardOrBack(self, event):
+    def RelCalc(self):
+        a
+
+    def GoForwardOrBack(self, event, rel=False):
         IsForward = False
         IsBack = False
         sel = self.selected_point
@@ -530,8 +537,7 @@ class Map:
             if self.GetDestDirection(sel + 1, sel) == self.GetInputDirection(event):
                 IsForward = True
         if IsBack and IsForward:
-            self.ForwardOrBack = not self.ForwardOrBack
-            return self.ForwardOrBack
+            return self.ForwardOrBack and self.ForwardOrBack2
         if IsBack:
             return False
         if IsForward:
@@ -551,9 +557,10 @@ class Map:
                 backrect = pygame.Rect(0, 0, 32, 32)
                 if rect.collidepoint(pygame.mouse.get_pos()):
                     click = True
-                if backrect.collidepoint(pygame.mouse.get_pos()):
+                elif backrect.collidepoint(pygame.mouse.get_pos()):
                     self.toMenu = True
                     self.done = True
+                self.click = True
             if not hasattr(event, "key"):
                 event.key = None
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
@@ -584,21 +591,25 @@ class Map:
 #                if (event.key == pygame.K_RIGHT or joystick.JustWentRight()) and not self.map[self.selected_point].alien_flag:
 #                    sel += 1
                 if (event.key == pygame.K_END or joystick.JustPressedRT()):
-                    if not self.waypoints:
-                        x = 0
-                        for x in range(self.selected_point, len(self.map)):
-                            self.waypoints.append(x)
-                            if self.map[x].alien_flag:
-                                break
-                        sel = x
+                    self.waypoints = []
+                    x = 0
+                    for x in range(self.selected_point, len(self.map)):
+                        self.waypoints.append(x)
+                        if self.map[x].alien_flag:
+                            break
+                    sel = x
+                    if self.waypoints:
+                        self.target_pos = self.get_point(self.waypoints[0])
                 if (event.key == pygame.K_HOME or joystick.JustPressedLT()):
-                    if not self.waypoints:
-                        x = 0
-                        for x in reversed(range(self.selected_point)):
-                            self.waypoints.append(x)
-                            if self.map[x].alien_flag:
-                                break
-                        sel = x
+                    self.waypoints = []
+                    x = 0
+                    for x in reversed(range(self.selected_point)):
+                        self.waypoints.append(x)
+                        if self.map[x].alien_flag:
+                            break
+                    sel = x
+                    if self.waypoints:
+                        self.target_pos = self.get_point(self.waypoints[0])
                 self.selected_point = sel
                 if self.target_pos != self.avatar_pos:
                     self.waypoints.append(sel)
@@ -652,29 +663,42 @@ class Map:
         pygame.draw.rect(self.display, (25, 25, 25), self.base_rect)
         retro_text(self.base_rect.center, self.display, 15, f'Loot: {self.profile["money"]}', anchor="center")
         for n, point in enumerate(self.map):
+            circle = self.images["nothing16"]
+            circle_rect = circle.get_rect()
+            circle_rect.center = point.pos
+            circle_rect2 = pygame.Rect(0, 0, 64, 80)
+            circle_rect2.midbottom = circle_rect.midbottom
+            hover = circle_rect2.collidepoint(pygame.mouse.get_pos())
             color = (255, 0, 0)
+            if hover:
+                color = (255, 150, 0)
             name = "alien"
             if not point.alien_flag:
                 color = (0, 125, 255)
-                name = "penguin"
+                if hover:
+                    color = (255, 255, 255)
+                name = "tank"
             if point.type == "spaceport":
                 color = (125, 125, 125)
+                if hover:
+                    color = (125, 255, 255)
                 name = "spaceport"
             if point.type == "info":
                 color = (0, 0, 255)
+                if hover:
+                    color = (0, 255, 255)
                 name = "info"
             if point.type == "store":
                 color = (255, 200, 0)
+                if hover:
+                    color = (255, 255, 0)
                 name = "store"
             try:
                 if point.bonus and point.alien_flag:
                     name = "bonus"
             except AttributeError:
                 pass
-            circle = self.images["nothing16"]
             pygame.draw.ellipse(circle, color, pygame.Rect(circle.get_rect().topleft, (point.rect.w // 4, point.rect.h // 4 * .8)), 2)
-            circle_rect = circle.get_rect()
-            circle_rect.center = point.pos
             if n > 0:
                 if self.map[n - 1].alien_flag:
                     dark = True
@@ -684,18 +708,34 @@ class Map:
                 pygame.draw.line(d1, color, point.pos, self.map[n - 1].pos)
             d2.blit(circle, circle_rect)
             d2.blit(self.images[f"{name}_flag{point.frame}"], point.rect)
+            if hover and self.click:
+                R = []
+                if n < self.selected_point:
+                    R = reversed(range(self.selected_point))
+                if n > self.selected_point:
+                    R = range(self.selected_point, len(self.map))
+                x = 0
+                self.waypoints = []
+                for x in R:
+                    self.waypoints.append(x)
+                    if self.map[x].alien_flag or x == n:
+                        break
+                self.selected_point = x
+                if self.waypoints:
+                    self.target_pos = self.get_point(self.waypoints[0])
+                self.click = False
         self.display.blit(d1, (0, 0))
         self.display.blit(d2, (0, 0))
         name = ''
         frame = self.avatar_idle_frame
         if self.avatar_pos != self.target_pos:
-            name = "_walking"
+            name = "_moving"
             frame = self.avatar_frame
         flip = False
         if self.velocity[0] > 0:
             flip = True
         sel = self.selected_point
-        self.display.blit(pygame.transform.flip(pygame.transform.scale(self.images[f"penguin{name}{frame}"], (32, 32)), flip, False), self.avatar_pos)
+        self.display.blit(pygame.transform.flip(pygame.transform.scale(self.images[f"tank{name}{frame}"], (32, 32)), flip, False), Vector2(self.avatar_pos) - Vector2(0, 20))
         if self.avatar_pos == self.target_pos and self.old_selected_point == self.selected_point:
                 add = ""
                 try:
@@ -727,16 +767,20 @@ class Map:
         return sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
     def update(self):
+        self.click = False
         if (self.prev_dist < self.get_dist(self.avatar_pos, self.target_pos)):
             self.set_velocity()
         self.prev_dist = self.get_dist(self.avatar_pos, self.target_pos)
         if self.old_selected_point != self.selected_point and self.avatar_pos == self.target_pos:
             self.profile["points"][self.planet.name] = self.selected_point
             if not self.waypoints:
-                self.target_pos = self.get_point(self.selected_point)
+                p = self.selected_point
             else:
-                self.target_pos = self.get_point(self.waypoints.pop(0))
+                p = self.waypoints.pop(0)
+            self.target_pos = self.get_point(p)
             self.set_velocity()
+            self.last_hit_point = p
+            self.selected_point = p
         self.old_selected_point = self.selected_point
         self.avatar_pos -= self.velocity * self.time_passed
         if (round(self.avatar_pos[0] / 6), round(self.avatar_pos[1] / 6)) == (round(self.target_pos[0] / 6), round(self.target_pos[1] / 6)):

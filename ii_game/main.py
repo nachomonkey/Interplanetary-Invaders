@@ -53,7 +53,7 @@ class Main:
         fullscreen = 0
         if self.options["fullscreen"]:
             fullscreen = pygame.FULLSCREEN
-        self.Display = pygame.display.set_mode((800, 600), fullscreen | pygame.HWSURFACE | pygame.HWACCEL | pygame.DOUBLEBUF)
+        self.Display = pygame.display.set_mode((800, 600), fullscreen | pygame.HWACCEL)
         self.display = pygame.Surface((800, 600))
         pygame.display.set_caption("Interplanetary Invaders")
         pygame.display.set_icon(pygame.image.load(get_file("icon.png")))
@@ -72,7 +72,6 @@ class Main:
         self.Menu.main()
         self.profile_selected = self.Menu.profile_selected
         self.profile = saves.load_profile(self.profile_selected)
-        self.planets = [Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune]
 
     def keepGoing(self, lw):
         try:
@@ -92,7 +91,7 @@ class Main:
                 point = None
                 continue
             play = game.Game(self.display, self.Display, self.images, mission, self.profile, self.profile_selected)
-            score, mode, acc, maxcombo = play.main()
+            score, mode, acc, maxcombo, im_back = play.main()
             if play.toMenu:
                 self.menu()
                 point = None
@@ -109,13 +108,15 @@ class Main:
             lw = lose_win.LoseWin(self.Display, self.images, (self.profile["money"], self.profile["money"] + score, mission().bonus / (p.lost + 1), mission().bonus, acc, p.lost + 1, maxcombo), mode=mode)
             self.keepGoing(lw)
             not_finished = False
+            ach = []
+            if im_back:
+                ach.append("im_back")  # I'm Back Achievement
             if mode == "won":
                 play.victory()
                 self.profile["addNewStore"] -= 1
                 self.profile["money"] += round(mission().bonus * self.acc_per)
                 self.profile["money"] += round(mission().bonus / (p.lost + 1))
-                ach = []
-                if acc.count(True) == len(acc) and acc:
+                if acc.count(True) >= ((len(acc) / 4) * 3) and acc:
                     ach.append("archer")
                 if maxcombo > 4:
                     ach.append("combo5")
@@ -125,23 +126,16 @@ class Main:
                     ach.append("combo15")
                 if maxcombo > 19:
                     ach.append("combo20")
-                for a in ach:
-                    if ACHIEVEMENTS[a][0] in self.profile["achievements"]:
-                        continue
-                    congrats(self.Display, self.images, "ach", ACHIEVEMENTS[a], self.profile)
-            self.profile = play.profile
-            for p in self.profile["map"][self.profile["planet"].name]:
-                if not hasattr(p, "bonus"):
-                    p.bonus = False
-                if p.alien_flag and not p.bonus:
-                    not_finished = True
-            if not not_finished and not self.profile["planet"].name in self.profile["finished_planets"]:
-                for name in self.profile["planet"].unlocks:
-                    for p in self.planets:
+
+                for name in mission().unlocks_planets:
+                    for p in planetsmoons:
                         if p.name == name:
+                            self.profile["unlocked_planets"].append(name)
                             congrats(self.Display, self.images, "planet", p)
-                play.profile["finished_planets"].append(self.profile["planet"].name)
-                self.profile["finished_planets"].append(self.profile["planet"].name)
+            for a in ach:
+                if ACHIEVEMENTS[a][0] in self.profile["achievements"]:
+                    continue
+                congrats(self.Display, self.images, "ach", ACHIEVEMENTS[a], self.profile)
             r = False
             while not r:
                 r = stores.confirmStores(self.profile, self.Display, self.images)

@@ -28,17 +28,24 @@ class Mission:
         self.item_mul = 1
         self.programmed_items = {}
         self.last_aliens_killed = 0
-
-    def getGOs(self, images):
-        return self.GOs
+        self.bottomless_override = None
+        self.unlocks_planets = []
 
     def getProgTillNextItem(self, aliens_killed):
         if not self.programmed_items:
             return 0
-        return aliens_killed / (list(self.programmed_items)[0] - self.last_aliens_killed)
+        try:
+            return (aliens_killed - self.last_aliens_killed) / (list(self.programmed_items)[0] - self.last_aliens_killed)
+        except ZeroDivisionError:
+            return 1
 
     def getItem(self):
         return random.choice(self.item_types)()
+
+    def is_bottomless(self):
+        if self.bottomless_override != None:
+            return self.bottomless_override
+        return self.planet.gasgiant
 
 class MissionMercury1(Mission):
     def __init__(self):
@@ -46,6 +53,7 @@ class MissionMercury1(Mission):
         self.planet = Mercury
         self.items = 3
         self.item_types = [items.ShieldRegen]
+        self.programmed_items = {0 : items.ShieldRegen, 15 : items.AutoGun, 19 : items.MagnetItem}
         self.friction = 5
         self.aliens = 20
         self.bonus = 3000
@@ -61,15 +69,12 @@ spiders attack.
 WARNINGS: Beware of solar flares
 and high temperatures"""
 
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.ShieldRegen)]
-        return self.GOs
-
 class MissionMercury2(MissionMercury1):
     def __init__(self):
         super().__init__()
         self.items = 3
         self.aliens = 30
+        self.programmed_items = {0 : items.ShieldRegen, 10 : items.ShieldRegen, 18 : items.AutoGun, 25 : items.ShieldRegen}
         self.patterns = [AlienPattern(amount=30, rate=(.7, 3.2), aliens=[GreenAlien])]
         self.name = "More Mercury"
         self.backdrop = "mercury_surface2"
@@ -78,10 +83,6 @@ class MissionMercury2(MissionMercury1):
 enemies on your way to the
 dark side of Mercury..."""
 
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.ShieldRegen)]
-        return self.GOs
-
 class MissionMercury3(MissionMercury1):
     def __init__(self):
         super().__init__()
@@ -89,6 +90,7 @@ class MissionMercury3(MissionMercury1):
         self.temperature = 220
         self.bonus = 5000
         self.item_types = [items.AutoGun]
+        self.programmed_items = {15 : items.ShieldRegen, 20 : items.AutoGun, 35 : items.ShieldRegen, 55 : items.ShieldRegen, 65 : items.AutoGun}
         self.patterns = [AlienPattern(amount = 75, rate=(.4, 1.5), aliens=[GreenAlien, Alien, Alien])]
         self.name = "Mercury Mayhem"
         self.backdrop = "mercury_surface3"
@@ -117,6 +119,7 @@ class MissionMercury5(MissionMercury4):
         self.aliens = 125
         self.temperature = -150
         self.bonus = 7000
+        self.programmed_items = {50 : items.AutoGun, 80 : items.MagnetItem}
         self.patterns = [AlienPattern(amount=5, rate=(.1, .4), aliens=[GreenAlien]),
                 AlienPattern(amount=20, rate=(.45, .55), aliens=[Alien]),
                 AlienPattern(amount=50, rate=(.75, 1.75), aliens=[Alien, GreenAlien]),
@@ -125,6 +128,22 @@ class MissionMercury5(MissionMercury4):
         self.backdrop = "mercury_surface5"
         self.briefing = """Survive a swarm of 125 Mercurian
 and other spiders."""
+
+class MissionMercury6(MissionMercury5):
+    def __init__(self):
+        super().__init__()
+        self.aliens = 50
+        self.temperature = -175
+        self.bonus = 9000
+        self.programmed_items = {0 : items.ShieldRegen, 10 : items.AutoGun, 25 : items.ShieldRegen, 30 : items.AutoGun}
+        self.item_types = [items.ShieldRegen]
+        self.patterns = [AlienPattern(amount=3, rate=(2, 5), aliens=[MineSpreaderAlien]),
+                         AlienPattern(amount=17, rate=(.2, .8), aliens=[Alien]),
+                         AlienPattern(amount=15, rate=(.5, 1.5), aliens=[Alien, GreenAlien, Alien, Alien, MineSpreaderAlien]),
+                         AlienPattern(amount=15, rate=(.2, 1), aliens=[Alien, GreenAlien, MineSpreaderAlien])]
+        self.name = "A New Threat"
+        self.briefing = """Here on the dark side of Mercury,
+the Aliens have a little surprise for you."""
 
 class MissionEarth1(Mission):
     def __init__(self):
@@ -137,7 +156,7 @@ class MissionEarth1(Mission):
         self.friction = 4
         self.bonus = 100
         self.patterns = [AlienPattern(amount = 25)]
-        self.programmed_items = {20 : items.DoubleMoney}
+        self.programmed_items = {15 : items.DoubleMoney}
         self.name = "First Mission"
         self.backdrop = "brick_with_grass"
         self.briefing = f"""Destroy a small detachment
@@ -155,6 +174,7 @@ class MissionEarth2(Mission):
         self.item_types = [items.DoubleMoney]
         self.aliens = 40
         self.friction = 1
+        self.bounce = 100
         self.bonus = 2500
         self.name = "Desert Disturbance"
         self.patterns = [AlienPattern(rate = (.2, 1.25), amount = 40)]
@@ -190,13 +210,14 @@ class MissionEarth4(Mission):
         super().__init__()
         self.planet = Earth
         self.item_types = [items.FireItem2x, items.DoubleMoney]
-        self.items = 4
+        self.items = 2
         self.friction = -.15
         self.aliens = 100
         self.temperature = 30
         self.name = "Icy Invasion"
         self.patterns = [AlienPattern(rate = (.2, 1.5), amount = 80),
                 AlienPattern(rate = (.1, .6), amount = 20)]
+        self.programmed_items = {0 : items.FireItem2x, 30 : items.DoubleMoney, 75 : items.FireItem2x}
         self.bounce = 2
         self.bonus = 4000
         self.backdrop = "southpole_backdrop"
@@ -204,10 +225,6 @@ class MissionEarth4(Mission):
 an army of alien spiders greets you.
 
 WARNINGS: The icy surface provides little traction"""
-
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.FireItem2x)]
-        return self.GOs
 
 class MissionEarth5(Mission):
     def __init__(self):
@@ -219,6 +236,7 @@ class MissionEarth5(Mission):
         self.aliens = 15
         self.name = "Clean-O-Machine-O"
         self.patterns = [AlienPattern(amount = 15, rate = (.4, 2.5))]
+        self.programmed_items = {0 : items.DoubleSpeed}
         self.clean_room = True
         self.bounce = 2
         self.bonus = 5000
@@ -228,10 +246,6 @@ discovered a "Clean - O - Machine - Os" electronics
 factory. If even one alien crashed to the ground,
 the clean room will be contaminated and you will
 lose."""
-
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.DoubleSpeed)]
-        return self.GOs
 
 class EarthAirport(Mission):
     def __init__(self):
@@ -246,6 +260,7 @@ class EarthAirport(Mission):
         self.airport = True
         self.bounce = 2
         self.bonus = 5000
+        self.unlocks_planets = ["Venus", "Mars"]
         self.backdrop = "city_backdrop"
         self.briefing = """Aliens spiders are beaming down
 towards a city near a busy airport. Eliminate all UFOs.
@@ -258,6 +273,8 @@ class MissionEarthBonus1(EarthAirport):
         super().__init__()
         self.items = 3
         self.friction = 3
+        self.item_types = [items.GreenLaserItem]
+        self.programmed_items = {10 : items.FireItem2x, 25 : items.GreenLaserItem}
         self.aliens = 50
         self.patterns = [AlienPattern(amount=10, rate=(.01, .05)),
                 AlienPattern(amount=25, rate=(.3, .75)),
@@ -308,6 +325,8 @@ class MissionMars2(MissionMars1):
         super().__init__()
         self.aliens = 45
         self.name = "Martian Plains"
+        self.item_mul = .5
+        self.programmed_items = {9 : items.FireItem2x}
         self.patterns = [AlienPattern(rate=(.3, 3), amount=10, aliens=[PurpleAlien]),
                 AlienPattern(rate=(.1, .4), amount=10, aliens=[Alien]),
                 AlienPattern(rate=(.3, 3), amount=10, aliens=[PurpleAlien]),
@@ -337,6 +356,8 @@ class MissionMars4(MissionMars1):
         self.name = "Martian Encampment I"
         self.aliens = 100
         self.bonus = 5000
+        self.items = 2
+        self.item_mul = .5
         self.patterns = [AlienPattern(rate=(.5, .6), amount = 25, aliens = [Alien]),
                 AlienPattern(rate=(.4, .7), amount=50, aliens = [PurpleAlien, Alien]),
                 AlienPattern(rate=(.4, .4), amount=25, aliens=[PurpleAlien, Alien])]
@@ -352,6 +373,9 @@ class MissionMars5(MissionMars1):
         self.name = "Martian Encampment II"
         self.aliens = 100
         self.bonus = 5000
+        self.items = 2
+        self.item_mul = .5
+        self.programmed_items = {0 : items.FireItem2x}
         self.patterns = [AlienPattern(rate=(.2, .4), amount=50, aliens=[Alien,Alien,Alien,PurpleAlien,PurpleAlien]),
                 AlienPattern(rate=(.2, .35), amount=10, aliens=[Alien]),
                 AlienPattern(rate=(.35, .5), amount=40, aliens=[PurpleAlien])]
@@ -359,15 +383,12 @@ class MissionMars5(MissionMars1):
         self.breifing = """As the Martian Encampment breaks into view,
 suddenly a swarm of furious enemies assault."""
 
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.FireItem2x)]
-        return self.GOs
-
 class MissionMars6(MissionMars1):
     def __init__(self):
         super().__init__()
         self.name = "NASA Zone 90235"
         self.aliens = 20
+        self.programmed_items = {0 : items.FireItem2x}
         self.patterns = [AlienPattern(rate=(1, 3), amount=20, aliens=[PurpleAlien,PurpleAlien,Alien])]
         self.backdrop = "mars_cleanzone"
         self.items = 0
@@ -378,16 +399,14 @@ to do precise seismic data scanning. If any UFOs crash
 into the ground, the seismic scanners will be damaged
 and your mission will fail."""
 
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.FireItem2x)]
-        return self.GOs
-
 class MissionMarsBoss(MissionMars1):
     def __init__(self):
         super().__init__()
         self.name = "Defeat The Boss"
         self.aliens = 15
         self.boss = bosses.Boss1
+        self.unlocks_planets = ["Jupiter"]
+        self.programmed_items = {14 : items.DoubleSpeed}
         self.patterns = [AlienPattern(rate=(.1, .3), amount=14, aliens=[Alien])]
         self.items = 0
         self.bonus = 6000
@@ -401,6 +420,7 @@ class MissionMarsBonus1(MissionMars1):
         super().__init__()
         self.name = "Bomber Barage"
         self.aliens = 75
+        self.programmed_items = {10 : items.FireItem2x, 50 : items.FireItem2x}
         self.patterns = [AlienPattern(rate=(.4, .8), amount=75, aliens=[PurpleAlien])]
         self.briefing = """Destroy 75 carpet bomber aliens"""
         self.backdrop = "mars_backdrop1"
@@ -413,6 +433,7 @@ class MissionMarsBonus2(MissionMars1):
         self.name = "Martian Volcanos"
         self.aliens = 75
         self.temperature = 613
+        self.programmed_items = {5 : items.FlakItem, 25 : items.FireItem2x}
         self.patterns = [AlienPattern(rate=(.3, .6), amount=75, aliens=[Alien, Alien, PurpleAlien])]
         self.backdrop = "mars_volcano_backdrop"
         self.bonus = 4500
@@ -428,6 +449,7 @@ class MissionVenus1(Mission):
         self.name = "Venus Venture"
         self.item_types = [items.GreenLaserItem]
         self.items = 1
+        self.programmed_items = {0 : items.FireItem2x, 10 : items.GreenLaserItem}
         self.patterns = [AlienPattern(rate=(.5, 3.5), amount=15, aliens=[YellowAlien])]
         self.bounce = 1
         self.friction = 3
@@ -439,10 +461,6 @@ spiders have develop slow, heavy-armored spacecraft
 that can drop bombs.
 NOTE: First, buy the Venus Crawler vehicle
 WARNINGS: Beware of volcanoes."""
-
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.FireItem2x)]
-        return self.GOs
 
 class MissionVenus2(MissionVenus1):
     def __init__(self):
@@ -465,6 +483,7 @@ class MissionVenus3(MissionVenus1):
         super().__init__()
         self.aliens = 50
         self.name = "Maat Mons"
+        self.programmed_items = {0 : items.FireItem2x, 10 : items.AutoGun}
         self.patterns = [AlienPattern(rate=(.6, 1.75), amount=25, aliens=[VenusAlien, VenusAlien, YellowAlien]),
                 AlienPattern(rate=(.75, 2), amount=10, aliens=[YellowAlien]),
                 AlienPattern(rate=(.2, .3), amount=10, aliens=[VenusAlien]),
@@ -476,11 +495,6 @@ class MissionVenus3(MissionVenus1):
 top of Maat Mons. The temperatures are
 very high."""
         
-    def getGOs(self, images):
-        self.GOs = super().getGOs(images)
-        self.GOs.append(GameObject((350, 100), images, self, "block", value = items.AutoGun))
-        return self.GOs
-
 class MissionVenus4(MissionVenus1):
     def __init__(self):
         super().__init__()
@@ -499,12 +513,15 @@ class MissionVenus5(MissionVenus1):
         super().__init__()
         self.aliens = 15
         self.name = "Defeat the Smasher"
-        self.patterns = [AlienPattern(rate=(.05, .2), amount=14, aliens=[VenusAlien])]
-        self.bonus = 3000
+        self.programmed_items = {0 : items.FireItem2x, 1: items.AutoGun, 13 : items.FireItem2x, 14 : items.DoubleMoney}
+        self.patterns = [AlienPattern(rate=(.1, .3), amount=10, aliens=[VenusAlien]),
+                         AlienPattern(rate=(1, 2), amount=4, aliens=[YellowAlien])]
+        self.bonus = 5000
         self.items = 0
         self.backdrop = "venus_backdrop4"
         self.boss = bosses.Boss2
-        self.briefing = '''Complete your conquering of
+        self.unlocks_planets = ["Mercury"]
+        self.briefing = f'''Complete your conquering of
 Venus by destroying {names.get_name()}, who
 likes to call himself "The Smasher"'''
 
@@ -549,6 +566,7 @@ class MissionJupiter2(MissionJupiter1):
         self.name = "Jupiter Havoc"
         self.bonus = 4500
         self.item_types = [items.FireItem2x]
+        self.programmed_items = {0 : items.ShieldRegen}
         self.patterns = [AlienPattern(amount=10, rate=(.3, .55), aliens=[JupiterAlien, Alien]),
                 AlienPattern(amount=20, rate=(.4, 2), aliens=[JupiterAlien, JupiterAlien, Alien]),
                 AlienPattern(amount=10, rate=(.3, 1), aliens=[JupiterAlien])]
@@ -558,16 +576,13 @@ class MissionJupiter2(MissionJupiter1):
 arrived to assist the Jovian
 Spiders. Destroy them!"""
 
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.ShieldRegen)]
-        return self.GOs
-
 class MissionJupiter3(MissionJupiter1):
     def __init__(self):
         super().__init__()
         self.aliens = 125
         self.name = "Flak Time"
         self.item_types = [items.ShieldRegen]
+        self.programmed_items = {0 : [items.FlakItem, items.ShieldRegen]}
         self.patterns = [AlienPattern(amount=1, rate=(3, 3), aliens=[JupiterAlien]),
                 AlienPattern(amount=124, rate=(.1, .3), aliens=[JupiterAlien])]
         self.items = 20
@@ -576,11 +591,6 @@ UFOs is invading. Use the provided
 Flak and Shield items.
 
 HINT: Hold <Left Shift> to launch flak."""
-
-    def getGOs(self, images):
-        self.GOs = [GameObject((300, 100), images, self, "block", value = items.FlakItem),
-                GameObject((300, 100), images, self, "block", value = items.ShieldRegen)]
-        return self.GOs
 
 class MissionTest(Mission):
     def __init__(self):

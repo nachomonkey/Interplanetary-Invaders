@@ -4,10 +4,13 @@ from ii_game.scripts.items import *
 from ii_game.scripts.aliens import *
 from ii_game.scripts.utils import remove_doubles
 
+__doc__ = """This module contains data for all planets & moons"""
+
 class Planet:
+    """Base class for all planets"""
     gravity = 0             # Gravity is measured in the G (Earth's Gravity)
     name = "Planet"
-    distance = 10           # Distance is measured in 10^6 miles (From the Sun). One mile is 1609.344 meters
+    distance = 10           # Distance is measured in 10^6 miles (From the Sun).
     orbital_period = 10     # Orbital Period is measured in days
     rotational_period = 10  # Rotational Period is measured in hours (None for sync)
     surface_pressure = None # Surface pressure in atmospheres (None means Unknown)
@@ -24,12 +27,14 @@ class Planet:
     rgba = False
 
 class Moon(Planet):  # For moons, distance is measured in miles from its "parent"
+    """Base class for all moons"""
     parent = "Planet"
     color = (100, 100, 100)
     rotational_period = None
     isMoon = True
 
 class Mercury(Planet):
+    """Data for planet Mercury"""
     gravity = 0.378
     name = "Mercury"
     distance = 36
@@ -40,6 +45,7 @@ class Mercury(Planet):
     unlocks = []
 
 class Venus(Planet):
+    """Data for planet Venus"""
     gravity = 0.907
     name = "Venus"
     distance = 67.2
@@ -47,11 +53,11 @@ class Venus(Planet):
     rotational_period = -5832.5
     color = (175, 175, 45)
     surface_pressure = 91
-    unlocks = ["Mercury"]
     alienType = YellowAlien
     itemType = GreenLaserItem
 
 class Earth(Planet):
+    """Data for planet Earth"""
     gravity = 1
     name = "Earth"
     distance = 93
@@ -59,10 +65,10 @@ class Earth(Planet):
     rotational_period = 23.9
     color = (0, 200, 255)
     surface_pressure = 1
-    unlocks = ["Venus", "Mars"]
     moons = 1
 
 class EarthsMoon(Moon):
+    """Data for Earth's moon"""
     gravity = 0.165
     parent = "Earth"
     name = "Earth's Moon"
@@ -72,6 +78,7 @@ class EarthsMoon(Moon):
     unlocks = []
 
 class Mars(Planet):
+    """Data for Mars"""
     gravity = 0.377
     name = "Mars"
     distance = 141.6
@@ -85,6 +92,7 @@ class Mars(Planet):
     itemType = FireItem2x
 
 class Phobos(Moon):
+    """Data for Mars' moon Phobos"""
     gravity = 0.055897905
     name = "Phobos"
     distance = 15092428.032 * 10
@@ -95,6 +103,7 @@ class Phobos(Moon):
     rgba = True
 
 class Deimos(Moon):
+    """Data for Mars' moon Deimos"""
     gravity = 0.055897905
     name = "Deimos"
     parent = "Mars"
@@ -105,6 +114,7 @@ class Deimos(Moon):
     rgba = True
 
 class Jupiter(Planet):
+    """Data for planet Jupiter"""
     gravity = 2.36
     name = "Jupiter"
     distance = 483.8
@@ -117,6 +127,7 @@ class Jupiter(Planet):
     gasgiant = True
 
 class Io(Moon):
+    """Data for Jupiter's moon Io"""
     name = "Io"
     parent = "Jupiter"
     gravity = 0.183
@@ -126,6 +137,7 @@ class Io(Moon):
     surface_pressure = 2.9607690000000004e-15
 
 class Europa(Moon):
+    """Data for Jupiter's moon Europa"""
     name = "Europa"
     parent = "Jupiter"
     gravity = 0.134
@@ -135,6 +147,7 @@ class Europa(Moon):
     surface_pressure = 9.86923e-13
 
 class Ganymede(Moon):
+    """Data for Jupiter's moon Ganymede"""
     name = "Ganymede"
     parent = "Jupiter"
     gravity = 0.146
@@ -144,6 +157,7 @@ class Ganymede(Moon):
     surface_pressure = 9.86923e-07
 
 class Callisto(Moon):
+    """Data for Jupiter's moon Callisto"""
     name = "Callisto"
     parent = "Jupiter"
     gravity = 0.126
@@ -153,6 +167,7 @@ class Callisto(Moon):
     surface_pressure = 7.40199e-12
 
 class Saturn(Planet):
+    """Data for planet Saturn"""
     gravity = 0.916
     name = "Saturn"
     distance = 890.8
@@ -165,6 +180,7 @@ class Saturn(Planet):
     gasgiant = True
 
 class Titan(Moon):
+    """Data for Saturn's moon Titan"""
     gravity = 0.1380695752372115
     parent = "Saturn"
     name = "Titan"
@@ -174,6 +190,7 @@ class Titan(Moon):
     surface_pressure = 1.5
 
 class Enceladus(Moon):
+    """Data for Saturn's moon Enceladus"""
     gravity = 0.0113
     parent = "Saturn"
     name = "Enceladus"
@@ -183,6 +200,7 @@ class Enceladus(Moon):
     surface_pressure = None
 
 class Rhea(Moon):
+    """Data for Saturn's moon Rhea"""
     gravity = 0.02692050802261731
     parent = "Saturn"
     name = "Rhea"
@@ -191,6 +209,7 @@ class Rhea(Moon):
     color = (175, 175, 175)
 
 class Uranus(Planet):
+    """Data for planet Uranus"""
     gravity = 0.889
     name = "Uranus"
     distance = 1784.8
@@ -201,6 +220,7 @@ class Uranus(Planet):
     unlocks = ["Neptune"]
 
 class Neptune(Planet):
+    """Data for planet Neptune"""
     gravity = 1.12
     name = "Neptune"
     distance = 2793.1
@@ -211,6 +231,7 @@ class Neptune(Planet):
     unlocks = []
 
 class Pluto(Planet):
+    """Data for exoplanet Pluto"""
     gravity = 0.071
     name = "Pluto"
     distance = 3670
@@ -219,54 +240,39 @@ class Pluto(Planet):
     color = (150, 255, 255)
     surface_pressure = 0.00001
 
-planetByName = {"Earth" : Earth,
-        "Mercury" : Mercury,
-        "Venus" : Venus,
-        "Mars" : Mars,
-        "Jupiter" : Jupiter,
-        "Saturn" : Saturn,
-        "Uranus" : Uranus,
-        "Neptune" : Neptune,
-        "Pluto" : Pluto,
-        "EarthsMoon": EarthsMoon,
-        "Phobos" : Phobos,
-        "Deimos" : Deimos,
-        "Io" : Io,
-        "Europa" : Europa,
-        "Ganymede" : Ganymede,
-        "Callisto" : Callisto,
-        "Titan" : Titan,
-        "Enceladus" : Enceladus,
-        "Rhea" : Rhea}
+PLANET_BY_NAME = {"Earth" : Earth,
+                  "Mercury" : Mercury,
+                  "Venus" : Venus,
+                  "Mars" : Mars,
+                  "Jupiter" : Jupiter,
+                  "Saturn" : Saturn,
+                  "Uranus" : Uranus,
+                  "Neptune" : Neptune,
+                  "Pluto" : Pluto,
+                  "EarthsMoon": EarthsMoon,
+                  "Phobos" : Phobos,
+                  "Deimos" : Deimos,
+                  "Io" : Io,
+                  "Europa" : Europa,
+                  "Ganymede" : Ganymede,
+                  "Callisto" : Callisto,
+                  "Titan" : Titan,
+                  "Enceladus" : Enceladus,
+                  "Rhea" : Rhea}
 
-Moons = {"Mercury" : [],
-        "Venus" : [],
-        "Earth" : [EarthsMoon],
-        "Mars" : [Phobos, Deimos],
-        "Jupiter" : [Io, Europa, Ganymede, Callisto],
-        "Saturn" : [Titan, Enceladus, Rhea]}
+MOONS = {"Mercury" : [],
+         "Venus" : [],
+         "Earth" : [EarthsMoon],
+         "Mars" : [Phobos, Deimos],
+         "Jupiter" : [Io, Europa, Ganymede, Callisto],
+         "Saturn" : [Titan, Enceladus, Rhea]}
 
 planets = [Earth, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto]
 moons = [EarthsMoon, Phobos, Deimos, Io, Europa, Ganymede, Callisto, Titan, Enceladus, Rhea]
 planetsmoons = planets+moons
 
-def unlocked_planets(profile):
-    unlocked_planets = ["Earth"]
-    for planet in profile["finished_planets"]:
-        for p in planetsmoons:
-            if p.name == planet:
-                unlocked_planets.append(p.name)
-                for u in p.unlocks:
-                    for p2 in planetsmoons:
-                        if p2.name == u:
-                            unlocked_planets.append(p2.name)
-    return remove_doubles(unlocked_planets)
-
-if __name__ == "__main__":
-    try:
-        from ii_game.scripts import saves
-    except ImportError:
-        import saves
-    for x in range(5):
-        print(f"Unlocked Planets for profile #{x}:")
-        print(self.unlocked_planets(saves.load_profile(x)))
+def convert_by_name(planets):
+    result = []
+    for p in planets:
+        result.append(PLANET_BY_NAME[p])
+    return result

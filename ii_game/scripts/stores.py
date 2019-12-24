@@ -1,13 +1,14 @@
-import pygame
 import random
+from copy import copy
+import pygame
 from ii_game.scripts.confirm import confirmExit
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.maps import MapPoint
-from ii_game.scripts.planets import unlocked_planets, planetByName
+from ii_game.scripts.planets import PLANET_BY_NAME
 from ii_game.scripts import saves
 from ii_game.scripts import store_data
 from ii_game.scripts.sound import Sound
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path, divide_list
 from ii_game.scripts.get_file import get_file
 from ii_game.scripts.congrats import congrats
 from ii_game.scripts.info import display_info
@@ -24,16 +25,20 @@ def scanForStores(profile):
     return stores
 
 def confirmStores(profile, display, images):
-    if not profile["addNewStore"]:
-        profile["addNewStore"] = random.randint(2, 4)
-        cplanet = random.choice(unlocked_planets(profile))
-        point = MapPoint((random.randint(100, 700), random.randint(100, 500)), f"{cplanet} Store", None, type="store")
-        if cplanet in profile["map"]:
-            profile["map"][cplanet].insert(0, point)
-            congrats(display, images, "store", planetByName[cplanet])
-        else:
-            return None
+    if profile["addNewStore"] <= 0:
+        stores = []
+        for p in profile["unlocked_planets"]:
+            for point in profile["map"][p]:
+                if point.type == "store":
+                    stores.append((point, p))
+        if stores:
+            profile["addNewStore"] = random.randint(2, 4)
+            store = random.choice(stores)
+            store[0].store_data = None
+            congrats(display, images, "store", PLANET_BY_NAME[store[1]])
     return profile
+
+MAX_STORE_ITEM_LENGTH = 6
 
 class StoreUI:
     def __init__(self, display, images, profile, profile_selected, map_point):
@@ -81,13 +86,17 @@ class StoreUI:
             self.catagories = [self.items, self.missiles, self.licenses, self.vehicles, self.drones]
             self.mapPoint.store_data = self.catagories
         else:
-            self.catagories = self.mapPoint.store_data
+            if self.mapPoint.store_data:
+                self.catagories = self.mapPoint.store_data
+            else:
+                self.catagories = [self.items, self.missiles, self.licenses, self.vehicles, self.drones]
+                self.mapPoint.store_data = self.catagories
         self.sel_num = [0, 0, 0, 0, 0]
         self.purchase_rect = pygame.Rect(0, 0, 175, 50)
         self.purchase_rect.midbottom = self.buy_rect.move(0, -5).midbottom
         self.exit_rect = pygame.Rect(0, 0, 275, 50)
         self.exit_rect.midbottom = self.purchase_rect.move(0, -5).midtop
-        pygame.mixer.music.load(get_file(fixPath("music/stores.mp3")))
+        pygame.mixer.music.load(get_file(fix_path("audio/music/stores.mp3")))
         pygame.mixer.music.play(-1)
         
     def main(self):
@@ -96,50 +105,7 @@ class StoreUI:
             self.draw()
             self.update()
         saves.save_data(self.profile_selected, self.profile)
-        pygame.mixer.music.stop()
-        if self.mapPoint.visits_left == 0:
-            self.profile["map"][self.profile["planet"].name].remove(self.mapPoint)
-            return True
-
-    def confirmExit(self):
-        background = self.display.copy()
-        main_rect = pygame.Rect(0, 0, 500, 300)
-        main_rect.center = (400, 300)
-        main_surf = pygame.Surface(main_rect.size)
-        main_surf.fill(0)
-        main_surf.set_alpha(220)
-        options = ["Yes", "No"]
-        self.no_selected = False
-        done = False
-        while not done:
-            for event in pygame.event.get():
-                joystick.Update(event)
-                if not hasattr(event, "key"):
-                    event.key = None
-                if event.type == pygame.KEYDOWN or joystick.WasEvent():
-                    if event.key in (pygame.K_UP, pygame.K_w) or joystick.JustWentUp():
-                        self.no_selected = False
-                    if event.key in (pygame.K_DOWN, pygame.K_d) or joystick.JustWentDown():
-                        self.no_selected = True
-                    if event.key == pygame.K_RETURN or joystick.JustPressedA():
-                        if not self.no_selected:
-                            self.done = True
-                            self.mapPoint.visits_left -= 1
-                        joystick.Reset()
-                        return
-            self.display.blit(background, (0, 0))
-            self.display.blit(main_surf, main_rect)
-            pygame.draw.rect(self.display, (255, 255, 0), main_rect, 1)
-            retro_text(main_rect.move(0, 25).midtop, self.display, 14, "Are you sure you want to save and exit this store?", anchor="midtop", font="sans")
-            retro_text(main_rect.move(0, 40).midtop, self.display, 15, f"Only {self.mapPoint.visits_left - 1} visits left!", anchor="midtop")
-            for e, o in enumerate(options):
-                color = (255, 255, 255)
-                if e == self.no_selected:
-                    color = (255, 255, 175)
-                    self.display.blit(self.images["bullet"], main_rect.move(-20, e * 15 - 3).center)
-                retro_text(main_rect.move(0, e * 15).center, self.display, 15, o, color=color)
-            pygame.display.update()
-            self.clock.tick(25)
+        pygame.mixer.music.fadeout(1000)
 
     def events(self):
         for event in pygame.event.get():
@@ -149,22 +115,38 @@ class StoreUI:
             if not hasattr(event, 'key'):
                 event.key = None
             if event.type == pygame.QUIT:
-                self.confirmExit()
+#                self.confirmExit()
+                self.done = True
             if event.type == pygame.KEYUP or joystick.WasEvent():
                 if (event.key == pygame.K_y or joystick.JustPressedY()) and cat:
                     selected = list(cat.keys())[self.sel_num[self.rect_sel]]
                     display_info(self.display, self.images, selected)
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
+                jwu = joystick.JustWentUp() or event.key in (pygame.K_w, pygame.K_UP)
+                jwd = joystick.JustWentDown() or event.key in (pygame.K_s, pygame.K_DOWN)
+                mod_sel = False
+                if jwu or jwd:
+                    sel = self.sel_num[self.rect_sel]
+                    new_sel = copy(sel)
+                    if jwd and sel + MAX_STORE_ITEM_LENGTH < len(cat):
+                        mod_sel = True
+                        new_sel += MAX_STORE_ITEM_LENGTH
+                    if jwu and sel - MAX_STORE_ITEM_LENGTH >= 0:
+                        mod_sel = True
+                        new_sel -= MAX_STORE_ITEM_LENGTH
+                    if mod_sel:
+                        self.sel_num[self.rect_sel] = new_sel
                 if event.key == pygame.K_ESCAPE or joystick.BackEvent():
-                    self.confirmExit()
-                if event.key in (pygame.K_w, pygame.K_UP) or joystick.JustWentUp():
+                    self.done = True
+                if (jwu and not mod_sel) or joystick.JustPressedLT() or event.key == pygame.K_PAGEUP:
                     self.rect_sel -= 1
-                if event.key in (pygame.K_s, pygame.K_DOWN) or joystick.JustWentDown():
+                if (jwd and not mod_sel) or joystick.JustPressedRT() or event.key == pygame.K_PAGEDOWN:
                     self.rect_sel += 1
                 if self.rect_sel < 0:
                     self.rect_sel = 0
                 if self.rect_sel >= len(self.rects):
                     self.rect_sel = len(self.rects) - 1
+                cat = self.catagories[self.rect_sel] # REMEMBER: this line must be here!!!
                 if event.key in (pygame.K_a, pygame.K_LEFT) or joystick.JustWentLeft():
                     self.sel_num[self.rect_sel] -= 1
                 if event.key in (pygame.K_d, pygame.K_RIGHT) or joystick.JustWentRight():
@@ -179,19 +161,19 @@ class StoreUI:
                 if self.purchase_rect.collidepoint(pygame.mouse.get_pos()):
                     click = True
                 if self.exit_rect.collidepoint(pygame.mouse.get_pos()):
-                    self.confirmExit()
+                    self.done = True
             if click:
                 self.purchase()
 
     def purchase(self):
         cat = self.catagories[self.rect_sel]
         if not cat:
-            Sound(fixPath("audio/donk.wav")).play()
+            Sound(fix_path("audio/donk.wav")).play()
             return
         selected = list(cat.keys())[self.sel_num[self.rect_sel]]
         selected.planet = self.profile["planet"].name
         if self.profile["money"] >= selected.cost:
-            Sound(fixPath("audio/purchase.wav")).play()
+            Sound(fix_path("audio/purchase.wav")).play()
             cat[selected] -= 1
             if not cat[selected]:
                 self.catagories[self.rect_sel].pop(selected)
@@ -205,7 +187,7 @@ class StoreUI:
                 self.profile["inventory"][self.rect_sel][selected] = self.profile["planet"].name
             self.profile["money"] -= selected.cost
         else:
-            Sound(fixPath("audio/donk.wav")).play()
+            Sound(fix_path("audio/donk.wav")).play()
 
     def draw(self):
         self.display.blit(self.images["background"], (0, 0))
@@ -241,34 +223,37 @@ class StoreUI:
             retro_text(rect.center, self.display, 20, self.rect_names[e], color=tcolor, anchor="center")
 
         cat = self.catagories[self.rect_sel]
-        for e, x in enumerate(cat):
-            rect = pygame.Rect(0, 0, 50, 50)
-            rect.topleft = self.buy_rect.move(5 + e * 55, 15).topleft
-            trect = pygame.Rect(0, 0, 15, 15)
-            c1, c2 = (50, 50, 50), (0, 0, 0)
-            if e == self.sel_num[self.rect_sel]:
-                c1, c2 = (50, 0, 0), (255, 0, 0)
-            trect.bottomright = rect.bottomright
-            pygame.draw.rect(self.display, c1, rect)
-            self.display.blit(pygame.transform.scale(self.images[x.icon], (50, 50)), rect)
-            if not x.type in ("License", "Vehicle"):
-                pygame.draw.rect(self.display, (150, 0, 0), trect)
-                pygame.draw.rect(self.display, (0, 0, 0), trect, 1)
-                retro_text(trect.center, self.display, 15, cat[x], anchor="center")
-            pygame.draw.rect(self.display, c2, rect, 1)
+        for y, row in enumerate(divide_list(cat, MAX_STORE_ITEM_LENGTH)):
+            for x, obj in enumerate(row):
+                rect = pygame.Rect(0, 0, 50, 50)
+                rect.topleft = self.buy_rect.move(5 + x * 55, 15 + y * 55).topleft
+                trect = pygame.Rect(0, 0, 15, 15)
+                c1, c2 = (50, 50, 50), (0, 0, 0)
+                if y * MAX_STORE_ITEM_LENGTH + x == self.sel_num[self.rect_sel]:
+                    c1, c2 = (50, 0, 0), (255, 0, 0)
+                trect.bottomright = rect.bottomright
+                pygame.draw.rect(self.display, c1, rect)
+                self.display.blit(pygame.transform.scale(self.images[obj.icon], (50, 50)), rect)
+                if not obj.type in ("License", "Vehicle"):
+                    pygame.draw.rect(self.display, (150, 0, 0), trect)
+                    pygame.draw.rect(self.display, (0, 0, 0), trect, 1)
+                    retro_text(trect.center, self.display, 15, cat[obj], anchor="center")
+                pygame.draw.rect(self.display, c2, rect, 1)
+
         cat2 = self.profile["inventory"][self.rect_sel]
-        for e, x in enumerate(cat2):
-            rect = pygame.Rect(0, 0, 50, 50)
-            rect.topleft = self.inv_rect.move(5 + e * 55, 15).topleft
-            trect = pygame.Rect(0, 0, 15, 15)
-            trect.bottomright = rect.bottomright
-            pygame.draw.rect(self.display, (50, 50, 50), rect)
-            self.display.blit(pygame.transform.scale(self.images[x.icon], (50, 50)), rect)
-            if not x.type in ("License", "Vehicle"):
-                pygame.draw.rect(self.display, (150, 0, 0), trect)
-                pygame.draw.rect(self.display, (0, 0, 0), trect, 1)
-                retro_text(trect.center, self.display, 15, cat2[x], anchor="center")
-            pygame.draw.rect(self.display, (0, 0, 0), rect, 1)
+        for y, row in enumerate(divide_list(cat2, MAX_STORE_ITEM_LENGTH)):
+            for x, obj in enumerate(row):
+                rect = pygame.Rect(0, 0, 50, 50)
+                rect.topleft = self.inv_rect.move(5 + x * 55, 15 + y * 55).topleft
+                trect = pygame.Rect(0, 0, 15, 15)
+                trect.bottomright = rect.bottomright
+                pygame.draw.rect(self.display, (50, 50, 50), rect)
+                self.display.blit(pygame.transform.scale(self.images[obj.icon], (50, 50)), rect)
+                if not obj.type in ("License", "Vehicle"):
+                    pygame.draw.rect(self.display, (150, 0, 0), trect)
+                    pygame.draw.rect(self.display, (0, 0, 0), trect, 1)
+                    retro_text(trect.center, self.display, 15, cat2[obj], anchor="center")
+                pygame.draw.rect(self.display, (0, 0, 0), rect, 1)
         if cat:
             selected = list(cat.keys())[self.sel_num[self.rect_sel]]
             pic_rect = pygame.Rect(0, 0, 100, 100)

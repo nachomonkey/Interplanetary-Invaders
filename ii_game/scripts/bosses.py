@@ -1,5 +1,5 @@
-from ii_game.scripts.aliens import Alien
-from pygame.math import Vector2
+from pygame import Vector2
+from ii_game.scripts.aliens import Alien, YellowAlien
 
 class Boss(Alien):
     def __init__(self, pos, images, GOs, flaks, player, mission):
@@ -23,14 +23,14 @@ class Boss(Alien):
 class Boss1(Boss):
     pass
 
-class Boss2(Boss):
+class Boss2(YellowAlien, Boss):
     def __init__(self, pos, images, GOs, flaks, player, mission):
         super().__init__(pos, images, GOs, flaks, player, mission)
         self.downshift = 5
-        self.health = 20
+        self.health = 50
         self.drops_bombs = True
-        self.till_reg_drop = (-.01, .3)
-        self.till_drop = (2, 3)
+        self.till_reg_drop = (-.01, .2)
+        self.till_drop = (0, .5)
         self.name = "boss2"
         self.size, self.exp_size = (128, 64), (256, 256)
         self.drop_from = "LR"

@@ -3,7 +3,7 @@ from math import radians, sin, cos
 from pygame.math import Vector2
 from ii_game.scripts.lasers import *
 from ii_game.scripts.sound import Sound
-from ii_game.scripts.utils import fixPath
+from ii_game.scripts.utils import fix_path
 from ii_game.scripts import joystick
 
 pygame.init()
@@ -65,6 +65,9 @@ class Zapper:
         self.regen_time = 0
         self.just_fired = False
         self.death_sound = None
+        self.weapon_power = 1
+        self.always_beam = False
+        self.im_back = False
 
     def send_to_ground(self):
         if self.dry:
@@ -78,7 +81,7 @@ class Zapper:
         self.target_alt = self.standard_alt
         self.min_alt = self.mission.ground
         self.pos[1] = rect.top
-        if not self.hover and self.mission.planet.gasgiant:
+        if not self.hover and self.mission.is_bottomless():
             self.dead = True
             self.health = 0
             self.shield = 0
@@ -123,6 +126,7 @@ class Zapper:
         else:
             center += (Vector2(self.size) / 2)
         obj = self.fireObject(center, self.images, self.rotation)
+        obj.damage *= self.weapon_power
         if self.whimp:
             obj.damage /= 10
         self.lasers.append(obj)
@@ -147,6 +151,7 @@ class Zapper:
             self.current_items[item].total_time += time_passed
         self.just_fired = False
         if self.dead and self.health > 0:
+            self.im_back = True
             self.dead = False
             self.frame = 1
         if self.regen:
@@ -248,7 +253,7 @@ class VenusCrawler(Zapper):
         self.max_shield = 2
         self.max_temp = 950 # Works up to 950 deg. F
         self.fire_from = (22, 32)
-        self.fire_per_sec = 4
+        self.fire_per_sec = 5
         self.send_to_ground()
 
 class Curiosity(Zapper):
@@ -266,6 +271,7 @@ class Curiosity(Zapper):
         self.shield = .5
         self.max_shield = .5
         self.rect = self.get_rect()
+        self.always_beam = True
         self.beam = True
         self.rotate = True
         self.whimp = True
@@ -277,6 +283,7 @@ class JupiterHover(Zapper):
         super().__init__(pos, images, mission, dry)
         self.title = "Jupiter Hovercraft"
         self.name = "jupiter_hover"
+        self.fire_per_sec = 6.5
         self.death_frames = 21
         self.size = (32, 32)
         self.boom_size = (256, 256)
@@ -293,5 +300,6 @@ class JupiterHover(Zapper):
         self.hover_alt = 430
         self.frame_rate = 1/35
         self.send_to_ground()
-        self.death_sound = Sound(fixPath("audio/jupiter_hover_explode.wav"))
+        self.weapon_power = .75
+        self.death_sound = Sound(fix_path("audio/jupiter_hover_explode.wav"))
 

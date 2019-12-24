@@ -60,8 +60,8 @@ except:
 
 def IsSupported():
     if (not ("x" in name and "box" in name.lower())):
-        return False;
-    return True;
+        return False
+    return True
 
 def Update(event):
     OldState.TransferFrom(CurrentState)
@@ -204,7 +204,7 @@ def GoEvent():
     return JustPressedA() or JustPressedStart()
  
 def WasEvent():
-    return JustWentLeft() or JustWentRight() or JustWentUp() or JustWentDown() or JustPressedA() or JustPressedB() or JustPressedX() or JustPressedY() or JustPressedStart() or JustPressedBack() or JustPressedRT() or JustPressedLT() or GoEvent() or JustPressedLB() or JustPressedRB() or JustWentHalfDown() or JustStoppedHalfDown()
+    return JustWentLeft() or JustWentRight() or JustWentUp() or JustWentDown() or JustPressedA() or JustPressedB() or JustPressedX() or JustPressedY() or JustPressedStart() or JustPressedBack() or JustPressedRT() or JustPressedLT() or GoEvent() or JustPressedLB() or JustPressedRB() or JustWentHalfDown() or JustStoppedHalfDown() or EndEvent("A")
 
 def Reset():
     CurrentState.TransferFrom(JoystickState())

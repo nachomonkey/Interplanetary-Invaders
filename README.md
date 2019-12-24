@@ -87,7 +87,9 @@ Press **F2** to take screenshots. Screenshots get stored in your *data* director
 when the game launches.
 
 # Acknowledgements
-Some images (described in the game's credits) are either directly used or modified versions of NASA images.
+* Some images (described in the game's credits) are either directly used or modified versions of NASA images.
+
+* [Flak Bursts sound](https://freesound.org/people/zimbot/sounds/209984/) (Modified) is by [zimbot](https://freesound.org/people/zimbot/) on https://freesound.org, under the Attribution License.
 
 # License
 Uses the GNU GPLv3 License. See the [LICENSE](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/LICENSE) file for the full license.
