@@ -239,6 +239,8 @@ class Game:
                     if event.key == pygame.K_RETURN or joystick.JustPressedA():
                         if (len(self.player.items) > sel):
                             self.activate_item(sel)
+                            self.draw()
+                            display = self.Display.copy()
                         else:
                             Sound(fix_path("audio/donk.wav")).play()
                         if not self.player.items:
@@ -474,9 +476,11 @@ class Game:
                 self.player.current_items[item.name].length += item.length
                 return
         else:
-            self.player.current_items[item.name] = item
+            if item.length:
+                self.player.current_items[item.name] = item
         item.activate()
-        self.player.current_items[item.name] = item
+        if item.length:
+            self.player.current_items[item.name] = item
         if item.name == "Green Laser":
             self.player.fireObject = GreenLaser
             if "Lightning" in self.player.current_items:
@@ -500,6 +504,9 @@ class Game:
         if item.name == "Magnet":
             for go in self.GOs:
                 go.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(go.type, 0) * self.mission.magnet_power
+        if item.name == "Heal":
+            self.player.health = self.player.max_health
+            Sound(fix_path("audio/heart.wav")).play()
 
     def draw(self):
         """Render the game"""
@@ -540,8 +547,8 @@ class Game:
         retro_text((600, 0), self.display, 18, "Health:", anchor = "midtop", color=MAIN_TEXT_COLOR)
         retro_text((602, 77), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color = (0, 0, 0))
         retro_text((600, 75), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color=MAIN_TEXT_COLOR)
-        retro_text((402, 2), self.display, 16, f"Aliens Killed: {self.aliens_killed} / {self.mission.aliens}", anchor = "midtop", font = "impact", color = (0, 0, 0))
-        retro_text((400, 0), self.display, 16, f"Aliens Killed: {self.aliens_killed} / {self.mission.aliens}", anchor = "midtop", font = "impact", color=MAIN_TEXT_COLOR)
+        retro_text((402, 2), self.display, 16, f"Aliens Killed: {min(self.aliens_killed, self.mission.aliens)} / {self.mission.aliens}", anchor = "midtop", font = "impact", color = (0, 0, 0))
+        retro_text((400, 0), self.display, 16, f"Aliens Killed: {min(self.aliens_killed, self.mission.aliens)} / {self.mission.aliens}", anchor = "midtop", font = "impact", color=MAIN_TEXT_COLOR)
         if self.combo:
             retro_text((402, 28), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=(0, 0, 0))
             retro_text((400, 30), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=MAIN_TEXT_COLOR)
@@ -914,7 +921,7 @@ class Game:
                              self.add_points(alien.death_amount[0] + points, alien.get_rect().center)
                              alien.explode_sound.play()
                      else:
-                         alien.death_sound.play()
+                         alien.death_sound_instance = alien.death_sound.play()
                          self.add_points(alien.death_amount[1] + points, alien.get_rect().center)
                      continue
             if alien.kill:
@@ -928,7 +935,7 @@ class Game:
                     if go.type == "moneyBag":
                         go.health -= alien.impact_damage[0]
                     if go.type == "mine":
-                        go.dead = True
+                        go.lifetime = go.max_lifetime + 1
             if r1.colliderect(r2) and not alien in self.player.hitBy:
                 if alien.grounded:
                     if self.player.shield:
@@ -965,15 +972,16 @@ class Game:
                 self.disableItem(item)
         pygame.display.update()
         self.alien_time += self.time_passed
-        if self.alien_time >= self.next_alien:
+        if self.alien_time >= self.next_alien and (not self.next_wave.one_at_a_time or not self.next_wave.has_remaining()):
             if not self.ran_out_of_aliens:
-                self.aliens.append(self.next_wave.get_alien_type()((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
-                self.next_wave.completed += 1
                 if self.next_wave.completed == self.next_wave.amount:
                     if len(self.mission.patterns):
                         self.next_wave = self.mission.patterns.pop(0)
                     else:
                         self.ran_out_of_aliens = True
+                self.aliens.append(self.next_wave.get_alien_type()((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
+                self.next_wave.alien_objects.append(self.aliens[-1])
+                self.next_wave.completed += 1
             if self.mission.boss == None:
                 self.bossed = True
             if self.ran_out_of_aliens and not self.bossed and len(self.aliens) == 0:

@@ -1,9 +1,10 @@
+"""Joystick Support for Interplanetary Invaders"""
+
 import pygame
 import copy
 
 pygame.init()
 pygame.joystick.init()
-
 
 # Button Codes for XBOX 360 controller:
 # A:     0
@@ -34,6 +35,12 @@ class JoystickState:
         self.LB = False
         self.RB = False
 
+        # Hat Values
+        self.HL = False
+        self.HR = False
+        self.HD = False
+        self.HU = False
+
     def is_X_anywhere(self):
         return self.X_val > .15 or self.X_val < -.15
 
@@ -59,7 +66,7 @@ except:
     print("No joysticks detected")
 
 def IsSupported():
-    if (not ("x" in name and "box" in name.lower())):
+    if (not ("x" in name and "box" in name.lower()) and not ("xinput" in name.lower())):
         return False
     return True
 
@@ -116,7 +123,6 @@ def Update(event):
                 CurrentState.joystick_up = True
             if event.value > -.7:
                 CurrentState.joystick_up = False
-
             if event.value >= .35:
                 CurrentState.joystick_half_down = True
             if event.value < .35:
@@ -138,6 +144,25 @@ def Update(event):
                 CurrentState.RT = True
             if event.value < .75:
                 CurrentState.RT = False
+    if event.type == pygame.JOYHATMOTION:
+        x, y = event.value
+        if not x:
+            CurrentState.HL = CurrentState.HR = False
+        if not y:
+            CurrentState.HD = CurrentState.HU = False
+        if x == -1:
+            CurrentState.HL = True
+            CurrentState.HR = False
+        if x == 1:
+            CurrentState.HR = True
+            CurrentState.HL = False
+        if y == 1:
+            CurrentState.HU = True
+            CurrentState.HD = False
+        if y == -1:
+            CurrentState.HD = True
+            CurrentState.HU = False
+
 
 def StartEvent(attr_name):
     if (getattr(CurrentState, attr_name, False) and not getattr(OldState, attr_name, False)):
@@ -150,16 +175,16 @@ def EndEvent(attr_name):
     return False
 
 def JustWentLeft():
-    return StartEvent("joystick_left")
+    return StartEvent("joystick_left") or StartEvent("HL")
 
 def JustWentRight():
-    return StartEvent("joystick_right")
+    return StartEvent("joystick_right") or StartEvent("HR")
 
 def JustWentUp():
-    return StartEvent("joystick_up")
+    return StartEvent("joystick_up") or StartEvent("HU")
 
 def JustWentDown():
-    return StartEvent("joystick_down")
+    return StartEvent("joystick_down") or StartEvent("HD")
 
 def JustPressedA():
     return StartEvent("A")

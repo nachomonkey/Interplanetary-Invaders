@@ -31,7 +31,7 @@ ATTRACTION_WITH_MAGNET = {
         "block" : 5,
         "heart" : 4,
         "shield" : 7,
-        "rock" : -.75,
+        "rock" : -.65,
         "mine" : -.5,
         "bomb" : -1,
         "laser" : -.015,

@@ -20,6 +20,12 @@ Sound FX: NachoMonkey
 Flak Sound [MODIFIED]:
 zimbot (see README.md)
 
+Cash Register:
+kiddpark (see README.md)
+
+Green Alien Crash [MODIFIED]:
+spoonsandlessspoons (see README.md)
+
 Animations, 3d images: NachoMonkey
 
 Photo Credits
@@ -61,7 +67,7 @@ def run_credits(display, images):
     for e, x in enumerate(credits_text.split("\n")):
         text.append(list(retro_text((400, 24 * e + 10), display, 14, x, font = "sans", anchor = "midtop", res = 11)))
     scroll = -600
-    scroll_rate = 35
+    scroll_rate = 45
     while not done:
         for event in pygame.event.get():
             joystick.Update(event)

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3.7
 
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
 import sys
 
 debugMode = False
@@ -16,6 +19,7 @@ if len(sys.argv) > 1 and __name__ == "__main__":
         print("Verbose mode enabled")
 
 from ii_game.scripts import menu
+
 import pygame
 
 from ii_game.scripts import auto_load
@@ -32,8 +36,7 @@ from ii_game.scripts.achievements import ACHIEVEMENTS
 from ii_game.scripts.get_file import get_file
 from ii_game.scripts.utils import colorize
 from ii_game.scripts import joystick
-import os
-import time
+import time 
 
 print(colorize(f"Your \"data\" directory is: {get_file('data')}", "bold"))
 

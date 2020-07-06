@@ -104,6 +104,10 @@ class GameObject:
         if self.player:
             if "Magnet" in self.player.current_items:
                 self.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(self.type, 0) * self.mission.magnet_power # tracing velocity change in m/s
+                if self.type == "heart" and self.player.health == self.player.max_health:
+                    self.tracking_speed = 0
+                if self.type == "shield" and self.player.shield == self.player.max_shield:
+                    self.tracking_speed = 0
             else:
                 self.tracking_speed = constants.ATTRACTION.get(self.type, 0)
 
