@@ -158,6 +158,18 @@ attracts useful objects
 and repels harmful
 weapons."""
 
+class HealItem(StoreItem):
+    icon = "heal"
+    title = "Heal"
+    type = "Item"
+    cost = 5000
+    rarity = .4
+    link = items.HealItem
+    banned_plantes = []
+    description = """
+Instantly replenishes the
+player's health"""
+
 class TransportLicense1(StoreItem):
     title = "Space Transport License 1"
     type = "License"
@@ -263,7 +275,7 @@ class StandardVehicle(StoreItem):
     link = zapper
     description = "Standard Vehicle"
 
-ITEMS = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem] # MUST be same order and length as items.items!!!
+ITEMS = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem, HealItem] # MUST be same order and length as items.items!!!
 LISENCES = [TransportLicense2, DronesLicense, ItemStorage10]
 VEHICLES = [VenusCrawler, JupiterHover, Curiosity]
 

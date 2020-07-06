@@ -83,7 +83,15 @@ class MagnetItem(Item):
         self.name = "Magnet"
         self.image = "magnet"
 
-items = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem]
+class HealItem(Item):
+    cost = 5000
+    def __init__(self):
+        super().__init__()
+        self.length = 0
+        self.name = "Heal"
+        self.image = "heal"
+
+items = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem, HealItem]
 
 def getItem():
     return random.choice(items)()

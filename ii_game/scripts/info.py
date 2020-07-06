@@ -51,8 +51,13 @@ def format_bool(b):
 def format_info(item):
     data = f"Type: {item.type}\n\nRarity: {item.rarity*100}%\n\nCost: {item.cost} Loot"
     if item.type == "Item":
+        item_length = item.link().length
+        seconds = " Seconds"
+        if item_length == 0:
+            item_length = "Instant"
+            seconds = ""
         data += f"""
-Duration: {item.link().length} Seconds"""
+Duration: {item_length}{seconds}"""
     if item.type == "License":
         if item.title.startswith("SpaceTransport"):
             data += f"""

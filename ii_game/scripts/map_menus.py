@@ -140,8 +140,8 @@ class SpaceMap:
                     click = True
                 if event.key == pygame.K_LEFT or joystick.JustWentLeft():
                     self.speed -= .1
-                    if self.speed < 0:
-                        self.speed = 0
+                    if self.speed <= 0.2:
+                        self.speed = 0.2
                 if event.key == pygame.K_RIGHT or joystick.JustWentRight():
                     self.speed += .1
                     if self.speed > 2:

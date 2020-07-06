@@ -203,6 +203,7 @@ class Menu:
                         if self.options_mode:
                             sel = self.option_selected
                             if self.options[sel] == "Cancel":
+                                self.option_selected = 2
                                 self.options_mode = False
                                 self.options_dict = saves.load_options()
                             if self.options[sel] == "Save":
@@ -217,8 +218,8 @@ class Menu:
                                     if profile["new"]:
                                         profile["version"] = __version__
                                     else:
-                                        print(colorize("Warning!!! This profile is from a different version \
-of Interplanetary Invaders!!!\nErrors may occur!!!", "warning"))
+                                        print(colorize("Warning: this profile is from a different version \
+of Interplanetary Invaders; \nerrors may occur", "warning"))
                                 profile["new"] = False
                                 saves.save_data(self.profile_selected, profile)
                                 self.done = True
@@ -341,10 +342,14 @@ of Interplanetary Invaders!!!\nErrors may occur!!!", "warning"))
     def draw_items(self, items, selected, stuff_rect, x_off = 100):
         for n, x in enumerate(items):
             color = (255, 255, 255)
+            bold = False
+            size = 20
             if n == selected:
                 self.display.blit(self.images["bullet"], (stuff_rect.left + x_off, stuff_rect.top + 50 + n * 40))
                 color = (255, 255, 175)
-            retro_text((stuff_rect.left + x_off, stuff_rect.top + 50 + n * 40), self.display, 20, " " + x, color = color)
+                bold = True
+                size = 18
+            retro_text((stuff_rect.left + x_off, stuff_rect.top + 50 + n * 40), self.display, 18, " " + x, color=color, bold=bold)
 
     def update(self):
         self.text_time += self.time_passed

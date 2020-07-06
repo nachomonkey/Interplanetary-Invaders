@@ -91,7 +91,7 @@ class MissionMercury3(MissionMercury1):
         self.temperature = 220
         self.bonus = 5000
         self.item_types = [items.AutoGun]
-        self.programmed_items = {15 : items.ShieldRegen, 20 : items.AutoGun, 35 : items.ShieldRegen, 55 : items.ShieldRegen, 65 : items.AutoGun}
+        self.programmed_items = {15 : items.ShieldRegen, 20 : items.AutoGun, 35 : items.ShieldRegen}
         self.patterns = [AlienPattern(amount = 75, rate=(.4, 1.5), aliens=[GreenAlien, Alien, Alien])]
         self.name = "Mercury Mayhem"
         self.backdrop = "mercury_surface3"
@@ -105,6 +105,7 @@ class MissionMercury4(MissionMercury3):
         self.aliens = 100
         self.temperature = 0
         self.bonus = 6000
+        self.programmed_items = {30 : items.AutoGun}
         self.patterns = [AlienPattern(amount=15, rate=(.7, 3.2), aliens=[GreenAlien]),
                 AlienPattern(amount=65, rate=(.3, 1.2), aliens=[Alien, Alien, Alien, GreenAlien]),
                 AlienPattern(amount=5, rate=(.3, .6), aliens=[GreenAlien]),
@@ -120,7 +121,7 @@ class MissionMercury5(MissionMercury4):
         self.aliens = 125
         self.temperature = -150
         self.bonus = 7000
-        self.programmed_items = {50 : items.AutoGun, 80 : items.MagnetItem}
+        self.programmed_items = {50 : items.AutoGun, 75 : items.HealItem, 80 : items.MagnetItem}
         self.patterns = [AlienPattern(amount=5, rate=(.1, .4), aliens=[GreenAlien]),
                 AlienPattern(amount=20, rate=(.45, .55), aliens=[Alien]),
                 AlienPattern(amount=50, rate=(.75, 1.75), aliens=[Alien, GreenAlien]),
@@ -136,9 +137,10 @@ class MissionMercury6(MissionMercury5):
         self.aliens = 50
         self.temperature = -175
         self.bonus = 9000
-        self.programmed_items = {0 : items.ShieldRegen, 10 : items.AutoGun, 25 : items.ShieldRegen, 30 : items.AutoGun}
+        self.programmed_items = {0 : items.ShieldRegen, 1 : items.HealItem, 10 : items.AutoGun, 25 : items.ShieldRegen, 30 : items.AutoGun}
         self.item_types = [items.ShieldRegen]
-        self.patterns = [AlienPattern(amount=3, rate=(2, 5), aliens=[MineSpreaderAlien]),
+        self.patterns = [AlienPattern(amount=1, rate=(4, 4), aliens=[MineSpreaderAlien], one_at_a_time=True),
+                         AlienPattern(amount=2, rate=(2, 5), aliens=[MineSpreaderAlien]),
                          AlienPattern(amount=17, rate=(.2, .8), aliens=[Alien]),
                          AlienPattern(amount=15, rate=(.5, 1.5), aliens=[Alien, GreenAlien, Alien, Alien, MineSpreaderAlien]),
                          AlienPattern(amount=15, rate=(.2, 1), aliens=[Alien, GreenAlien, MineSpreaderAlien])]
@@ -379,7 +381,7 @@ class MissionMars5(MissionMars1):
                 AlienPattern(rate=(.2, .35), amount=10, aliens=[Alien]),
                 AlienPattern(rate=(.35, .5), amount=40, aliens=[PurpleAlien])]
         self.backdrop = "mars_encampment2"
-        self.breifing = """As the Martian Encampment breaks into view,
+        self.briefing = """As the Martian Encampment breaks into view,
 suddenly a swarm of furious enemies assault."""
 
 class MissionMars6(MissionMars1):
@@ -608,13 +610,21 @@ class MissionTest(Mission):
         return self.GOs
 
 class AlienPattern:
-    def __init__(self, rate = (.3, 2.25), amount = 100, aliens = [Alien]):
+    def __init__(self, rate=(.3, 2.25), amount=100, aliens=[Alien], one_at_a_time=False):
         self.rate = rate
         self.amount = amount
         self.aliens = aliens
+        self.alien_objects = []
         self.completed = 0
+        self.one_at_a_time = one_at_a_time
 
     def get_alien_type(self):
         return self.aliens[self.completed % len(self.aliens)]
+
+    def has_remaining(self):
+        for a in self.alien_objects:
+            if not a.kill:
+                return True
+        return False
 
 MISSIONS = [MissionEarth1]

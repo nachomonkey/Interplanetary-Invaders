@@ -55,6 +55,9 @@ class Alien:
         self.death_sound = Sound(fix_path("audio/alienDie.wav"))
         self.explode_sound = Sound(fix_path("audio/alienExplode.wav"))
         self.drop_sound = Sound(fix_path("audio/alienDrop1.wav"))
+        self.impact_sound = None
+        self.death_sound_instance = None
+        self.fading = False
         self.impact_damage = [.2, .4] # Impact damage: [DAMAGE_TO_HEALTH, DAMAGE_TO_SHIELD]
         self.drops_bombs = False
         self.isBoss = False
@@ -63,17 +66,23 @@ class Alien:
         self.spread_weapons = False
         self.num_spread = 3
         self.spread_intensity = 250
+        self.post_init()
 
         self.drop_velocity = Vector2()
 
-    def drop(self, no_spread=False, horz_velocity=None):
+    def post_init(self):
+        self.pos[0] = -self.size[0]
+
+    def drop(self, no_spread=False, horz_velocity=None, no_sound=False):
+        if self.pos[0] < 0:
+            return
         if self.dead:
             return
         if not no_spread and self.spread_weapons:
             AMOUNT = num_or_rand(self.num_spread) + 1
             VELOCITIES = range(-AMOUNT // 2, AMOUNT // 2)
-            for v in VELOCITIES:
-                self.drop(True, v * self.spread_intensity)
+            for e, v in enumerate(VELOCITIES):
+                self.drop(True, v * self.spread_intensity, not e)
             return
         num = 30
         if not random.randint(0, 3):
@@ -113,7 +122,8 @@ class Alien:
         else:
             self.next_fire = random.uniform(*self.till_reg_drop)
         self.fire_time = 0
-        self.drop_sound.play()
+        if self.drop_sound and not no_sound:
+            self.drop_sound.play()
 
     def get_rect(self):
         rect = pygame.Rect((0, 0), self.size)
@@ -179,9 +189,14 @@ class Alien:
             self.phase = 1
         if self.phase == self.maxPhase:
             self.kill = True
+        if (self.dead == 2 and self.grounded) and self.death_sound_instance and not self.fading:
+            self.death_sound_instance.fadeout(700)
+            self.fading = True
         if self.dead == 2 and not self.grounded:
             if self.get_rect().bottom >= self.mission.ground:
                 self.grounded = True
+                if self.impact_sound:
+                    self.impact_sound.play()
                 self.velocity.x, self.velocity.y = [0, 0]
                 self.phase = 1
                 if self.explode_on_ground_impact:
@@ -205,6 +220,7 @@ class MicroAlien(Alien):
         self.impact_damage = [.1, .2]
         self.downshift = 32
         self.acc = 2
+        self.post_init()
 
 class PurpleAlien(Alien):
     """Carpet Bomber Alien"""
@@ -226,6 +242,7 @@ class PurpleAlien(Alien):
         self.start_health = 2
         self.exp_names = ["exp", "pExp"]
         self.impact_damage = [.5, 1]
+        self.post_init()
 
 class MicroAlienMK2(PurpleAlien):
     """Very Small Carpet-Bomber Alien"""
@@ -235,6 +252,7 @@ class MicroAlienMK2(PurpleAlien):
         self.impact_damage = [.1, .2]
         self.downshift = 32
         self.acc = 3
+        self.post_init()
 
 class YellowAlien(Alien):
     """Bomb-dropping alien (for Venus)"""
@@ -258,6 +276,7 @@ class YellowAlien(Alien):
         self.impact_damage = [1, 1]
         self.explode_on_ground_impact = True
         self.explode_sound = Sound(fix_path("audio/alienExplode2.wav"))
+        self.post_init()
 
 class GreenAlien(Alien):
     """Mine-dropping alien (for Mercury)"""
@@ -276,11 +295,15 @@ class GreenAlien(Alien):
         self.drops_mines = True
         self.health = 2
         self.start_health = 2
+        self.phase_rate = .35
         self.maxPhase = 15
         self.exp_names = ["green_boom", "green_boom_simple"]
         self.impact_damage = [.5, 1]
         self.death_sound = Sound(fix_path("audio/alienDie2.wav"))
         self.explode_sound = Sound(fix_path("audio/alienExplode2.wav"))
+        self.drop_sound = Sound(fix_path("audio/alienDrop2.wav"))
+        self.impact_sound = Sound(fix_path("audio/greenAlienImpact.wav"))
+        self.post_init()
 
 class MineSpreaderAlien(GreenAlien):
     """Alien that launches three mines (for Mercury)"""
@@ -298,12 +321,15 @@ class MineSpreaderAlien(GreenAlien):
         self.till_reg_drop = 3
         self.acc = 4
         self.maxPhase = 15
+        self.phase_rate = .15
         self.impact_damage = [.75, 1]
         self.exp_names = ["mine_spreader_boom", "mine_spreader_boom"]
         self.explode_on_ground_impact = True
         self.spread_weapons = True
         self.spread_amount = [2, 4]
         self.drop_velocity = Vector2(0, -100)
+        self.drop_sound = Sound(fix_path("audio/alienDrop3.wav"))
+        self.post_init()
 
 class VenusAlien(Alien):
     """Medium-armor venus alien"""
@@ -320,6 +346,7 @@ class VenusAlien(Alien):
         self.maxPhase = 15
         self.exp_names = ["venus_alien_boom", "venus_alien_boom_simple"]
         self.impact_damage = [.35, .7]
+        self.post_init()
 
 class FastAlien(Alien):
     """Very Fast Alien (aka Zipper)"""
@@ -339,6 +366,7 @@ class FastAlien(Alien):
         self.till_drop = (0.01, 1)
         self.till_reg_drop = (.1, .5)
         self.acc = 6
+        self.post_init()
 
 class JupiterAlien(Alien):
     """Laser-firing Alien (for Jupiter)"""
@@ -358,3 +386,4 @@ class JupiterAlien(Alien):
         self.death_sound = Sound(fix_path("audio/alienDie3.wav"))
         self.explode_sound = Sound(fix_path("audio/alienExplode3.wav"))
         self.drop_sound = Sound(fix_path("audio/alienLaser.wav"))
+        self.post_init()

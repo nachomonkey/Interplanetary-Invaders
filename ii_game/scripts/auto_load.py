@@ -30,8 +30,10 @@ with pygame.Surface objects as values and their names as keys"""
     mx = 0
     display.fill((0, 0, 0))
     retro_text(display.get_rect().move(0, -30).center, display, 18, "LOADING...", anchor="center")
-    retro_text(display.get_rect().move(0, 50).midtop, display, 22, "INTERPLANETARY INVADERS", anchor="center", bold=True)
-    retro_text(display.get_rect().move(0, 75).midtop, display, 18, f"V{__version__}", anchor="center", bold=True)
+    for x in range(10):
+        g = 255 * x / 10
+        retro_text(display.get_rect().move(0, 60 - x).midtop, display, 22, "INTERPLANETARY INVADERS", anchor="center", bold=True, color=(g, g, g))
+        retro_text(display.get_rect().move(0, 85 - x).midtop, display, 18, f"V{__version__}", anchor="center", bold=True, color=(g, g, g))
     if joystick.hasJoystick:
         retro_text(display.get_rect().move(0, 200).center, display, 18, "Detected Joystick:", anchor="center", bold=True)
         retro_text(display.get_rect().move(0, 225).center, display, 20, '"' + joystick.name + '"', anchor="center", bold=True)
@@ -70,9 +72,9 @@ with pygame.Surface objects as values and their names as keys"""
                 print(f"\rLoaded {colorize(num, 'blue' if num!=mx else 'green')} / {colorize(mx, 'green')} images   %s" % colorize(collect_file + (" " * (40 - len(collect_file))), 'bold'), flush = True, end = "")
             if time.time() - LastRefresh >= .15:
                 LastRefresh = time.time()
-                barRect.w = BAR_WIDTH * (num / mx)
+                barRect.w = int((BAR_WIDTH * (num / mx)) * 10) / 10
                 pygame.draw.rect(display, (0, 255, 0), barRect)
-                for x in range(0, BAR_WIDTH, 20):
+                for x in range(0, BAR_WIDTH, BAR_WIDTH // 10):
                     X_Val = barRect.x + x
                     pygame.draw.line(display, (0, 0, 0), (X_Val, borderRect.y), (X_Val, borderRect.y + borderRect.h), 2)
                 pygame.draw.rect(display, (25, 25, 25), borderRect, 1)

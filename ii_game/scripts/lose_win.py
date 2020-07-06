@@ -34,9 +34,11 @@ class LoseWin:
         self.money_new += round(self.bonus)
         self.money_new += round(self.bonus1 * self.acc_per)
         self.money_sound = Sound(fix_path("audio/money.wav"))
+        self.register_sound = Sound(fix_path("audio/cashRegister.wav"))
         if mode == "won":
             self.money_sound.play(-1)
         self.exit = False
+        self.stopped = False
 
     def main(self):
         while not self.done:
@@ -64,6 +66,9 @@ class LoseWin:
                 if event.key == pygame.K_y or joystick.JustPressedY():
                     self.info()
                 if event.key == pygame.K_RETURN or joystick.JustPressedA():
+                    self.stopped = True
+                    if self.mode == "won":
+                        self.register_sound.play()
                     self.money_sound.stop()
                     if self.top_selected:
                         self.done = True
@@ -141,7 +146,9 @@ Max Combo: {self.maxcombo}"""
             self.frame = 1
         if self.mode == "won":
             self.money_old -= (self.money_old - self.money_new) / 25
-        if round(self.money_old) == round(self.money_new):
+        if round(self.money_old) == round(self.money_new) and not self.stopped and self.mode == "won":
             self.money_sound.stop()
+            self.register_sound.play()
+            self.stopped = True
         pygame.display.update()
         self.time_passed = clock.tick(60) / 1000
