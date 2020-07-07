@@ -1,5 +1,7 @@
 import pygame
 
+from ii_game.scripts.sound import Sound
+from ii_game.scripts.utils import fix_path
 from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts import screenshot
 from ii_game.scripts import joystick
@@ -16,6 +18,7 @@ def congrats(display, images, mode, data, profile=None):
     total_time_passed = 0
     clock = pygame.time.Clock()
     if profile and mode == "ach":
+        Sound(fix_path("audio/cashRegister.wav")).play()
         profile["money"] += data[2]
         profile["achievements"].append(data[0])
     while not done:

@@ -173,7 +173,7 @@ class StoreUI:
         selected = list(cat.keys())[self.sel_num[self.rect_sel]]
         selected.planet = self.profile["planet"].name
         if self.profile["money"] >= selected.cost:
-            Sound(fix_path("audio/purchase.wav")).play()
+            Sound(fix_path("audio/cashRegister.wav")).play()
             cat[selected] -= 1
             if not cat[selected]:
                 self.catagories[self.rect_sel].pop(selected)
