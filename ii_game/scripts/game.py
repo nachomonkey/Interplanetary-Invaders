@@ -198,6 +198,7 @@ class Game:
                 exit_game()
 
     def deploy_item(self):
+        self.draw()
         self.notimer = True
         joystick.Reset()
         done = False
@@ -877,6 +878,9 @@ class Game:
                                 g.kaboom = True
         for alien in self.aliens:
             alien.update(self.time_passed)
+            if alien.grounded and not alien.first_grounded:
+                alien.first_grounded = True
+                self.Check_Jackpot(alien)
             if alien.grounded and self.mission.clean_room:
                 self.endgame = "lost"
             if not alien.health in [0, alien.start_health]:
@@ -909,15 +913,7 @@ class Game:
                      alien.phase_rate = .05
                      alien.phase = 1
                      if alien.dead == 1:
-                         if not random.randint(0, 29):
-                             self.add_points("JACKPOT!", alien.get_rect().center, True)
-                             MONEYBAGS = 20
-                             VELOCITIES = range(-MONEYBAGS // 2, MONEYBAGS // 2)
-                             POWER = 50
-                             for x in range(MONEYBAGS):
-                                 self.GOs.append(GameObject(alien.get_rect().center, self.images, self.mission, velocity=[(VELOCITIES[x] * random.uniform(.8, 1.2) * POWER), -random.uniform(200, 500)],\
-                                         type="moneyBag", amount=random.choice([75, 100, 125, 150, 150, 150, 150, 175, 200, 500])))
-                         else:
+                         if not self.Check_Jackpot(alien):
                              self.add_points(alien.death_amount[0] + points, alien.get_rect().center)
                              alien.explode_sound.play()
                      else:
@@ -931,7 +927,7 @@ class Game:
             r2 = pygame.Rect((0, 0), (80, 80))
             r2.center = alien.get_rect().center
             for go in self.GOs:
-                if go.get_rect().colliderect(r2) and alien.grounded:
+                if go.get_rect().colliderect(r2) and alien.grounded and not go.immune_to == alien:
                     if go.type == "moneyBag":
                         go.health -= alien.impact_damage[0]
                     if go.type == "mine":
@@ -949,10 +945,11 @@ class Game:
                 if not alien.dead:
                     if self.player.shield:
                         self.player.shield = 0
+                        self.add_points(-self.score // 2, alien.get_rect().center)
                         self.AddKilledAlien()
                     else:
                         self.player.health = 0
-                    self.add_points(-500, alien.get_rect().center)
+                    self.add_points(min(-self.score, -100), alien.get_rect().center)
                     alien.dead = 1
                     alien.explode_sound.play()
             for laser in self.player.lasers:
@@ -991,12 +988,29 @@ class Game:
             if not self.ran_out_of_aliens:
                 self.next_alien = random.uniform(*self.next_wave.rate)
         if self.endgame:
-            transition(self.Display)
+            transition(self.Display, 2)
             self.done = True
         self.time_passed = CLOCK.tick(60) / 1000
         if self.notimer:
             self.notimer = False
             self.time_passed = 0
+
+    def Check_Jackpot(self, alien):
+        chanceDivide = 1
+        if "2x Money Bonus" in self.player.current_items:
+            chanceDivide = 2
+        if not random.randint(0, max(0, (20 - self.combo) // chanceDivide)):
+            self.add_points("JACKPOT!", alien.get_rect().center, True)
+            MONEYBAGS = 20
+            VELOCITIES = range(-MONEYBAGS // 2, MONEYBAGS // 2)
+            POWER = 50
+            for x in range(MONEYBAGS):
+                self.GOs.append(GameObject(alien.get_rect().move(0, -2).center, self.images, self.mission, velocity=[(VELOCITIES[x] * random.uniform(.8, 1.2) * POWER), -random.uniform(200, 500)],\
+                        type="moneyBag", amount=random.choice([75, 100, 125, 150, 150, 150, 150, 175, 200, 500])))
+                self.GOs[-1].immune_to = alien
+            Sound(fix_path("audio/cashRegister.wav")).play()
+            return True
+        return False
 
     def doubleDie(self, alien):
         self.add_points(alien.death_amount[2], alien.get_rect().center)

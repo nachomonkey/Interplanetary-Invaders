@@ -66,7 +66,7 @@ except:
     print("No joysticks detected")
 
 def IsSupported():
-    if (not ("x" in name and "box" in name.lower()) and not ("xinput" in name.lower())):
+    if (not ("x" in name.lower() and "box" in name.lower()) and not ("xinput" in name.lower())):
         return False
     return True
 

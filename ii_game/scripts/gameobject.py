@@ -52,6 +52,7 @@ class GameObject:
         self.health = .1
         self.has_touched_ground = False
         self.kaboom = False
+        self.immune_to = None
         self.tracking = True
         self.update_attraction()
         if self.type == "block":

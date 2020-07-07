@@ -5,15 +5,29 @@ pygame.init()
 from ii_game.scripts.utils import fix_path
 from ii_game.scripts.get_file import get_file
 
-def retro_text(pos, display, size, text, font = "monospace", color = (255, 255, 255),  italic = False, bold = False, AA = False, underline = False, anchor = "topleft", render = True, res = 13, smooth = False, eraseColor = None):
+MAX_FONTS = 30
+
+FONT_CACHE = {}
+
+def font_checksum(size, font, italic, bold, underline):
+    return str(size) + font + str(italic) + str(bold) + str(underline)
+
+def retro_text(pos, display, size, text, font="monospace", color=(255, 255, 255),  italic=False, bold=False, AA=False, underline=False, anchor="topleft", render=True, res=13, smooth=False, eraseColor=None):
+    if len(FONT_CACHE) > MAX_FONTS:
+        FONT_CACHE.clear()
     font = font.lower()
-    if os.path.exists(get_file(fix_path("fonts/" + font + ".ttf"))):
-        rfont = pygame.font.Font(get_file(fix_path(f"fonts/{font}.ttf")), res)
+    checksum = font_checksum(size, font, italic, bold, underline)
+    if checksum in FONT_CACHE:
+        rfont = FONT_CACHE[checksum]
     else:
-        rfont = pygame.font.SysFont(font, res)
-    rfont.set_italic(italic)
-    rfont.set_bold(bold)
-    rfont.set_underline(underline)
+        if os.path.exists(get_file(fix_path("fonts/" + font + ".ttf"))):
+            rfont = pygame.font.Font(get_file(fix_path(f"fonts/{font}.ttf")), res)
+        else:
+            rfont = pygame.font.SysFont(font, res)
+        rfont.set_italic(italic)
+        rfont.set_bold(bold)
+        rfont.set_underline(underline)
+        FONT_CACHE[checksum] = rfont
     Text = rfont.render(str(text), AA, color)
     scale = pygame.transform.scale
     if smooth:

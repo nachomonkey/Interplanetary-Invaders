@@ -33,6 +33,7 @@ class Alien:
         self.health = 1
         self.dead = False
         self.kill = False
+        self.first_grounded = False
         self.maxPhase = 9
         self.velocity = Vector2([self.speed, 0])
         self.grounded = False
@@ -312,7 +313,7 @@ class MineSpreaderAlien(GreenAlien):
     def __init__(self, pos, images, flaks, GOs, player, mission):
         super().__init__(pos, images, flaks, GOs, player, mission)
         self.name = "mineSpreader"
-        self.death_amount = [200, 50, 150, 150] # Money Money Money!!!
+        self.death_amount = [200, 50, 150, 150]
         self.spead = random.uniform(160, 350)
         self.velocity = Vector2([self.speed, 0])
         self.drop_from = "center"

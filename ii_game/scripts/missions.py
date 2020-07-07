@@ -137,7 +137,7 @@ class MissionMercury6(MissionMercury5):
         self.aliens = 50
         self.temperature = -175
         self.bonus = 9000
-        self.programmed_items = {0 : items.ShieldRegen, 1 : items.HealItem, 10 : items.AutoGun, 25 : items.ShieldRegen, 30 : items.AutoGun}
+        self.programmed_items = {0 : items.ShieldRegen, 1 : items.HealItem, 50 : items.AutoGun}
         self.item_types = [items.ShieldRegen]
         self.patterns = [AlienPattern(amount=1, rate=(4, 4), aliens=[MineSpreaderAlien], one_at_a_time=True),
                          AlienPattern(amount=2, rate=(2, 5), aliens=[MineSpreaderAlien]),
@@ -212,9 +212,9 @@ class MissionEarth4(Mission):
     def __init__(self):
         super().__init__()
         self.planet = Earth
-        self.item_types = [items.FireItem2x, items.DoubleMoney]
+        self.item_types = [items.FireItem2x, items.DoubleMoney, items.HealItem]
         self.items = 2
-        self.friction = -.15
+        self.friction = -1
         self.aliens = 100
         self.temperature = 30
         self.name = "Icy Invasion"
