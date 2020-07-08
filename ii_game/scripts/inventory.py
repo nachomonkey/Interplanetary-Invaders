@@ -192,9 +192,9 @@ class Inventory:
                     title = copy(list(self.catagories[e])[self.sel_num[e]].title)
                 plus = ""
                 if title:
-                    title += " (press <Y> for info)"
-                    retro_text(rect.move(0, -9).midtop, self.display, 15, title, anchor="midbottom", color=(0, 0, 0))
-                    retro_text(rect.move(0, -10).midtop, self.display, 15, title, anchor="midbottom", color=(0, 0, 255))
+#                    title += " (press <Y> for info)"
+                    retro_text(rect.move(0, -3).midtop, self.display, 17, title, anchor="midbottom", color=(0, 0, 0), font="sans", bold=True)
+                    retro_text(rect.move(0, -5).midtop, self.display, 17, title, anchor="midbottom", color=(0, 200, 255), font="sans", bold=True)
             arrowrect = pygame.Rect(0, 0, 32, 32)
             arrowrect.midtop = self.inv_rect.move(0, 10).midbottom
             arrow = "down"
@@ -227,7 +227,6 @@ class Inventory:
                             bcolor = (0, 200, 0)
                     pygame.draw.rect(self.display, (0, 0, 0), rect.move(2, 2))
                     pygame.draw.rect(self.display, color, rect)
-                    pygame.draw.rect(self.display, bcolor, rect, thickness)
                     if v:
                         self.display.blit(pygame.transform.scale(self.images[v.icon], (50, 50)), rect)
                         if c == 0:
@@ -236,6 +235,7 @@ class Inventory:
                                 if e == self.sel_num[c]:
                                     retro_text((400, 50), self.display, 15, "Higher Space Transport License level needed for this  vehicle", anchor="center", font="impact")
                                     retro_text((400, 65), self.display, 15, f"to be transported from {self.catagories[c][v]}", anchor="center", font="impact")
+                    pygame.draw.rect(self.display, bcolor, rect, thickness)
                     if self.captions[c] == "Your Items and Drones":
                         trect = pygame.Rect(0, 0, 15, 15)
                         trect.bottomright = rect.bottomright

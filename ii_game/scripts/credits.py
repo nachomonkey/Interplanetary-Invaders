@@ -66,7 +66,7 @@ def run_credits(display, images):
     time_passed = 0
     for e, x in enumerate(credits_text.split("\n")):
         text.append(list(retro_text((400, 24 * e + 10), display, 14, x, font = "sans", anchor = "midtop", res = 11)))
-    scroll = -600
+    scroll = -650
     scroll_rate = 45
     while not done:
         for event in pygame.event.get():

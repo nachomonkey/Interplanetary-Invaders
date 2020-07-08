@@ -158,6 +158,7 @@ attracts useful objects
 and repels harmful
 weapons."""
 
+
 class HealItem(StoreItem):
     icon = "heal"
     title = "Heal"
@@ -169,6 +170,19 @@ class HealItem(StoreItem):
     description = """
 Instantly replenishes the
 player's health"""
+
+class SlowMotionItem(StoreItem):
+    icon = "slomo"
+    title = "Slow Motion"
+    type = "Item"
+    cost = 8000
+    rarity = .25
+    link = items.SlowMotionItem
+    banned_planets = []
+    description = """
+Warps space-time so that
+alien activity is slowed
+down."""
 
 class TransportLicense1(StoreItem):
     title = "Space Transport License 1"
@@ -275,7 +289,7 @@ class StandardVehicle(StoreItem):
     link = zapper
     description = "Standard Vehicle"
 
-ITEMS = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem, HealItem] # MUST be same order and length as items.items!!!
+ITEMS = [GreenLaserItem, FireItem2x, DoubleMoney, DoubleSpeed, Lightning, FlakItem, AutoGun, ShieldRegen, MagnetItem, HealItem, SlowMotionItem] # MUST be same order and length as items.items!!!
 LISENCES = [TransportLicense2, DronesLicense, ItemStorage10]
 VEHICLES = [VenusCrawler, JupiterHover, Curiosity]
 

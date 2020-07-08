@@ -19,9 +19,11 @@ from ii_game.scripts.transition import transition
 from ii_game.scripts.pause_menu import pause_menu
 from ii_game.scripts.gameobject import GameObject
 from ii_game.scripts.utils import fix_path, colorize
+from ii_game.scripts.get_file import get_file
 from ii_game.scripts.sound import Sound
 from ii_game.scripts.lasers import *
 from ii_game.scripts import saves
+from ii_game.scripts import sound
 
 pygame.mixer.pre_init(44100, 16)
 pygame.init()
@@ -36,7 +38,7 @@ SIZE = (800, 600)
 
 GRAVITY = G * 1
 
-shared = {"money_ser_num" : 0, "options" : saves.load_options(), "cat" : []}
+shared = {"money_ser_num" : 0, "options" : saves.load_options(), "cat" : [], "is_slow" : False}
 
 NUM_KEYS = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5,
 pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_0]
@@ -45,6 +47,11 @@ pygame.K_KP5, pygame.K_KP6, pygame.K_KP7, pygame.K_KP8, pygame.K_KP9,
 pygame.K_KP0]
 
 pygame.mixer.set_num_channels(50)
+
+def is_slow():
+    return shared["is_slow"]
+
+sound.shared["is_slow"] = is_slow
 
 def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), back=(10, 10, 10), width=150, height=20, r=True):
     if prog <= 0 and shield <= 0:
@@ -105,10 +112,13 @@ class Game:
         self.ran_out_of_aliens = False
         self.green_lightning_sound = Sound(fix_path("audio/lightning2.wav"))
         self.lightning_sound = Sound(fix_path("audio/lightning.wav"))
+        self.magnet_sound = Sound(fix_path("audio/magnetLoop.wav"))
         self.gls = self.green_lightning_sound.play(-1)
         self.gls.set_volume(0)
         self.ls = self.lightning_sound.play(-1)
         self.ls.set_volume(0)
+        self.ms = self.magnet_sound.play(-1)
+        self.ms.set_volume(0)
         self.flaks = []
         self.charging = 0
         self.crg = False
@@ -124,6 +134,7 @@ class Game:
         self.sf = 0
         self.mst = 0
         self.volcanoes = []
+        self.current_money_sound = None
         screenshot.options = saves.load_options()
         if self.mission.planet.name == "Venus":
             for x in range(2):
@@ -146,6 +157,7 @@ class Game:
         self.combos = []
         self.i10l = store_data.ItemStorage10 in self.profile["inventory"][2]
         self.item_progress = 0
+        self.time_dilation = 1
 
     def main(self):
         """Running this method runs the game"""
@@ -171,6 +183,9 @@ class Game:
         self.combos.append(self.combo)
         self.gls.stop()
         self.ls.stop()
+        self.ms.stop()
+        shared["is_slow"] = False
+        pygame.mixer.music.stop()
         for g in self.GOs:
             if g.type == "aircraft":
                 self.GOs[self.GOs.index(g)].jet_sound.stop()
@@ -503,11 +518,25 @@ class Game:
         if item.name == "Shield Regenerator":
             self.player.regen = True
         if item.name == "Magnet":
+            self.ms.set_volume(1)
             for go in self.GOs:
                 go.tracking_speed = constants.ATTRACTION_WITH_MAGNET.get(go.type, 0) * self.mission.magnet_power
         if item.name == "Heal":
             self.player.health = self.player.max_health
             Sound(fix_path("audio/heart.wav")).play()
+        if item.name == "Slow Motion":
+            self.time_dilation = .15
+            shared["is_slow"] = True
+            Sound(fix_path("audio/slowDown.wav"), True).play()
+            pygame.mixer.music.load(fix_path(get_file("audio/music/SlowMotion.mp3")))
+            pygame.mixer.music.play(-1)
+            self.refresh_alien_sounds()
+
+    def refresh_alien_sounds(self):
+        for alien in self.aliens:
+            for v in alien.__dict__.values():
+                if isinstance(v, Sound):
+                    v.__init__(v.original_filename)
 
     def draw(self):
         """Render the game"""
@@ -515,7 +544,7 @@ class Game:
         self.display.blit(self.images[self.mission.backdrop], (0, 0))
         for v in self.volcanoes:
             v.draw(self.display)
-        if "Flak Bursts" in self.player.current_items and self.crg:
+        if "Flak Bursts" in self.player.current_items and self.crg and not self.player.dead:
             x, y = self.calc_height()
             x, y = round(x), round(y)
             cx, cy = self.player.get_rect().center
@@ -553,7 +582,12 @@ class Game:
         if self.combo:
             retro_text((402, 28), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=(0, 0, 0))
             retro_text((400, 30), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=MAIN_TEXT_COLOR)
-        draw_bar(self.player.health, (600, 40), self.display, self.player.max_health, self.player.max_shield, self.player.shield)
+        color = (0, 255, 0)
+        if (self.player.health / self.player.max_health) <= .5:
+            color = (200, 200, 0)
+        if (self.player.health / self.player.max_health) <= .3:
+            color = (200, 0, 0)
+        draw_bar(self.player.health, (600, 40), self.display, self.player.max_health, self.player.max_shield, self.player.shield, color=color)
         color = (150, 35, 0)
         if self.mission.items <= self.mission.items_dropped:
             color = (210, 200, 0)
@@ -678,9 +712,10 @@ class Game:
                 for x in range(num):
                     self.GOs.append(GameObject((posX - (20 * x), 30 - (15 * x)), self.images, self.mission, type="rock", velocity = [velX * direction, velY], nobounce=True))
         if not len(self.aliens) and self.bossed and self.ran_out_of_aliens and not self.end_timer:
-            self.end_timer = time.time()
+            self.end_timer = 2
         if self.end_timer:
-            if time.time() - self.end_timer >= 2:
+            self.end_timer -= self.time_passed
+            if self.end_timer <= 0:
                 self.endgame = "won"
         self.airplane_time += self.time_passed
         if self.next_airplane <= self.airplane_time and self.mission.airport:
@@ -689,7 +724,7 @@ class Game:
             self.next_airplane = random.uniform(1, 4)
         if self.player.just_fired:
             self.lasers_to_track.append(self.player.just_fired)
-        self.player.update(self.time_passed)
+        self.player.update(self.time_passed / self.time_dilation)
         for f in self.flaks:
             if f.kill:
                 self.flaks.remove(f)
@@ -745,10 +780,11 @@ class Game:
                     damage = 10 * ((256 - dist) / 256)
                     if a.hitBy != f and damage > 0:
                         a.health -= round(damage, 2)
-                    if a.health <= 0:
+                    if a.health <= 0 and not a.dead:
                         f.hits += 1
                         a.hitBy = f
                         self.combo += 1
+                        a.killed_by_flak = True
                         hitSome = True
                 if not hitSome:
                     self.combos.append(self.combo)
@@ -761,7 +797,7 @@ class Game:
             self.player.health = 0
             self.endgame = "lost"
         for laser in self.player.lasers:
-            laser.update(self.time_passed)
+            laser.update(self.time_passed / self.time_dilation)
             if laser.kill:
                 self.kill_laser(laser)
             for go in self.GOs:
@@ -793,7 +829,7 @@ class Game:
             if go.type == "rock":
                 for go2 in self.GOs:
                     if go2.type == "moneyBag" and not go2.dead:
-                        if not go.dead and not go in go2.hitBy and go.get_rect().colliderect(go2.get_rect()):
+                        if not go.dead and not go2.physics and not go in go2.hitBy and go.get_rect().colliderect(go2.get_rect()):
                             go2.hitBy.append(go)
                             go2.health -= .5
                             go2.frame = 1
@@ -810,13 +846,17 @@ class Game:
                         self.add_points(go.amount, go.get_rect().center)
                     else:
                         self.add_points(random.choice([100] * 5 + [250, 350, 450, 500, 650, 1000]), go.get_rect().center)
+                    if self.current_money_sound:
+                        self.current_money_sound.stop()
+                    self.current_money_sound = Sound(fix_path("audio/collectMoney.wav"))
+                    self.current_money_sound.play()
                     del self.GOs[self.GOs.index(go)]
-                if go.type == "heart":
+                if go.type == "heart" and not go.dead:
                     self.player.health = self.player.max_health
                     self.add_points(150, go.get_rect().center)
                     Sound(fix_path("audio/heart.wav")).play()
                     del self.GOs[self.GOs.index(go)]
-                if go.type == "shield":
+                if go.type == "shield" and not go.dead:
                     Sound(fix_path("audio/shield.wav")).play()
                     self.add_points(150, go.get_rect().center)
                     self.player.shield += 1
@@ -833,7 +873,7 @@ class Game:
                     else:
                         self.player.health -= .5
                         self.add_points(-100, go.get_rect().center)
-                if go.type == "block":
+                if go.type == "block" and not go.dead:
                     Sound(fix_path("audio/item.wav")).play()
                     self.GOs.remove(go)
                     if go.value == None:
@@ -990,12 +1030,14 @@ class Game:
         if self.endgame:
             transition(self.Display, 2)
             self.done = True
-        self.time_passed = CLOCK.tick(60) / 1000
+        self.time_passed = (CLOCK.tick(60) / 1000) * self.time_dilation
         if self.notimer:
             self.notimer = False
             self.time_passed = 0
 
     def Check_Jackpot(self, alien):
+        if alien.killed_by_flak:
+            return False
         chanceDivide = 1
         if "2x Money Bonus" in self.player.current_items:
             chanceDivide = 2
@@ -1014,29 +1056,37 @@ class Game:
 
     def doubleDie(self, alien):
         self.add_points(alien.death_amount[2], alien.get_rect().center)
-        self.GOs.append(GameObject(alien.get_rect().center, self.images, self.mission, type="moneyBag", amount=alien.death_amount[3]))
+        self.GOs.append(GameObject(alien.get_rect().center, self.images, self.mission, type="moneyBag", amount=alien.death_amount[3], velocity=[alien.velocity.x * .1 * alien.direction, 0]))
         alien.explode_sound.play()
         alien.dead = 1
 
     def disableItem(self, item):
         Items = self.player.current_items
-        if Items[item].name == "Green Laser":
+        Name = Items[item].name
+        if Name == "Green Laser":
             self.player.fireObject = Laser
             lightning.GREEN_ON = False
-        if Items[item].name == "2x Fire Rate":
+        elif Name == "2x Fire Rate":
             self.player.fire_per_sec /= 2
             lightning.MAX_THINGS /= 3
-        if Items[item].name == "2x Speed":
+        elif Name == "2x Speed":
             self.player.max_velocity /= 2
-        if Items[item].name == "Lightning":
+        elif Name == "Lightning":
             self.player.canFire = True
-        if Items[item].name == "Auto Gun":
+        elif Name == "Auto Gun":
             self.player.beam = self.player.always_beam
-        if Items[item].name == "Shield Regenerator":
+        elif Name == "Shield Regenerator":
             self.player.regen = False
-        if Items[item].name == "Magnet":
+        elif Name == "Magnet":
+            self.ms.fadeout(1000)
             for go in self.GOs:
                 go.tracking_speed = constants.ATTRACTION.get(go.type, 0)
+        elif Name == "Slow Motion":
+            shared["is_slow"] = False
+            self.time_dilation = 1
+            Sound(fix_path("audio/speedUp.wav")).play()
+            pygame.mixer.music.fadeout(2000)
+            self.refresh_alien_sounds()
         Items.pop(item)
 
 class Flak:

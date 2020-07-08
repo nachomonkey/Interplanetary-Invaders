@@ -2,7 +2,7 @@ import random
 import pygame
 from pygame.math import Vector2
 
-from ii_game.scripts.utils import fix_path, num_or_rand
+from ii_game.scripts.utils import fix_path, num_or_rand, clamp
 from ii_game.scripts.gameobject import GameObject
 from ii_game.scripts.game import Bomb
 from ii_game.scripts.sound import Sound
@@ -33,6 +33,7 @@ class Alien:
         self.health = 1
         self.dead = False
         self.kill = False
+        self.killed_by_flak = False
         self.first_grounded = False
         self.maxPhase = 9
         self.velocity = Vector2([self.speed, 0])
@@ -135,8 +136,19 @@ class Alien:
         if not self.dead:
             surf.blit(pygame.transform.scale(self.images[f"{self.name}{self.phase}"], self.size), self.pos)
         if self.dead == 2 and not self.grounded:
-            direction = "Right" if self.direction == 1 else "Left"
-            surf.blit(pygame.transform.scale(self.images[f"{self.name}Falling{direction}"], self.size), self.pos)
+            rot = round(self.velocity.angle_to(Vector2()) * self.direction) % 360
+            try:
+                img = self.images[f"{self.name}Dead{rot}"]
+            except KeyError:
+                try:
+                    img = self.images[f"{self.name}Dead"]
+                except KeyError:
+                    print(f"ERR: No dead image for {self.name}")
+                    self.dead = 1
+                    return
+            scale = self.size[0] / self.images[f"{self.name}1"].get_width()
+            size = Vector2(img.get_size()) * scale
+            surf.blit(pygame.transform.scale(img, (round(size[0]), round(size[1]))), self.pos)
         if self.dead == 1 or (self.dead == 2 and self.grounded):
             rect = self.get_rect()
             rect2 = pygame.Rect((0, 0), self.exp_size)
@@ -204,10 +216,10 @@ class Alien:
                     self.explode_sound.play()
         self.pos[0] += self.velocity[0] * self.direction * self.time_passed
         self.pos[1] += self.velocity[1] * self.time_passed
-        if self.get_rect().left <= 0 and self.direction == -1:
+        if not self.grounded and self.get_rect().left <= 0 and self.direction == -1:
             self.direction = 1
             self.pos[1] += self.downshift
-        if self.get_rect().right >= 800 and self.direction == 1:
+        if not self.grounded and self.get_rect().right >= 800 and self.direction == 1:
             self.direction = -1
             self.pos[1] += self.downshift
             
@@ -242,6 +254,7 @@ class PurpleAlien(Alien):
         self.health = 2
         self.start_health = 2
         self.exp_names = ["exp", "pExp"]
+        self.death_sound = Sound(fix_path("audio/purpleAlienDie.wav"))
         self.impact_damage = [.5, 1]
         self.post_init()
 
@@ -276,6 +289,7 @@ class YellowAlien(Alien):
         self.exp_names = ["yellow_boom"] * 2
         self.impact_damage = [1, 1]
         self.explode_on_ground_impact = True
+        self.death_sound = Sound(fix_path("audio/yellowAlienDie.wav"))
         self.explode_sound = Sound(fix_path("audio/alienExplode2.wav"))
         self.post_init()
 

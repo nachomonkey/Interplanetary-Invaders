@@ -30,6 +30,10 @@ def colorize(text, color):
         return text
     return f"{color}{text}{ENDC}"
 
+def clamp(num, min_value, max_value):
+    """Clamp an integer between two other integers"""
+    return max(min(num, max_value), min_value)
+
 def remove_doubles(list1):
     """Remove duplicate values from a list"""
     list2 = []

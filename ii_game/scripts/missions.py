@@ -16,6 +16,7 @@ class Mission:
         self.items_dropped = 0
         self.item_types = [items.DoubleMoney]
         self.friction = 1
+        self.traction = 1
         self.clean_room = False
         self.boss = None
         self.GOs = []
@@ -55,7 +56,8 @@ class MissionMercury1(Mission):
         self.items = 3
         self.item_types = [items.ShieldRegen]
         self.programmed_items = {0 : items.ShieldRegen, 15 : items.AutoGun, 19 : items.MagnetItem}
-        self.friction = 5
+        self.friction = .9
+        self.traction = .5
         self.aliens = 20
         self.bonus = 3000
         self.solar_flares = True
@@ -156,7 +158,7 @@ class MissionEarth1(Mission):
         self.items = 1
         self.item_types = [items.DoubleMoney]
         self.aliens = 25
-        self.friction = 4
+        self.friction = 1
         self.bonus = 100
         self.patterns = [AlienPattern(amount = 25)]
         self.programmed_items = {15 : items.DoubleMoney}
@@ -177,6 +179,7 @@ class MissionEarth2(Mission):
         self.item_types = [items.DoubleMoney]
         self.aliens = 40
         self.friction = 1
+        self.traction = .2
         self.bounce = 100
         self.bonus = 2500
         self.name = "Desert Disturbance"
@@ -196,7 +199,7 @@ class MissionEarth3(Mission):
         self.item_types = [items.DoubleMoney]
         self.items = 3
         self.aliens = 75
-        self.friction = 4
+        self.friction = 2
         self.bonus = 3000
         self.name = "Tropical Terror"
         self.patterns = [AlienPattern(rate = (.3, 2.25), amount = 20),
@@ -214,7 +217,7 @@ class MissionEarth4(Mission):
         self.planet = Earth
         self.item_types = [items.FireItem2x, items.DoubleMoney, items.HealItem]
         self.items = 2
-        self.friction = -1
+        self.friction = 0.1
         self.aliens = 100
         self.temperature = 30
         self.name = "Icy Invasion"
@@ -235,7 +238,7 @@ class MissionEarth5(Mission):
         self.planet = Earth
         self.item_types = [items.DoubleSpeed]
         self.items = 1
-        self.friction = 6
+        self.friction = 1
         self.aliens = 15
         self.name = "Clean-O-Machine-O"
         self.patterns = [AlienPattern(amount = 15, rate = (.4, 2.5))]
@@ -256,7 +259,7 @@ class EarthAirport(Mission):
         self.planet = Earth
         self.item_types = [items.DoubleMoney]
         self.items = 1
-        self.friction = 6
+        self.friction = 1
         self.aliens = 20
         self.name = "Airport Attack"
         self.patterns = [AlienPattern(amount = 20, rate = (.3, 2))]
@@ -275,7 +278,7 @@ class MissionEarthBonus1(EarthAirport):
     def __init__(self):
         super().__init__()
         self.items = 3
-        self.friction = 3
+        self.friction = 1
         self.item_types = [items.GreenLaserItem]
         self.programmed_items = {10 : items.FireItem2x, 25 : items.GreenLaserItem}
         self.aliens = 50
@@ -309,7 +312,8 @@ class MissionMars1(Mission):
         self.planet = Mars
         self.item_types = [items.FireItem2x]
         self.items = 3
-        self.friction = 1.5
+        self.friction = .8
+        self.traction = .4
         self.aliens = 30
         self.temperature = -50
         self.name = "Martian Genesis"
@@ -432,6 +436,8 @@ class MissionMarsBonus2(MissionMars1):
     def __init__(self):
         super().__init__()
         self.name = "Martian Volcanos"
+        self.traction = 1
+        self.friction = 1
         self.aliens = 75
         self.temperature = 613
         self.programmed_items = {5 : items.FlakItem, 25 : items.FireItem2x}
@@ -453,7 +459,8 @@ class MissionVenus1(Mission):
         self.programmed_items = {0 : items.FireItem2x, 10 : items.GreenLaserItem}
         self.patterns = [AlienPattern(rate=(.5, 3.5), amount=15, aliens=[YellowAlien])]
         self.bounce = 1
-        self.friction = 3
+        self.friction = .9
+        self.traction = .7
         self.bonus = 2500
         self.temperature = 900
         self.backdrop = "venus_backdrop1"

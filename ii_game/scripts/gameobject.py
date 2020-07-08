@@ -11,6 +11,8 @@ METER = 0.006
 SIZE = (800, 600)
 shared = {"money_ser_num" : 0}
 
+CRUSHABLE = ("block", "moneyBag", "heart", "shield", "mine")
+
 class GameObject:
     def __init__(self, center, images, mission, type="moneyBag", velocity=Vector2([0, 0]), amount=None, value=None, player=None, nobounce=False):
         self.images = images
@@ -40,7 +42,7 @@ class GameObject:
         self.rect = rect
         self.time_passed = 0
         self.frame = 1
-        self.frame_rate = 1 / 25
+        self.frame_rate = 1 / 30
         self.frame_time = 0
         self.max_frame = 185
         self.velocity = copy.copy(velocity)
@@ -58,6 +60,10 @@ class GameObject:
         if self.type == "block":
             self.max_frame = 30
         if self.type == "moneyBag":
+            self.max_frame = 13
+            self.frame_rate = 1 / 8
+            self.frame = random.randint(1, 13)
+            self.frame_time = random.uniform(0, self.frame_rate)
             self.health = 1
             self.ser_num = shared["money_ser_num"]
             shared["money_ser_num"] += 1
@@ -98,6 +104,7 @@ class GameObject:
         self.life_bar = True
         self.hitBy = []
         self.lifetime = 0
+        self.time_on_ground = 0
         # Bounce equation:
 #        V = (V - GF) * (C + C2)
 
@@ -133,10 +140,11 @@ class GameObject:
         return pos
 
     def draw(self, surf):
-        if self.type in ("moneyBag", "rock") and not self.dead:
+        if self.type in ("rock") and not self.dead:
             surf.blit(self.images[self.type], self.pos)
         if self.type in "moneyBag" and self.dead:
             self.max_frame = 75
+            self.frame_rate = 1 / 25
             rect = self.get_rect()
             rect2 = pygame.Rect((0, 0), (256, 256))
             rect2.center = rect.center
@@ -144,12 +152,15 @@ class GameObject:
                 self.kill = True
                 return
             surf.blit(self.images[f"money_explosion_t{(self.ser_num % 5) + 1}_{self.frame}"], rect2)
-        if self.type in ("shield", "block", "heart", "mine", "laser") and not self.dead:
+        if self.type in ("shield", "block", "heart", "mine", "laser", "moneyBag") and not self.dead:
             t = self.type
             if t == "laser":
                 t = "bluelaser"
+            size = (32, 32)
+            if t == "moneyBag":
+                size = self.size
             surf.blit(pygame.transform.scale(self.images[f"{t}{self.frame}"],
-                (32, 32)), self.pos)
+                size), self.pos)
         if self.type == "aircraft" and not self.dead:
             surf.blit(pygame.transform.flip(pygame.transform.scale(self.images[f"aircraft{'Down' if self.depart == 1 else ''}{self.frame}"], self.size), self.direction == -1, 0), self.pos)
         if self.type in ("rock", "block", "heart", "shield") and self.dead:
@@ -208,31 +219,34 @@ class GameObject:
             if not pygame.Rect(0, 0, 800, 600).colliderect(rect):
                 self.jet_sound.stop()
                 self.kill = True
+        if self.time_on_ground > 4 and self.mission.is_bottomless() and self.type in CRUSHABLE:
+            self.kill = True
+            self.frame = 1
+            self.frame_rate = 1/30
         if rect.bottom < self.mission.ground and self.physics:
             self.velocity[1] += (self.mission.planet.gravity * G) * time_passed / METER
         if rect.bottom >= self.mission.ground and self.physics:
             self.has_touched_ground = True
+            if self.mission.is_bottomless() and self.type in CRUSHABLE:
+                self.physics = False
+                self.velocity[0] = 0
+                self.velocity[1] = 15
             if self.type == "rock" and not self.dead:
                 self.dead = True
                 self.frame = 1
             if self.type == "laser":
                 self.kill = True
-            if self.type in ("block", "moneyBag", "heart", "shield", "mine") and self.mission.is_bottomless():
-                self.dead = True
-                self.frame = 1
-                self.physics = False
-                self.velocity[0] = 0
-                self.velocity[1] = 0
-                self.frame_rate = 1/30
             if self.type == "mine":
                 self.phyiscs = False
             rect.bottom = self.mission.ground
             self.pos = list(rect.topleft)
-            if self.physics:
+            if self.physics and not self.mission.is_bottomless():
                 self.velocity[1] = -((self.velocity[1] - (self.mission.planet.gravity * G) * time_passed / METER) / (constants.BOUNCE[self.type] + self.mission.bounce))
                 if round(self.velocity[1], 1) == 0:
                     self.velocity[0] = 0
                     self.velocity[1] = 0
+        if self.has_touched_ground:
+            self.time_on_ground += self.time_passed
         if rect.bottom == self.mission.ground:
             try:
                 if self.mission.planet.gravity * G > 1:
@@ -246,7 +260,7 @@ class GameObject:
             self.pos[0] += self.velocity[0] * self.time_passed
             self.pos[1] += self.velocity[1] * self.time_passed
         self.frame_time += time_passed
-        if self.frame_time >= self.frame_rate and not (self.type=="moneyBag" and not self.dead):
+        if self.frame_time >= self.frame_rate:
             self.frame += 1
             self.frame_time = 0
         if self.frame >= self.max_frame:
