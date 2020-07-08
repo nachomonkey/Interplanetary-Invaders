@@ -15,7 +15,8 @@ class Zapper:
         self.dry = dry
         self.pos = pos
         self.images = images
-        self.speed = 30                # Speed in Pixels / Second (sort of)
+        self.speed = 1                # Acceleration multiplier
+        self.acceleration = 1
         self.fire_per_sec = 4.5
         self.completeness = 1
         self.title = "Alien Zapper 1"
@@ -43,9 +44,10 @@ class Zapper:
         self.frame = 1
         self.frame_rate = 1 / 25
         self.frame_time = 0
-        self.friction = 1.25
+        self.friction = 1
         self.velocity = pygame.Vector2((0, 0))
-        self.max_velocity = 5
+        self.max_velocity = 6
+        self.target_x_velocity = 0
         self.mission = mission
         self.mass = 1.5           # Mass in kilograms
         self.death_frames = 25
@@ -61,12 +63,14 @@ class Zapper:
         self.whimp = False
         self.regen = False
         self.hover = False
+        self.extra_dip = 0
         self.send_to_ground()
         self.regen_time = 0
         self.just_fired = False
         self.death_sound = None
         self.weapon_power = 1
         self.always_beam = False
+        self.general_acc = 20
         self.im_back = False
 
     def send_to_ground(self):
@@ -85,6 +89,8 @@ class Zapper:
             self.dead = True
             self.health = 0
             self.shield = 0
+        if self.hover and self.mission.is_bottomless():
+            self.min_alt += self.extra_dip
 
     def get_rect(self):
         """Returns a pygame.Rect object representing the player"""
@@ -135,7 +141,7 @@ class Zapper:
             if self.current_items:
                 if "Green Laser" in self.current_items:
                     sound = "audio/greenlaser.wav"
-            Sound(sound).play()
+            Sound(sound, True).play()
         return obj
 
     def events(self, event):
@@ -165,7 +171,7 @@ class Zapper:
                 if self.shield > self.max_shield:
                     self.shield = self.max_shield
         pressed = pygame.key.get_pressed()
-        if (pressed[pygame.K_SPACE] or pressed[pygame.K_w] or pressed[pygame.K_UP] or joystick.CurrentState.X) and self.completeness == 1 and self.canFire and self.beam:
+        if (pressed[pygame.K_SPACE] or pressed[pygame.K_w] or pressed[pygame.K_UP] or joystick.CurrentState.X) and self.completeness == 1 and self.canFire and self.beam and not self.dead:
             obj = self.fire()
             if not self.whimp:
                 self.just_fired = obj
@@ -199,26 +205,34 @@ class Zapper:
         if not self.beam:
             self.image = pygame.transform.scale(self.images[\
                 f"{self.name}{int(6 * (self.completeness / 1))}"], self.size)
-        friction = (self.friction + self.mission.friction) * (self.mass * self.mission.planet.gravity) + 1
-        acc = False
+        acc = True
         if (pressed[pygame.K_LEFT] or pressed[pygame.K_a] or joystick.CurrentState.joystick_left) and not self.dead:
-            self.velocity[0] -= self.time_passed * self.speed * (friction)
-            acc = True
-        if (pressed[pygame.K_RIGHT] or pressed[pygame.K_d] or joystick.CurrentState.joystick_right) and not self.dead:
-            self.velocity[0] += self.time_passed * self.speed * (friction)
-            acc = True
+            self.target_x_velocity = -self.max_velocity
+        elif (pressed[pygame.K_RIGHT] or pressed[pygame.K_d] or joystick.CurrentState.joystick_right) and not self.dead:
+            self.target_x_velocity = self.max_velocity
+        else:
+            acc = False
+            self.target_x_velocity = 0
+        if acc:
+            self.velocity.x -= (self.velocity.x - self.target_x_velocity) * self.speed * self.friction * (1 if self.hover else self.mission.friction * self.mission.traction) * self.acceleration * self.general_acc * self.time_passed
         if not acc:
-            self.velocity.x -= self.velocity.x / (8 / (friction *.25))
-        if self.velocity[0] > self.max_velocity:
-            self.velocity[0] = self.max_velocity
-        if -self.velocity[0] > self.max_velocity:
-            self.velocity[0] = -self.max_velocity
-        if self.pos[0] < 0:
-            self.pos[0] = 0
-            self.velocity[0] = 0
-        if self.pos[0] > 736:
-            self.pos[0] = 736
-            self.velocity[0] = 0
+            self.velocity.x -= (self.velocity.x - self.target_x_velocity) * self.friction * (1 if self.hover else self.mission.friction) * self.general_acc * self.time_passed
+        if self.velocity.x > self.max_velocity:
+            self.velocity.x = self.max_velocity
+        if self.velocity.x < -self.max_velocity:
+            self.velocity.x = -self.max_velocity
+        if abs(self.velocity.x) < .01 and not acc:
+            self.velocity.x = 0
+        if self.pos[0] <= 0 and self.velocity.x < 0:
+            self.velocity.x = abs(self.velocity.x) * .2
+        if self.rect.right >= 800 and self.velocity.x > 0:
+            self.velocity.x = -abs(self.velocity.x) * .2
+#        if self.pos[0] < 0:
+#            self.pos[0] = 0
+#            self.velocity[0] = 0
+#        if self.pos[0] > 736:
+#            self.pos[0] = 736
+#            self.velocity[0] = 0
         if self.mission.temperature + self.add_temp > self.max_temp and not self.dead:
             remove = ((self.mission.temperature + self.add_temp - self.max_temp) / 1000) * self.time_passed
             if self.shield > 0:
@@ -249,6 +263,7 @@ class VenusCrawler(Zapper):
         self.mass = 3
         self.speed = 20
         self.health = 2
+        self.friction = 1.5
         self.max_health = 2
         self.max_shield = 2
         self.max_temp = 950 # Works up to 950 deg. F
@@ -267,6 +282,7 @@ class Curiosity(Zapper):
         self.fire_from = (40, 6)
         self.fire_per_sec = 50
         self.health = .5
+        self.speed *= 1.3
         self.max_health = .5
         self.shield = .5
         self.max_shield = .5
@@ -299,7 +315,9 @@ class JupiterHover(Zapper):
         self.max_temp = 500
         self.hover_alt = 430
         self.frame_rate = 1/35
+        self.extra_dip = 10
+        self.speed *= .8
+        self.friction = .5
         self.send_to_ground()
         self.weapon_power = .75
         self.death_sound = Sound(fix_path("audio/jupiter_hover_explode.wav"))
-

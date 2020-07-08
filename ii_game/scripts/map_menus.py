@@ -448,11 +448,11 @@ class Map:
         self.selected_point = point
         self.old_selected_point = point
         self.avatar_frame = 1
-        self.frame_rate = 1 / 4
+        self.frame_rate = 1 / 6
         self.frame_time = 0
         self.avatar_frames = 2
         self.avatar_idle_frame = 1
-        self.idle_frame_rate = 1
+        self.idle_frame_rate = 2 / 3
         self.idle_frame_time = 0
         self.avatar_pos = self.get_point(self.selected_point)
         self.target_pos = copy.copy(self.avatar_pos)
@@ -743,16 +743,19 @@ class Map:
                         add = "Bonus Mission: "
                 except AttributeError:
                     pass
-                retro_text((self.map[sel].pos[0] + 2, self.map[sel].pos[1] + 2), self.display, 15, add + self.map[sel].name, anchor="midtop", color=(0, 0, 0))
-                retro_text((self.map[sel].pos), self.display, 15, add + self.map[sel].name, anchor="midtop")
+                t, tr = retro_text((self.map[sel].pos), self.display, 15, add + self.map[sel].name, anchor="midtop", render=False, color=(230, 230, 230))
+                tr = tr.clamp(self.display.get_rect())
+                retro_text(tr.move(0, 2).center, self.display, 15, add + self.map[sel].name, anchor="center", color=(0, 0, 0))
+                self.display.blit(t, tr)
                 if self.map[sel].type in ("spaceport", "mission", "store"):
                     text = "Complete Mission"
                     if self.map[sel].type == "spaceport":
                         text = "Go To Space"
                     if self.map[sel].type == "store":
                         text = "Go To Store"
-                    rect = pygame.Rect((0, 0), (220, 50))
+                    rect = pygame.Rect((0, 0), (235, 50))
                     rect.midtop = self.map[sel].pos[0], self.map[sel].pos[1] + 35
+                    rect = rect.clamp(self.display.get_rect())
                     color = (100, 100, 100)
                     if pygame.key.get_pressed()[pygame.K_RETURN] or rect.collidepoint(pygame.mouse.get_pos()):
                         color = (70, 70, 70)

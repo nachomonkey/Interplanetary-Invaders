@@ -3,6 +3,7 @@ from ii_game.scripts.utils import fix_path
 import os
 import pathlib
 
+SOUND_PATH = fix_path("data/sound-cache/")
 DEV_RUN = os.path.abspath(".").endswith("interplanetary-invaders")
 
 def get_file(filename):
