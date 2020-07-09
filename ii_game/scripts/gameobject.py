@@ -9,9 +9,10 @@ pygame.init()
 G = 9.81
 METER = 0.006
 SIZE = (800, 600)
-shared = {"money_ser_num" : 0}
 
 CRUSHABLE = ("block", "moneyBag", "heart", "shield", "mine")
+
+MoneySerialNumber = 0
 
 class GameObject:
     def __init__(self, center, images, mission, type="moneyBag", velocity=Vector2([0, 0]), amount=None, value=None, player=None, nobounce=False):
@@ -65,8 +66,9 @@ class GameObject:
             self.frame = random.randint(1, 13)
             self.frame_time = random.uniform(0, self.frame_rate)
             self.health = 1
-            self.ser_num = shared["money_ser_num"]
-            shared["money_ser_num"] += 1
+            global MoneySerialNumber
+            self.ser_num = MoneySerialNumber
+            MoneySerialNumber += 1
         if self.type == "aircraft":
             self.depart = random.randint(0, 1)
             self.direction = random.randint(0, 1)

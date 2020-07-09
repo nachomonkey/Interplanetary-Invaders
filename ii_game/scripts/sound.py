@@ -9,7 +9,9 @@ from ii_game.scripts import saves
 from ii_game.scripts.get_file import get_file, SOUND_PATH
 from ii_game.scripts.utils import fix_path
 
-shared = {"options" : saves.load_options(), "is_slow" : None}
+options = saves.load_options()
+
+is_slow = False
 
 SOUND_PATH = get_file(SOUND_PATH)
 if not os.path.exists(SOUND_PATH):
@@ -41,11 +43,11 @@ class Sound(pygame.mixer.Sound):
     def __init__(self, filename, no_slow=False):
         self.original_filename = filename
         filename = get_file(filename)
-        if not no_slow and shared["is_slow"]:
-            if shared["is_slow"]():
-                filename = SlowDownSound(filename)
+        global is_slow
+        if not no_slow and is_slow:
+            filename = SlowDownSound(filename)
         super().__init__(filename)
-        self.set_volume(shared["options"]["volume"])
+        self.set_volume(options["volume"])
 
     def set_volume(self, vol):
-        super().set_volume(vol * shared["options"]["volume"])
+        super().set_volume(vol * options["volume"])
