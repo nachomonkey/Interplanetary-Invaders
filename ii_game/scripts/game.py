@@ -38,7 +38,8 @@ SIZE = (800, 600)
 
 GRAVITY = G * 1
 
-shared = {"money_ser_num" : 0, "options" : saves.load_options(), "cat" : [], "is_slow" : False}
+CAT = []
+mission = None
 
 NUM_KEYS = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5,
 pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_0]
@@ -47,11 +48,6 @@ pygame.K_KP5, pygame.K_KP6, pygame.K_KP7, pygame.K_KP8, pygame.K_KP9,
 pygame.K_KP0]
 
 pygame.mixer.set_num_channels(50)
-
-def is_slow():
-    return shared["is_slow"]
-
-sound.shared["is_slow"] = is_slow
 
 def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), back=(10, 10, 10), width=150, height=20, r=True):
     if prog <= 0 and shield <= 0:
@@ -162,14 +158,15 @@ class Game:
     def main(self):
         """Running this method runs the game"""
         self.briefing(self.mission)
-        c = shared["cat"]
+        global CAT, mission
+        c = CAT
         ca = None
-        if c and self.mission.__class__ == shared["mission"].__class__:
+        if c and self.mission.__class__ == mission.__class__:
             ca = c
         inv = Inventory(self.Display, self.images, self.profile, ca, None)
         self.profile, cat, player, sel = inv.main()
-        shared["cat"] = sel
-        shared["mission"] = self.mission
+        CAT = sel
+        mission = self.mission
         itms = cat[-1]
         self.player = player([400, 431], self.images, self.mission)
         for r, i in itms:
@@ -184,7 +181,7 @@ class Game:
         self.gls.stop()
         self.ls.stop()
         self.ms.stop()
-        shared["is_slow"] = False
+        sound.is_slow = False
         pygame.mixer.music.stop()
         for g in self.GOs:
             if g.type == "aircraft":
@@ -526,7 +523,7 @@ class Game:
             Sound(fix_path("audio/heart.wav")).play()
         if item.name == "Slow Motion":
             self.time_dilation = .15
-            shared["is_slow"] = True
+            sound.is_slow = True
             Sound(fix_path("audio/slowDown.wav"), True).play()
             pygame.mixer.music.load(fix_path(get_file("audio/music/SlowMotion.mp3")))
             pygame.mixer.music.play(-1)
@@ -671,7 +668,6 @@ class Game:
                             a.health = 0
                             a.dead = 1
                             a.explode_sound.play()
-                            self.AddKilledAlien()
                 for go in self.GOs:
                     if go.type in ("mine", "moneyBag", "rock"):
                         go.dead = True
@@ -931,7 +927,6 @@ class Game:
             if alien.health <= 0:
                  if not alien.dead:
                      self.item_progress += alien.__class__.item_value * self.mission.item_mul
-                     self.AddKilledAlien()
                      if self.item_progress >= 1:
                          self.item_progress -= 1
                          if self.mission.items_dropped < self.mission.items:
@@ -961,6 +956,7 @@ class Game:
                          self.add_points(alien.death_amount[1] + points, alien.get_rect().center)
                      continue
             if alien.kill:
+                self.AddKilledAlien()
                 del self.aliens[self.aliens.index(alien)]
                 continue
             r1 = self.player.get_rect()
@@ -986,7 +982,6 @@ class Game:
                     if self.player.shield:
                         self.player.shield = 0
                         self.add_points(-self.score // 2, alien.get_rect().center)
-                        self.AddKilledAlien()
                     else:
                         self.player.health = 0
                     self.add_points(min(-self.score, -100), alien.get_rect().center)
@@ -1016,12 +1011,13 @@ class Game:
                         self.next_wave = self.mission.patterns.pop(0)
                     else:
                         self.ran_out_of_aliens = True
-                self.aliens.append(self.next_wave.get_alien_type()((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
-                self.next_wave.alien_objects.append(self.aliens[-1])
-                self.next_wave.completed += 1
+                if not self.ran_out_of_aliens:
+                    self.aliens.append(self.next_wave.get_alien_type()((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
+                    self.next_wave.alien_objects.append(self.aliens[-1])
+                    self.next_wave.completed += 1
             if self.mission.boss == None:
                 self.bossed = True
-            if self.ran_out_of_aliens and not self.bossed and len(self.aliens) == 0:
+            if self.ran_out_of_aliens and not self.bossed and not self.aliens:
                 self.bossed = True
                 self.aliens.append(self.mission.boss((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
             self.alien_time = 0
@@ -1082,7 +1078,7 @@ class Game:
             for go in self.GOs:
                 go.tracking_speed = constants.ATTRACTION.get(go.type, 0)
         elif Name == "Slow Motion":
-            shared["is_slow"] = False
+            sound.is_slow = False
             self.time_dilation = 1
             Sound(fix_path("audio/speedUp.wav")).play()
             pygame.mixer.music.fadeout(2000)
