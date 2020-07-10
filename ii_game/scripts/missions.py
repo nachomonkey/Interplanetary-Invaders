@@ -5,6 +5,14 @@ from ii_game.scripts import names
 from ii_game.scripts import bosses
 from ii_game.scripts import items
 import random
+import copy
+
+def multiply_list(my_list, factor):
+    product = []
+    for i in range(factor):
+        for x in my_list:
+            product.append(copy.copy(x))
+    return product
 
 class Mission:
     def __init__(self):
@@ -148,7 +156,27 @@ class MissionMercury6(MissionMercury5):
                          AlienPattern(amount=15, rate=(.2, 1), aliens=[Alien, GreenAlien, MineSpreaderAlien])]
         self.name = "A New Threat"
         self.briefing = """Here on the dark side of Mercury,
-the Aliens have a little surprise for you."""
+the Aliens have a big surprise for you."""
+
+class MissionMercury7(MissionMercury3):
+    def __init__(self):
+        super().__init__()
+        self.aliens = 50
+        self.bonus = 1000
+        self.programmed_items = {}
+        self.item_types = [items.DoubleMoney]
+        self.programmed_items = {0 : HealItem, 2 : items.FireItem2x, 12 : items.HealItem, 34 : items.SlowMotionItem}
+        self.patterns = [2.5,
+                         AlienPattern(amount=3, rate=2, aliens=[MineSpreaderAlien], wait_at_end=True), 1,
+                         AlienPattern(amount=3, rate=1.7, aliens=[MineSpreaderAlien], wait_at_end=True), 1.25,
+                         AlienPattern(amount=3, rate=1.2, aliens=[MineSpreaderAlien], wait_at_end=True), 4,
+                         AlienPattern(amount=4, rate=1, aliens=[MineSpreaderAlien], wait_at_end=True), 2,
+                         AlienPattern(amount=1, rate=.1, aliens=[Alien], wait_at_end = True),
+                         AlienPattern(amount=15, rate=(.1, .25), aliens=[Alien] * 7 + [GreenAlien]), 1.5,
+                         AlienPattern(amount=5, rate=(1.5, 3), aliens=[MineSpreaderAlien], one_at_a_time = True), 1,
+                         AlienPattern(amount=16, rate=(.1, .3), aliens=[MineSpreaderAlien] * 5 + [Alien])]
+        self.name = "Bombing Raids"
+        self.briefing = """Endure more alien bombers"""
 
 class MissionEarth1(Mission):
     def __init__(self):
@@ -617,16 +645,20 @@ class MissionTest(Mission):
         return self.GOs
 
 class AlienPattern:
-    def __init__(self, rate=(.3, 2.25), amount=100, aliens=[Alien], one_at_a_time=False):
+    def __init__(self, rate=(.3, 2.25), amount=100, aliens=[Alien], one_at_a_time=False, wait_at_end=False):
         self.rate = rate
         self.amount = amount
         self.aliens = aliens
         self.alien_objects = []
         self.completed = 0
         self.one_at_a_time = one_at_a_time
+        self.wait_at_end = wait_at_end
 
     def get_alien_type(self):
         return self.aliens[self.completed % len(self.aliens)]
+
+    def is_completed(self):
+        return self.completed >= self.amount
 
     def has_remaining(self):
         for a in self.alien_objects:

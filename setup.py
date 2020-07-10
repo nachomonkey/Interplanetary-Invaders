@@ -14,7 +14,7 @@ def fmt(txt):
 
 img_data = []
 
-if "install" in sys.argv and __name__ == "__main__":
+if "install" in sys.argv and __name__ == "__main__" and not os.getuid():
     for r, d, f in os.walk(fix_path("ii_game/images/bitmap")):
         if not fmt(r) in img_data:
             img_data.append(fmt(r))

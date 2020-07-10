@@ -3,9 +3,9 @@
 
 *Computer game where you battle alien spiders across the solar system*
 
-*Note: this will work for Linux, but it has not been tested for Windows or Mac*
+**Works for Windows and Linux**
 
-## Installation for Linux
+## Installation
 
 Requires:
  * python >= 3.7
@@ -13,55 +13,28 @@ Requires:
  * humanize
 
 Installation will also add a ".desktop" file in the Games catagory of your applications on Linux
-### Installation using pip via PyPI (recommended)
+
+### Installation
 
 ```bash
-sudo pip3 install interplanetary-invaders
-```
-#### For Ubuntu users:
-*Run as root*
-```bash
-apt install python3.7
-python3.7 -m pip install interplanetary-invaders
+pip3 install interplanetary-invaders
 ```
 
-### Installation using pip via github
+
+
+### Execution
 
 ```bash
-sudo pip3 install git+https://github.com/nachomonkey/interplanetary-invaders
+python3 -m ii_game
 ```
 
-### Alternate Installation
-
-```bash
-git clone git+https://github.com/nachomonkey/interplanetary-invaders
-cd interplanetary-invaders
-sudo python3 setup.py install
-```
-
-With the alternate install, by keeping the git repo, you can update anytime with a git pull, and optionally build afterwards, or just run:
-
-### Exucution
-
-Run the console script:
+**or**
 
 ```bash
 interplanetary-invaders
 ```
 
-Or run the "ii\_game" module:
-
-```bash
-python3.7 -m ii_game
-```
-
-If you did an alternate install run this in the git repo:
-
-```bash
-python3.7 dev_run.py
-```
-
-## Using and playing the game
+## Playing the game
 
  ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/wiki_data/screenshot_gameplay1.png  "Gameplay Screenshot")
 
