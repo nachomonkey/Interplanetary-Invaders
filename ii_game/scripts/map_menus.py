@@ -473,12 +473,15 @@ class Map:
         self.ForwardOrBack2 = False
         self.click = False
         self.last_hit_point = point
+        self.avatar_speed = 200
 
     def set_velocity(self):
         diff = self.avatar_pos - self.target_pos
         while abs(diff[0]) > 220 or abs(diff[1]) > 220:
             diff /= 1.05
         self.velocity = diff
+        if self.velocity.magnitude():
+            self.velocity.normalize_ip()
 
     def get_point(self, index):
         try:
@@ -522,9 +525,6 @@ class Map:
             return 2
         if event.key == pygame.K_RIGHT or joystick.JustWentRight():
             return 3
-
-    def RelCalc(self):
-        a
 
     def GoForwardOrBack(self, event, rel=False):
         IsForward = False
@@ -705,7 +705,7 @@ class Map:
                 color = (255, 255, 0)
                 if dark:
                     color = (150, 150, 20)
-                pygame.draw.line(d1, color, point.pos, self.map[n - 1].pos)
+                pygame.draw.line(d1, color, point.pos, self.map[n - 1].pos, 2)
             d2.blit(circle, circle_rect)
             d2.blit(self.images[f"{name}_flag{point.frame}"], point.rect)
             if hover and self.click:
@@ -785,7 +785,7 @@ class Map:
             self.last_hit_point = p
             self.selected_point = p
         self.old_selected_point = self.selected_point
-        self.avatar_pos -= self.velocity * self.time_passed
+        self.avatar_pos -= self.velocity * self.avatar_speed * self.time_passed
         if (round(self.avatar_pos[0] / 6), round(self.avatar_pos[1] / 6)) == (round(self.target_pos[0] / 6), round(self.target_pos[1] / 6)):
             self.avatar_pos = self.target_pos
             if not self.waypoints:

@@ -60,7 +60,7 @@ class FlakItem(Item):
         self.image = "flak"
 
 class AutoGun(Item):
-    cost = 4500
+    cost = 10000
     def __init__(self):
         super().__init__()
         self.length = 40

@@ -116,8 +116,8 @@ class AutoGun(StoreItem):
     icon = "autogun"
     title = "Auto Gun"
     type = "Item"
-    cost = 7500
-    rarity = .8
+    cost = 10000
+    rarity = .7
     link = items.AutoGun
     banned_planets = ["Earth", "Mars"]
     description = """
@@ -178,7 +178,7 @@ class SlowMotionItem(StoreItem):
     cost = 8000
     rarity = .25
     link = items.SlowMotionItem
-    banned_planets = []
+    banned_planets = ["Earth", "Venus"]
     description = """
 Warps space-time so that
 alien activity is slowed

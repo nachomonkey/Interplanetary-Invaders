@@ -6,7 +6,6 @@ from ii_game.scripts.missions import *
 
 MAP_POINT_SIZE = 64
 
-
 class MapPoint:
     """Base class of map points"""
 
@@ -65,6 +64,8 @@ AllMaps = {
         MapPoint((564, 118), "Mercurian Madness", MissionMercury4, True),
         MapPoint((725, 300), "The Dark Side", MissionMercury5, True),
         MapPoint((740, 375), "A New Threat", MissionMercury6, True),
+        MapPoint((581, 381), "Bombing Raids", MissionMercury7, True),
+        MapPoint((439, 409), "The Deep Crater", MissionMercury8, True),
     ],
     "Earth": [
         MapPoint((125, 100), "Landing Zone", MissionEarth1, False, type=None),

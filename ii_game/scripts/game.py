@@ -18,7 +18,7 @@ from ii_game.scripts.retro_text import retro_text
 from ii_game.scripts.transition import transition
 from ii_game.scripts.pause_menu import pause_menu
 from ii_game.scripts.gameobject import GameObject
-from ii_game.scripts.utils import fix_path, colorize
+from ii_game.scripts.utils import fix_path, colorize, num_or_rand
 from ii_game.scripts.get_file import get_file
 from ii_game.scripts.sound import Sound
 from ii_game.scripts.lasers import *
@@ -101,7 +101,11 @@ class Game:
         self.points = []
         self.score = 0
         self.next_wave = self.mission.patterns.pop(0)
-        self.next_alien = random.uniform(*self.next_wave.rate)
+        if isinstance(self.next_wave, (int, float)):
+            self.next_alien = self.next_wave
+            self.next_wave = self.mission.patterns.pop(0)
+        else:
+            self.next_alien = num_or_rand(self.next_wave.rate, True)
         self.aliens_killed = 0
         self.GOs = []
         self.bossed = False
@@ -605,7 +609,9 @@ class Game:
         Items = self.player.current_items
         for e, item in enumerate(self.player.current_items):
             self.display.blit(self.images[Items[item].image], (525, 140 + e * 20))
-            retro_text((600, 140 + e * 20), self.display, 18, round(Items[item].length - Items[item].total_time, 2), anchor = "midtop")
+            n1, n2 = str(float(round(Items[item].length - Items[item].total_time, 2))).split(".")
+            text = ".".join((n1, n2.ljust(2, "0")))
+            retro_text((600, 140 + e * 20), self.display, 18, text, anchor = "midtop")
         for flak in self.flaks:
             flak.draw(self.display)
         for p in self.points:
@@ -1004,25 +1010,35 @@ class Game:
                 self.disableItem(item)
         pygame.display.update()
         self.alien_time += self.time_passed
-        if self.alien_time >= self.next_alien and (not self.next_wave.one_at_a_time or not self.next_wave.has_remaining()):
+        wave_ok = True
+        if self.next_wave.wait_at_end:
+            if self.next_wave.is_completed():
+                if self.next_wave.has_remaining():
+                    wave_ok = False
+        if self.alien_time >= self.next_alien and (not self.next_wave.one_at_a_time or not self.next_wave.has_remaining()) and wave_ok:
+            added_time = False
             if not self.ran_out_of_aliens:
-                if self.next_wave.completed == self.next_wave.amount:
-                    if len(self.mission.patterns):
+                if self.next_wave.is_completed():
+                    if self.mission.patterns:
                         self.next_wave = self.mission.patterns.pop(0)
+                        while isinstance(self.next_wave, (float, int)) and self.mission.patterns:
+                            added_time = True
+                            self.next_alien += self.next_wave
+                            self.next_wave = self.mission.patterns.pop(0)
                     else:
                         self.ran_out_of_aliens = True
-                if not self.ran_out_of_aliens:
+                if not self.ran_out_of_aliens and not added_time:
                     self.aliens.append(self.next_wave.get_alien_type()((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
                     self.next_wave.alien_objects.append(self.aliens[-1])
                     self.next_wave.completed += 1
             if self.mission.boss == None:
                 self.bossed = True
-            if self.ran_out_of_aliens and not self.bossed and not self.aliens:
+            if self.ran_out_of_aliens and not self.bossed and not self.aliens and not self.added_time:
                 self.bossed = True
                 self.aliens.append(self.mission.boss((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
             self.alien_time = 0
-            if not self.ran_out_of_aliens:
-                self.next_alien = random.uniform(*self.next_wave.rate)
+            if not self.ran_out_of_aliens and not added_time:
+                self.next_alien = num_or_rand(self.next_wave.rate, True)
         if self.endgame:
             transition(self.Display, 2)
             self.done = True
