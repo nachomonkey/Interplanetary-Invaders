@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Interplanetary Invaders
+GenericName=Interplanetary Invaders
+Comment=Battle alien spiders across the solar system
+Exec=interplanetary-invaders
+Icon=/usr/share/icons/interplanetary_invaders-icon.png
+Terminal=false
+Type=Application
+Categories=Game;ArcadeGame;
