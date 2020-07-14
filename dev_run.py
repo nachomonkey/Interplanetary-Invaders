@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from ii_game import main
+from interplanetary_invaders import main
 
 if __name__ == "__main__":
     main.run()

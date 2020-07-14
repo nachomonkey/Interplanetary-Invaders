@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
 
 from setuptools import setup
-from ii_game.scripts.utils import fix_path
-from ii_game.scripts.get_file import get_file, SOUND_PATH
-from ii_game import __version__
+from interplanetary_invaders.scripts.utils import fix_path
+from interplanetary_invaders.scripts.get_file import get_file, SOUND_PATH
+from interplanetary_invaders import __version__
 import os, shutil, sys
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 def fmt(txt):
-    return fix_path(txt.replace("ii_game/", "") + "/*")
+    return fix_path(txt.replace("interplanetary_invaders/", "") + "/*")
 
 img_data = []
 
 if "install" in sys.argv and __name__ == "__main__" and not os.getuid():
-    for r, d, f in os.walk(fix_path("ii_game/images/bitmap")):
+    for r, d, f in os.walk(fix_path("interplanetary_invaders/images/bitmap")):
         if not fmt(r) in img_data:
             img_data.append(fmt(r))
     if sys.platform == "linux" and not "sdist" in sys.argv:
         if os.path.exists("/usr/share/icons"):
-            shutil.copyfile("ii_game/icon.png", "/usr/share/icons/ii_game-icon.png")
+            shutil.copyfile("interplanetary_invaders/icon.png", "/usr/share/icons/interplanetary_invaders-icon.png")
         if os.path.exists("/usr/share/applications"):
-            shutil.copyfile("ii_game/ii_game.desktop", "/usr/share/applications/ii_game.desktop")
+            shutil.copyfile("interplanetary_invaders/interplanetary_invaders.desktop", "/usr/share/applications/interplanetary_invaders.desktop")
 
 setup(
     name="Interplanetary Invaders",
@@ -34,11 +34,11 @@ setup(
     zip_safe=False,
     url="https://github.com/nachomonkey/interplanetary-invaders",
     install_requires=["setuptools", "pygame==1.9.6", "humanize>=0.5.0"],
-    packages=["ii_game", "ii_game.scripts"],
-    package_data={"ii_game":["*.png", fix_path("fonts/*"), fix_path("music/*"), fix_path("audio/*"), fix_path("audio/music/*"), fix_path("data/*")] + img_data},
+    packages=["interplanetary_invaders", "interplanetary_invaders.scripts"],
+    package_data={"interplanetary_invaders":["*.png", fix_path("fonts/*"), fix_path("music/*"), fix_path("audio/*"), fix_path("audio/music/*"), fix_path("data/*")] + img_data},
     entry_points={
         "console_scripts": [
-            "interplanetary-invaders = ii_game.main:run",
+            "interplanetary-invaders = interplanetary_invaders.main:run",
             ]
         },
     python_requires=">=3.7",
