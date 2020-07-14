@@ -14,11 +14,11 @@ def fmt(txt):
 
 img_data = []
 
-if "install" in sys.argv and __name__ == "__main__" and not os.getuid():
+if "install" in sys.argv and __name__ == "__main__":
     for r, d, f in os.walk(fix_path("interplanetary_invaders/images/bitmap")):
         if not fmt(r) in img_data:
             img_data.append(fmt(r))
-    if sys.platform == "linux" and not "sdist" in sys.argv:
+    if sys.platform == "linux" and not "sdist" in sys.argv and not os.getuid():
         if os.path.exists("/usr/share/icons"):
             shutil.copyfile("interplanetary_invaders/icon.png", "/usr/share/icons/interplanetary_invaders-icon.png")
         if os.path.exists("/usr/share/applications"):
