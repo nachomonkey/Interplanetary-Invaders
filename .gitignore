@@ -3,7 +3,6 @@ interplanetary_invaders/scripts/__pycache__/
 lib/
 dist/
 bin/
-interplanetary_invaders/
 data/
 build/
 include/
@@ -16,3 +15,4 @@ Interplanetary_Invaders.egg-info/
 IDEAS.md
 PACKAGE_AND_UPLOAD.sh
 hacks/
+Interplanetary_Invaders.egg-info/
