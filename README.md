@@ -20,12 +20,10 @@ Installation will also add a ".desktop" file in the Games catagory of your appli
 pip3 install interplanetary-invaders
 ```
 
-
-
 ### Execution
 
 ```bash
-python3 -m ii_game
+python3 -m interplanetary_invaders
 ```
 
 **or**
@@ -39,14 +37,14 @@ interplanetary-invaders
  ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/wiki_data/screenshot_gameplay1.png  "Gameplay Screenshot")
 
 After launching the game and selecting **Play**, a list of profiles appears. (*These profiles are 
-stored in $HOME/ii_game-data/*) Once a profile
+stored in $HOME/interplanetary_invaders-data/*) Once a profile
 is selected, map mode is entered. The **LEFT**, **RIGHT**, **TAB**, **HOME**, and **END** keys are used to navigate
 the map. After selecting a mission and continuing through the briefing and inventory mode,
 a mission begins. The controls are **LEFT** and **RIGHT** to move (or **a** and **d**) and
 **SPACE**, **UP**, or **w** to fire.
 
-At some point you may see an item (![Item](ii_game/images/bitmap/animations/items/block/block1.png  "Item"))
-After touching an item, it will disappear and go into your item storage ( ![Item storage](ii_game/images/bitmap/itemHolder.png))
+At some point you may see an item (![Item](interplanetary_invaders/images/bitmap/animations/items/block/block1.png  "Item"))
+After touching an item, it will disappear and go into your item storage ( ![Item storage](interplanetary_invaders/images/bitmap/itemHolder.png))
 An icon representing the item will be visible in your item storage.
 Press the number key on your keyboard that equals the one below the item's icon (i.e. If the item is in slot three, it
 will have a "3" under it, and you must press <**3**> to activate it.)  The items vary from mission to mission (and planet to planet)
