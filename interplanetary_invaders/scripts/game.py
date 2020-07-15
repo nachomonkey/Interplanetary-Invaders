@@ -49,6 +49,10 @@ pygame.K_KP0]
 
 pygame.mixer.set_num_channels(50)
 
+POINTS_SPEED = 20
+POINTS_LIFETIME = 1.5
+POINTS_FADETIME = 1.2
+
 def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), back=(10, 10, 10), width=150, height=20, r=True):
     if prog <= 0 and shield <= 0:
         return
@@ -429,8 +433,10 @@ class Game:
         rect = pygame.Rect((0, 0), (25, 25))
         rect.bottomleft = pos
         hitTop = False
+        x = 0
         while True:
-            img = retro_text(rect.topright, self.display, 20, amount, anchor = "bottomleft", render = False, font = "impact")
+            img = list(retro_text(rect.topright, self.display, 15, amount, anchor="bottomleft", render=False, font="sans"))
+            img[1].x = img[1].clamp(self.display.get_rect()).x
             yes = True
             if img[1].top < 0:
                 hitTop = True
@@ -445,6 +451,12 @@ class Game:
                     rect.y += 20
                 else:
                     rect.y -= 20
+            x += 1
+            if (x > 1000):
+                print("Error: add_points infinite loop!")
+                return
+        image = img[0]
+        image.set_colorkey((0, 0, 0))
         self.points.append([img, time.time()])
 
     def events(self):
@@ -560,6 +572,18 @@ class Game:
             laser.draw(self.display)
         for alien in self.aliens:
             alien.draw(self.display)
+        blacklist = []
+        for p in self.points:
+            (img, rect), p_time = p
+            alive_time = time.time() - p_time
+            if alive_time > POINTS_FADETIME:
+                alpha = 255 - (((alive_time - POINTS_FADETIME) / (POINTS_LIFETIME - POINTS_FADETIME)) * 255)
+                img.set_alpha(alpha)
+            self.display.blit(img, rect.move(0, alive_time * -POINTS_SPEED))
+            if alive_time >= POINTS_LIFETIME:
+                blacklist.append(p)
+        for b in blacklist:
+            self.points.remove(b)
         lightning_on = len(self.aliens) > 0
         if "Lightning" in self.player.current_items and (pygame.key.get_pressed()[pygame.K_SPACE] or joystick.CurrentState.X):
             lightning.run(self.player.get_rect().center, self.aliens, self.GOs, self.player, self.display, self.time_passed)
@@ -614,10 +638,6 @@ class Game:
             retro_text((600, 140 + e * 20), self.display, 18, text, anchor = "midtop")
         for flak in self.flaks:
             flak.draw(self.display)
-        for p in self.points:
-            self.display.blit(*p[0])
-            if time.time() - p[1] >= 1.5:
-                del self.points[self.points.index(p)]
         if self.sf:
             sf_surf = pygame.Surface((800, 600))
             sf_surf.fill((254, 246, 229))
