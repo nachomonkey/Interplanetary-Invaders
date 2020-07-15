@@ -6,7 +6,7 @@ import time
 import pygame
 
 from interplanetary_invaders.scripts.get_file import get_file
-from interplanetary_invaders.scripts.utils import colorize, fix_path
+from interplanetary_invaders.scripts.utils import colorize, fix_path, lerp
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders import __version__
@@ -15,6 +15,9 @@ IMAGE_PATH = get_file(fix_path("images/bitmap/"))
 
 BAR_WIDTH = 200
 BAR_HEIGHT = 30
+
+HUE_BLUE = 240
+HUE_CYAN = 180
 
 def remove_extension(filename):
     """Remove the extension from a filename string"""
@@ -77,15 +80,16 @@ with pygame.Surface objects as values and their names as keys"""
                 names.append(name)
                 images.append(img)
                 print(f"\rLoaded {colorize(num, 'blue' if num!=mx else 'green')} / {colorize(mx, 'green')} images   %s" % colorize(collect_file + (" " * (40 - len(collect_file))), 'bold'), flush=True, end="")
-            if time.time() - LastRefresh >= .1:
+            if time.time() - LastRefresh >= .025:
                 LastRefresh = time.time()
                 barRect.w = int((BAR_WIDTH * (num / mx)) * 10) / 10
-                g = 255 * (num / mx)
-                b = 255 - g
-                pygame.draw.rect(display, (0, g, b), barRect)
+                color = pygame.color.Color(0)
+                hue = lerp(HUE_BLUE, HUE_CYAN, num / mx)
+                color.hsva = (hue, 100, 100, 100)
+                pygame.draw.rect(display, color, barRect)
                 for x in range(0, BAR_WIDTH, BAR_WIDTH // 10):
                     X_Val = barRect.x + x
-                    pygame.draw.line(display, (0, 0, 0), (X_Val, borderRect.y), (X_Val, borderRect.y + borderRect.h), 2)
+                    pygame.draw.line(display, (0, 0, 0), (X_Val, borderRect.y), (X_Val, borderRect.y + borderRect.h), 1)
                 pygame.draw.rect(display, (25, 25, 25), borderRect, 1)
                 text, text_rect = retro_text(display.get_rect().move(0, 30).center, display, 18, f"{round(num/mx*100)}%", anchor="center", eraseColor=(0, 0, 0))
                 pygame.display.update([barRect, text_rect])
