@@ -17,7 +17,7 @@ Installation will also add a ".desktop" file in the Games catagory of your appli
 ### Installation
 
 ```bash
-pip3 install interplanetary-invaders
+pip3 install interplanetary-invaders --user
 ```
 
 ### Execution
