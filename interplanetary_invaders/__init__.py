@@ -2,5 +2,5 @@
 __myname__ = "Interplanetary Invaders"
 __title__ = "Interplanetary Invaders"
 __author__ = "NachoMonkey"
-__version__ = "0.5.3"
+__version__ = "0.5.4"
 __minimum_version__ = (3, 7)

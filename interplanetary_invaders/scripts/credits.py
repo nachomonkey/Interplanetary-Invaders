@@ -9,13 +9,13 @@ from interplanetary_invaders.scripts.get_file import get_file
 from interplanetary_invaders.scripts import joystick
 
 credits_text = """
-Interplanetary Invaders
+---Interplanetary Invaders---
 
 Developed & Created by:
-
 NachoMonkey
 
-Sound FX: NachoMonkey
+Sound FX:
+NachoMonkey
 
 Flak Sound [MODIFIED]:
 zimbot (see README.md)
@@ -53,7 +53,10 @@ venus_backdrop[1-2].png: NASA
 venus_backdrop_maatmons.png: NASA
 venus_backdrop[4-5].png: NASA
 
-images/bitmaps/(un)lock_exoplanets: NASA"""
+images/bitmaps/(un)lock_exoplanets: NASA
+
+Other contributers:
+XracerX"""
 
 
 def run_credits(display, images):
@@ -66,8 +69,9 @@ def run_credits(display, images):
     time_passed = 0
     for e, x in enumerate(credits_text.split("\n")):
         text.append(list(retro_text((400, 24 * e + 10), display, 14, x, font = "sans", anchor = "midtop", res = 11)))
-    scroll = -650
-    scroll_rate = 45
+    scroll = -600
+    scroll_rate = 55
+    total_length = 1200
     while not done:
         for event in pygame.event.get():
             joystick.Update(event)
@@ -79,7 +83,7 @@ def run_credits(display, images):
                     done = True
             if joystick.BackEvent() or joystick.JustPressedA():
                 done = True
-        if scroll > 1000:
+        if scroll > total_length:
             done = True
         display.blit(images["background"], (0, 0))
         for line in text:
