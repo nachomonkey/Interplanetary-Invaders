@@ -1053,7 +1053,7 @@ class Game:
                     self.next_wave.completed += 1
             if self.mission.boss == None:
                 self.bossed = True
-            if self.ran_out_of_aliens and not self.bossed and not self.aliens and not self.added_time:
+            if self.ran_out_of_aliens and not self.bossed and not self.aliens and not added_time:
                 self.bossed = True
                 self.aliens.append(self.mission.boss((0, 0), self.images, self.flaks, self.GOs, self.player, self.mission))
             self.alien_time = 0
