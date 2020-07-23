@@ -541,7 +541,7 @@ class Game:
             self.time_dilation = .15
             sound.is_slow = True
             Sound(fix_path("audio/slowDown.wav"), True).play()
-            pygame.mixer.music.load(fix_path(get_file("audio/music/SlowMotion.mp3")))
+            pygame.mixer.music.load(fix_path(get_file("audio/music/SlowMotion.ogg")))
             pygame.mixer.music.play(-1)
             self.refresh_alien_sounds()
 

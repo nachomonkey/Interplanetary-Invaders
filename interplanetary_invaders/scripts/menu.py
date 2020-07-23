@@ -81,7 +81,7 @@ class Menu:
                 with shelve.open(fix_path(get_file("data/menuStarsCache"))) as data:
                     stars.stars = data["stars"]
                 pygame.mixer.music.stop()
-                pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.mp3")))
+                pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.ogg")))
                 pygame.mixer.music.play(-1)
         self.frame = 1
         self.frame_rate = 1 / 120
@@ -233,7 +233,7 @@ of Interplanetary Invaders; \nerrors may occur", "warning"))
                                 self.exit()
                             if self.items[sel] == "Credits":
                                 run_credits(self.display, self.images)
-                                pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.mp3")))
+                                pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.ogg")))
                                 pygame.mixer.music.play(-1)
                 if not self.options_mode and self.options_lock:
                     self.done = True
