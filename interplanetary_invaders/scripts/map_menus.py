@@ -91,7 +91,7 @@ class SpaceMap:
             except KeyError:
                 print(colorize(f"No map for {planet.name} found!", "fail"))
         self.speed = 1
-        pygame.mixer.music.load(fix_path(get_file("audio/music/AmbientSpace.mp3")))
+        pygame.mixer.music.load(fix_path(get_file("audio/music/AmbientSpace.ogg")))
         pygame.mixer.music.play(-1)
 #        pygame.display.toggle_fullscreen()
 
