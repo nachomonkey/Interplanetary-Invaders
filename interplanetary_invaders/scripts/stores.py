@@ -96,7 +96,7 @@ class StoreUI:
         self.purchase_rect.midbottom = self.buy_rect.move(0, -5).midbottom
         self.exit_rect = pygame.Rect(0, 0, 275, 50)
         self.exit_rect.midbottom = self.purchase_rect.move(0, -5).midtop
-        pygame.mixer.music.load(get_file(fix_path("audio/music/stores.mp3")))
+        pygame.mixer.music.load(get_file(fix_path("audio/music/stores.ogg")))
         pygame.mixer.music.play(-1)
         
     def main(self):
