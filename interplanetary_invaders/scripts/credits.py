@@ -58,7 +58,7 @@ images/bitmaps/(un)lock_exoplanets: NASA"""
 
 def run_credits(display, images):
 #    pygame.mixer.music.stop()
-    pygame.mixer.music.load(get_file(fix_path("audio/music/stores.mp3")))
+    pygame.mixer.music.load(get_file(fix_path("audio/music/stores.ogg")))
     pygame.mixer.music.play(-1)
     clock = pygame.time.Clock()
     done = False
