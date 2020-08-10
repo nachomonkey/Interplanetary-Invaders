@@ -59,7 +59,7 @@ when the game launches.
 * Some images (described in the game's credits) are either directly used or modified versions of NASA images.
 * [Flak Bursts sound](https://freesound.org/people/zimbot/sounds/209984/) (Modified) is by [zimbot](https://freesound.org/people/zimbot/) on https://freesound.org, under the Attribution License.
 * Cash Register sound is by [kiddpark](https://freesound.org/people/kiddpark/) on https://freesound.org, under the Attribution License.
-*  (Modified) is by [spoonsandlessspoons](https://freesound.org/people/spoonsandlessspoons/) on https://freesound.org, under the Attribution License
+* The green alien crash sound is a modified version of a sound by [spoonsandlessspoons](https://freesound.org/people/spoonsandlessspoons/) on https://freesound.org, under the Attribution License.
 
 ### Other contributers:
 
