@@ -49,7 +49,7 @@ will have a "3" under it, and you must press the <**3**> key to activate it.)  Y
 When using the "2x Fire Rate" item without the "Auto Gun" item, it is easiest to fire faster
 by pressing the **UP** key.
 
-Press **F2** to take screenshots. Screenshots get stored in your *data* directory. The data directory's position gets printed
+Press **F2** to take screenshots. Screenshots get stored in your *data* directory. The data directory's path gets printed
 when the game launches.
 
 # Acknowledgements
