@@ -25,6 +25,8 @@ class Planet:
     itemType = DoubleMoney
     gasgiant = False
     rgba = False
+    has_music = False
+    music_file = ""
 
 class Moon(Planet):  # For moons, distance is measured in miles from its "parent"
     """Base class for all moons"""
@@ -43,6 +45,8 @@ class Mercury(Planet):
     color = (150, 75, 0)
     surface_pressure = 0
     unlocks = []
+    has_music = True
+    music_file = "audio/music/Mercury.ogg"
 
 class Venus(Planet):
     """Data for planet Venus"""
@@ -125,6 +129,8 @@ class Jupiter(Planet):
     unlocks = ["Saturn"]
     moons = 4
     gasgiant = True
+    has_music = True
+    music_file = "audio/music/Jupiter.ogg"
 
 class Io(Moon):
     """Data for Jupiter's moon Io"""

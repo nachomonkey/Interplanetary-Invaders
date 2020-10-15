@@ -63,7 +63,7 @@ try:
     name = Joystick.get_name()
     hasJoystick = True
 except:
-    print("No joysticks detected")
+    pass
 
 def IsSupported():
     if (not ("x" in name.lower() and "box" in name.lower()) and not ("xinput" in name.lower())):

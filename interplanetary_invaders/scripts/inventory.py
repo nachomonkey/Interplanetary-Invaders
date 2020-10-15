@@ -5,6 +5,7 @@ from interplanetary_invaders.scripts import store_data
 from interplanetary_invaders.scripts.sound import Sound
 from interplanetary_invaders.scripts.utils import fix_path
 from interplanetary_invaders.scripts.info import display_info
+from interplanetary_invaders.scripts.transition import fade_in
 from interplanetary_invaders.scripts import joystick
 from copy import copy
 
@@ -71,6 +72,9 @@ class Inventory:
             self.sel_num[0] = list(self.catagories[0]).index(store_data.JupiterHover)
 
     def main(self):
+        background = self.display.copy()
+        self.draw()
+        fade_in(self.display, 3, background)
         while not self.done:
             self.events()
             self.draw()

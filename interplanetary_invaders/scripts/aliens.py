@@ -69,11 +69,18 @@ class Alien:
         self.num_spread = 3
         self.spread_intensity = 250
         self.post_init()
+        self.hit_sound_name = "audio/alienHit.wav"
+        self.hit_pitches = (.8, 1, 1.2)
+        self.dead_phase_rate = 0.025
 
         self.drop_velocity = Vector2()
 
     def post_init(self):
         self.pos[0] = -self.size[0]
+
+    def play_hit_sound(self):
+        if self.hit_sound_name:
+            Sound(fix_path(self.hit_sound_name), pitch=random.choice(self.hit_pitches)).play()
 
     def drop(self, no_spread=False, horz_velocity=None, no_sound=False):
         if self.pos[0] < 0:
@@ -190,7 +197,7 @@ class Alien:
             self.drop()
         if self.dead:
             if self.dead == 1:
-                self.phase_rate = .025
+                self.phase_rate = self.dead_phase_rate
                 self.velocity.x, self.velocity.y = [0, 0]
             if self.dead == 2:
                 if not (self.grounded and self.explode_on_ground_impact):
@@ -344,6 +351,7 @@ class MineSpreaderAlien(GreenAlien):
         self.spread_amount = [2, 4]
         self.drop_velocity = Vector2(0, -100)
         self.drop_sound = Sound(fix_path("audio/alienDrop3.wav"))
+        self.dead_phase_rate = 0.015
         self.post_init()
 
 class VenusAlien(Alien):

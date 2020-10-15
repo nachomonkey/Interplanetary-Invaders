@@ -65,3 +65,10 @@ def divide_list(quotient, divisor):
             result.append([])
         result[-1].append(i)
     return result
+
+def remove_extension(filename):
+    """Remove the extension from a filename string"""
+    try:
+        return filename[:filename.rindex(".")]
+    except ValueError:
+        return filename

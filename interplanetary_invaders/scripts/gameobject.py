@@ -153,7 +153,7 @@ class GameObject:
             if self.frame > self.max_frame:
                 self.kill = True
                 return
-            surf.blit(self.images[f"money_explosion_t{(self.ser_num % 5) + 1}_{self.frame}"], rect2)
+            surf.blit(self.images[f"money_explosion_t{(self.ser_num % 5) + 1}{self.frame}"], rect2)
         if self.type in ("shield", "block", "heart", "mine", "laser", "moneyBag") and not self.dead:
             t = self.type
             if t == "laser":

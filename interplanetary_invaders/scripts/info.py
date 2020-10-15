@@ -1,4 +1,5 @@
 import pygame
+import humanize
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts import joystick
 
@@ -34,8 +35,8 @@ def display_info(display, images, item):
         retro_text(data_rect.move(0, 10).midtop, display, 15, f'Information for "{item.title}"', anchor="midtop", font="impact")
         for y, line in enumerate(format_info(item).split("\n")):
             retro_text(data_rect.move(5, 40+14*y).topleft, display, 14, line, font="Sans")
-        retro_text(stuff_rect.move(0, 2).midbottom, display, 14, "Press <Enter> to exit", anchor="midbottom", color=(0, 0, 0))
-        retro_text(stuff_rect.midbottom, display, 14, "Press <Enter> to exit", anchor="midbottom")
+        retro_text(stuff_rect.move(0, 2).midbottom, display, 14, "Press Enter to exit", anchor="midbottom", color=(0, 0, 0))
+        retro_text(stuff_rect.midbottom, display, 14, "Press Enter to exit", anchor="midbottom")
         pygame.display.update()
         clock.tick(25)
     joystick.Reset()
@@ -49,7 +50,7 @@ def format_bool(b):
     return "No"
 
 def format_info(item):
-    data = f"Type: {item.type}\n\nRarity: {item.rarity*100}%\n\nCost: {item.cost} Loot"
+    data = f"Type: {item.type}\n\nRarity: {item.rarity*100}%\n\nCost: {humanize.intcomma(item.cost)} Loot"
     if item.type == "Item":
         item_length = item.link().length
         seconds = " Seconds"

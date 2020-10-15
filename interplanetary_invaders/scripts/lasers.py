@@ -1,4 +1,8 @@
-import pygame, random, math
+import math
+import random
+import pygame
+
+from interplanetary_invaders.scripts.sound import Sound
 
 pygame.init()
 
@@ -21,13 +25,14 @@ class Laser:
         self.damage = 1
         self.laserType = "laser"
         self.impactAnimationName = "RedImpact"
-        self.impactAnimationLength = 7
+        self.impactAnimationLength = 6
         self.impactAnimationFrame = 1
         self.impactAnimationTime = 0
         self.impactAnimationRate = 1 / 35
         self.hits = 0
         self.rotation = rotation
         self.green = False
+        self.fire_sound = Sound("audio/laser.wav", True)
 
     def get_rect(self):
         """Returns a pygame.Rect object representing this Laser"""
@@ -79,5 +84,5 @@ class GreenLaser(Laser):
         self.damage = 5
         self.laserType = "greenlaser"
         self.green = True
-
-
+        self.impactAnimationName = "GreenImpact"
+        self.fire_sound = Sound("audio/greenLaser.wav", True)

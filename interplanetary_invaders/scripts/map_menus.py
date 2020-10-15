@@ -12,7 +12,7 @@ from interplanetary_invaders.scripts.planets import Mercury, Venus, Earth, Mars,
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts.maps import AllMaps, MapPoint
 from interplanetary_invaders.scripts.confirm import confirmExit
-from interplanetary_invaders.scripts.transition import transition
+from interplanetary_invaders.scripts.transition import black_out, fade_in
 from interplanetary_invaders.scripts.menu import build_bar
 from interplanetary_invaders.scripts import screenshot
 from interplanetary_invaders.scripts.pause_menu import pause_menu
@@ -53,8 +53,8 @@ class SpaceMap:
         self.target_offset = [0, 0]
         self.zoom = 1
         self.target_zoom = 1.5
-        self.scroll_speed = 300
-        self.scroll_range = 10
+        self.scroll_speed = 750
+        self.scroll_range = 2
         self.zoom_amount = .1
         self.focused = None
         self.sun_frame = 1
@@ -96,14 +96,16 @@ class SpaceMap:
 #        pygame.display.toggle_fullscreen()
 
     def main(self):
+        pygame.event.set_grab(True)
         joystick.Reset()
         while not self.done:
             self.events()
             self.draw()
             self.update()
         pygame.mixer.music.fadeout(1000)
-        transition(self.Display, 5)
+        black_out(self.Display, 5)
         joystick.Reset()
+        pygame.event.set_grab(False)
         return self.profile
 
     def events(self):
@@ -113,22 +115,24 @@ class SpaceMap:
             if event.type == pygame.QUIT:
                 confirmExit(self.Display, self.profile, self.profile_number)
             if event.type == pygame.MOUSEBUTTONDOWN and not self.focused in ("theSun", None):
-                planet = self.planets[self.focused]
-                rect = pygame.Rect((0, 0), (205, 50))
-                rect.midtop = planet.center[1][0], planet.center[1][1] + 35
-                if rect.collidepoint(pygame.mouse.get_pos()):
-                    click = True
+                if event.button in (1, 3):
+                    planet = self.planets[self.focused]
+                    rect = pygame.Rect((0, 0), (205, 50))
+                    rect.midtop = planet.center[1][0], planet.center[1][1] + 35
+                    if rect.collidepoint(pygame.mouse.get_pos()):
+                        click = True
             if event.type == pygame.MOUSEBUTTONDOWN:
-                self.start_click = pygame.math.Vector2(pygame.mouse.get_pos())
-                self.last_sample = copy.copy(self.start_click)
-                if pygame.Rect(0, 0, 32, 32).collidepoint(pygame.mouse.get_pos()):
-                    self.done = True
-                rect = pygame.Rect(0, 0, 32, 32)
-                rect.midright = self.Display.get_rect().midright
-                if rect.collidepoint(pygame.mouse.get_pos()):
-                    for e, p in enumerate(self.planets):
-                        if p.name == "Earth":
-                            self.focused = e
+                if event.button in (1, 3):
+                    self.start_click = pygame.math.Vector2(pygame.mouse.get_pos())
+                    self.last_sample = copy.copy(self.start_click)
+                    if pygame.Rect(0, 0, 32, 32).collidepoint(pygame.mouse.get_pos()):
+                        self.done = True
+                    rect = pygame.Rect(0, 0, 32, 32)
+                    rect.midright = self.Display.get_rect().midright
+                    if rect.collidepoint(pygame.mouse.get_pos()):
+                        for e, p in enumerate(self.planets):
+                            if p.name == "Earth":
+                                self.focused = e
             if event.type == pygame.MOUSEBUTTONUP:
                 self.start_click = None
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
@@ -153,7 +157,7 @@ class SpaceMap:
                         self.focused = 0
                     self.focused = (self.focused + 1) % len(self.planets)
                     self.target_zoom = 1.5
-                if event.key == pygame.K_PERIOD or joystick.JustPressedRT():
+                if event.key == pygame.K_PERIOD or joystick.JustPressedRT() or event.key == pygame.K_TAB:
                     if self.focused == None:
                         self.focused = 0
                     self.focused = (self.focused - 1) % len(self.planets)
@@ -322,7 +326,11 @@ class SpaceMap:
                 if pygame.key.get_pressed()[pygame.K_RETURN] or rect2.collidepoint(pygame.mouse.get_pos()):
                     color = (70, 70, 70)
                 pygame.draw.rect(self.Display, (0, 0, 0), rect2.move(3, 3))
-                pygame.draw.rect(self.Display, color, rect2)
+                self.Display.blit(self.images["map_action"], rect2)
+                hover_surface = pygame.Surface(rect2.size)
+                hover_surface.fill(color)
+                hover_surface.set_alpha(color[-1])
+                self.display.blit(hover_surface, rect)
                 color = (255, 255, 255)
                 if self.text_yellow:
                      color = (255, 255, 0)
@@ -430,7 +438,7 @@ Targetable Moons: {planet.moons}"""
 
 
 class Map:
-    def __init__(self, images, display, profile, profile_number, point = None):
+    def __init__(self, images, display, profile, profile_number, point=None):
         self.images = images
         self.display = display
         self.profile = profile
@@ -475,6 +483,9 @@ class Map:
         self.last_hit_point = point
         self.avatar_speed = 200
         self.changed = False
+        if self.planet.has_music:
+            pygame.mixer.music.load(get_file(fix_path(self.planet.music_file)))
+            pygame.mixer.music.play(-1)
 
     def set_velocity(self):
         diff = self.avatar_pos - self.target_pos
@@ -490,14 +501,20 @@ class Map:
         except IndexError:
             return self.get_point(len(self.map) - 1)
 
+    def fade_in(self):
+        self.draw()
+        fade_in(self.display, 2)
+
     def main(self):
+        self.fade_in()
         joystick.Reset()
         while not self.done:
             self.events()
             self.draw()
             self.update()
-        transition(self.display, 5)
+        black_out(self.display, 5)
         joystick.Reset()
+        pygame.mixer.music.fadeout(500)
         return self.map[self.selected_point].mission, self.selected_point
 
     def GetDestDirection(self, p1, p2):  # 0 = up, 1 = right, 2 = down, 3 = left
@@ -552,16 +569,17 @@ class Map:
                 confirmExit(self.display, self.profile, self.profile_number)
                 self.pause_time = True
             if event.type == pygame.MOUSEBUTTONDOWN:
-                sel = self.selected_point
-                rect = pygame.Rect((0, 0), (220, 50))
-                rect.midtop = self.map[sel].pos[0], self.map[sel].pos[1] + 35
-                backrect = pygame.Rect(0, 0, 32, 32)
-                if rect.collidepoint(pygame.mouse.get_pos()):
-                    click = True
-                elif backrect.collidepoint(pygame.mouse.get_pos()):
-                    self.toMenu = True
-                    self.done = True
-                self.click = True
+                if event.button in (1, 3):
+                    sel = self.selected_point
+                    rect = pygame.Rect((0, 0), (220, 50))
+                    rect.midtop = self.map[sel].pos[0], self.map[sel].pos[1] + 35
+                    backrect = pygame.Rect(0, 0, 32, 32)
+                    if rect.collidepoint(pygame.mouse.get_pos()):
+                        click = True
+                    elif backrect.collidepoint(pygame.mouse.get_pos()):
+                        self.toMenu = True
+                        self.done = True
+                    self.click = True
             if not hasattr(event, "key"):
                 event.key = None
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
@@ -639,9 +657,10 @@ class Map:
                 t = self.map[self.selected_point].type
                 if t == "spaceport":
                     spacemap = SpaceMap(self.images, self.display, self.profile, self.profile_number, focus = self.planet.name)
-                    transition(self.display, 5)
+                    black_out(self.display, 5)
                     self.profile = spacemap.main()
                     self.__init__(self.images, self.display, self.profile, self.profile_number)
+                    self.fade_in()
                 if t == "mission":
                     self.done = True
                 if t == "store":
@@ -654,6 +673,9 @@ class Map:
                         self.avatar_pos = self.get_point(0)
                         self.set_velocity()
                         self.selected_point = 0
+                    background = self.display.copy()
+                    self.draw()
+                    fade_in(self.display, 2, background)
 
     def draw(self):
         if f"map_{self.planet.name}" in self.images:
@@ -664,7 +686,7 @@ class Map:
         dark = False
         d1 = self.images["empty"].copy()
         d2 = self.images["empty"].copy()
-        pygame.draw.rect(self.display, (25, 25, 25), self.base_rect)
+        self.display.blit(self.images["loot_holder"], self.base_rect)
         retro_text(self.base_rect.center, self.display, 15, f'Loot: {self.profile["money"]}', anchor="center")
         for n, point in enumerate(self.map):
             circle = self.images["nothing16"]
@@ -761,11 +783,15 @@ class Map:
                     rect = pygame.Rect((0, 0), (235, 50))
                     rect.midtop = self.map[sel].pos[0], self.map[sel].pos[1] + 35
                     rect = rect.clamp(self.display.get_rect())
-                    color = (100, 100, 100)
+                    color = (100, 100, 100, 50)
                     if pygame.key.get_pressed()[pygame.K_RETURN] or rect.collidepoint(pygame.mouse.get_pos()):
-                        color = (70, 70, 70)
+                        color = (70, 70, 70, 50)
                     pygame.draw.rect(self.display, (0, 0, 0), rect.move(3, 3))
-                    pygame.draw.rect(self.display, color, rect)
+                    self.display.blit(self.images["map_action"], rect)
+                    hover_surface = pygame.Surface(rect.size)
+                    hover_surface.fill(color)
+                    hover_surface.set_alpha(color[-1])
+                    self.display.blit(hover_surface, rect)
                     color = (255, 255, 255)
                     if self.text_yellow:
                         color = (255, 255, 0)

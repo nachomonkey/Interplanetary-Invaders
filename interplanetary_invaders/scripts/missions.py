@@ -593,7 +593,7 @@ class MissionJupiter1(Mission):
         self.briefing = """Welcome to Jupiter!
 The alien spiders here have constructed
 electric lasers. Watch out!
-HINT: Press <Q> and <E> to rotate the
+HINT: Press Q and E to rotate the
 hover vehicle's barrel.
 WARNING: You MUST have a hover vehicle"""
 

@@ -5,6 +5,7 @@ from interplanetary_invaders.scripts.confirm import confirmExit
 from interplanetary_invaders.scripts import screenshot
 from interplanetary_invaders.scripts.sound import Sound
 from interplanetary_invaders.scripts.utils import fix_path
+from interplanetary_invaders.scripts.transition import black_out
 from interplanetary_invaders.scripts import joystick
 
 pygame.init()
@@ -132,7 +133,7 @@ Max Combo: {self.maxcombo}"""
             retro_text((400, 100), self.display, 14, round(self.bonus), anchor="center")
             retro_text((400, 125), self.display, 14, "Accuracy Bonus", anchor="center")
             retro_text((400, 150), self.display, 14, round(self.bonus1 * self.acc_per), anchor="center")
-        retro_text((400, 165), self.display, 14, "Press <Y> for more info", anchor="center")
+        retro_text((400, 165), self.display, 14, "Press Y for more info", anchor="center")
 
     def update(self):
         self.frame_time += self.time_passed

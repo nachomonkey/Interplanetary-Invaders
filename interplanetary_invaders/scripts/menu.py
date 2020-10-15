@@ -11,7 +11,7 @@ LOGO_SIZE = (400, 200)
 from interplanetary_invaders.scripts import stars
 stars.SIZE = (600, 600)
 
-def build_bar(surf, pos, linepos, subticks = 8, width = 100, height = 25, startmark = "OFF", endmark = "ON"):
+def build_bar(surf, pos, linepos, subticks=8, width=100, height=25, startmark="OFF", endmark="ON"):
     startmark += " "
     endmark = " " + endmark
     rect = pygame.Rect(pos, (width, height))
@@ -39,7 +39,7 @@ def build_bar(surf, pos, linepos, subticks = 8, width = 100, height = 25, startm
 from interplanetary_invaders.scripts import saves
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts.credits import run_credits
-from interplanetary_invaders.scripts.transition import transition
+from interplanetary_invaders.scripts.transition import black_out
 from interplanetary_invaders.scripts.utils import fix_path, colorize
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders.scripts import screenshot
@@ -47,7 +47,7 @@ from interplanetary_invaders.scripts.get_file import get_file
 from interplanetary_invaders import __version__
 
 class Menu:
-    def __init__(self, display, images, options = False, simple = False):
+    def __init__(self, display, images, options=False, simple=False):
         self.images = images
         self.display = display
         self.options_lock = options
@@ -86,7 +86,12 @@ class Menu:
         self.frame = 1
         self.frame_rate = 1 / 120
         self.frame_time = 0
+        self.frame_flash_start = 95
+        self.flash_delay = 3
+        self.can_flash = False
+        self.flash_time = 0
         self.finished = False
+        self.frame_finished = False
         self.time_passed = 0
         self.star_rotation = 0
         self.rotation_speed = 20
@@ -99,16 +104,18 @@ class Menu:
         self.text_time = 0
         self.text_rate = 0.1
         self.text = "Interplanetary Invaders"
+        self.had_text = True
         self.bool_images = [self.images["x"], self.images["check"]]
 
     def main(self):
+        self.had_text = bool(self.text)
         while not self.done:
             self.events()
             self.draw()
             self.update()
         if not self.options_lock:
             pygame.mixer.music.fadeout(1000)
-            transition(self.display, 5)
+            black_out(self.display, 5)
 
     def events(self):
         for event in pygame.event.get():
@@ -118,7 +125,8 @@ class Menu:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if not self.finished and not self.options_lock:
                     self.finished = True
-                    print(colorize(self.text, 'bold'))
+                    if self.had_text:
+                        print(colorize(self.text, 'bold'))
                     self.text = ""
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
                 if not hasattr(event, "key"):
@@ -127,7 +135,8 @@ class Menu:
                     screenshot.capture("M", self.display)
                 if not self.finished and not self.options_lock:
                     self.finished = True
-                    print(colorize(self.text, 'bold'))
+                    if self.had_text:
+                        print(colorize(self.text, 'bold'))
                     self.text = ""
                 else:
                     item = self.item_selected
@@ -203,10 +212,11 @@ class Menu:
                         if self.options_mode:
                             sel = self.option_selected
                             if self.options[sel] == "Cancel":
-                                self.option_selected = 2
+                                self.item_selected = 1
                                 self.options_mode = False
                                 self.options_dict = saves.load_options()
                             if self.options[sel] == "Save":
+                                self.item_selected = 1
                                 self.options_mode = False
                                 saves.save_data("options", self.options_dict)
                         elif self.play_mode:
@@ -259,7 +269,7 @@ of Interplanetary Invaders; \nerrors may occur", "warning"))
         stuff_rect.center = self.display.get_rect().center
         self.draw_menu_box(stuff_rect)
         self.draw_items(self.profiles, self.profile_selected, stuff_rect, x_off = 30)
-        retro_text(stuff_rect.move(0, -50).midbottom, self.display, 15, "Press <x> to erase", anchor="center")
+        retro_text(stuff_rect.move(0, -50).midbottom, self.display, 15, "Press X to erase", anchor="center")
 
     def confirm_delete(self):
         stuff_rect = pygame.Rect(0, 0, 300, 400)
@@ -319,16 +329,21 @@ of Interplanetary Invaders; \nerrors may occur", "warning"))
         stuff_surf = pygame.Surface(stuff_rect.size)
         stuff_surf.fill(0)
         stuff_surf.set_alpha(150)
-        pygame.draw.line(self.display, (60, 60, 5), stuff_rect.topleft, stuff_rect.bottomleft)
-        pygame.draw.line(self.display, (60, 60, 5), stuff_rect.topleft, stuff_rect.topright)
-        pygame.draw.line(self.display, (60, 60, 5), stuff_rect.topright, stuff_rect.bottomright)
-        pygame.draw.line(self.display, (60, 60, 5), stuff_rect.bottomleft, stuff_rect.bottomright)
+        sr = stuff_rect.copy()
+        sr.x -= 1
+        sr.y -= 1
+        sr.w += 1
+        sr.h += 1
+        pygame.draw.line(self.display, (60, 60, 5), sr.topleft, sr.bottomleft)
+        pygame.draw.line(self.display, (60, 60, 5), sr.topleft, sr.topright)
+        pygame.draw.line(self.display, (60, 60, 5), sr.topright, sr.bottomright)
+        pygame.draw.line(self.display, (60, 60, 5), sr.bottomleft, sr.bottomright)
         self.display.blit(stuff_surf, stuff_rect)
 
     def draw_menu(self):
         self.display.fill(0)
         self.draw_stars()
-        logo = pygame.transform.scale(self.images[f"logo{str(self.frame).zfill(4)}"], LOGO_SIZE)
+        logo = pygame.transform.scale(self.images[f"logo{self.frame}"], LOGO_SIZE)
         lrect = logo.get_rect()
         lrect.midtop = (400, 0)
         self.display.blit(logo, lrect)
@@ -337,7 +352,8 @@ of Interplanetary Invaders; \nerrors may occur", "warning"))
         if self.finished:
             self.draw_menu_box(stuff_rect)
             self.draw_items(self.items, self.item_selected, stuff_rect)
-            retro_text(stuff_rect.bottomright, self.display, 14, f"V{__version__}", anchor="bottomright")
+            retro_text(stuff_rect.move(0, 2).bottomright, self.display, 14, f"V{__version__}", anchor="bottomright", color=(10, 10, 10))
+            retro_text(stuff_rect.bottomright, self.display, 14, f"V{__version__}", anchor="bottomright", color=(220, 220, 220))
 
     def draw_items(self, items, selected, stuff_rect, x_off = 100):
         for n, x in enumerate(items):
@@ -354,19 +370,24 @@ of Interplanetary Invaders; \nerrors may occur", "warning"))
     def update(self):
         self.text_time += self.time_passed
         if self.text_time >= self.text_rate and self.text and not self.options_lock:
-            print(self.text[0], end = "", flush = True)
+            print(colorize(self.text[0], "bold"), end = "", flush = True)
             self.text = self.text[1:]
-            if not self.text:
+            if not self.text and self.had_text:
                 print()
             self.text_time = 0
-        if self.frame_time >= self.frame_rate and not self.finished:
+        if self.frame_time >= self.frame_rate and not self.frame >= 150:
             self.frame += 1
             self.frame_time = 0
-        if self.frame > 150:
-            self.frame = 150
+        if self.frame == 150 and not self.frame_finished:
+            self.frame_finished = True
             self.finished = True
-        if self.finished and self.frame != 150:
-            self.frame = 150
+            self.frame_rate = (1 / 25)
+            self.flash_time = self.flash_delay
+            self.can_flash = True
+        self.flash_time -= self.time_passed
+        if self.flash_time < 0 and self.can_flash:
+            self.flash_time = self.flash_delay
+            self.frame = self.frame_flash_start
         self.frame_time += self.time_passed
         self.star_rotation += self.rotation_speed * self.time_passed
         pygame.display.update()
