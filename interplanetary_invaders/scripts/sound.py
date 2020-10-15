@@ -29,24 +29,30 @@ if os.path.exists(versionFile):
 with open(versionFile, "w") as file:
     file.write(ver)
 
-def SlowDownSound(filename):
-    fn = SOUND_PATH + filename.split("/")[-1]
+def ChangeSoundPitch(filename, new_pitch=.5):
+    fn = SOUND_PATH + os.path.split(filename)[-1]
+    index = fn.rindex(".")
+    fn, ext = fn[:index], fn[index+1:]
+    fn += "_" + str(new_pitch) + ext
     if not os.path.exists(fn):
         with wave.open(filename, "r") as r:
             with wave.open(fn, "w") as w:
                 w.setnchannels(r.getnchannels())
                 w.setsampwidth(r.getsampwidth())
-                w.setframerate(r.getframerate() / 2)
+                w.setframerate(r.getframerate() * new_pitch)
                 w.writeframes(r.readframes(r.getnframes()))
     return fn
 
 class Sound(pygame.mixer.Sound):
-    def __init__(self, filename, no_slow=False):
+    def __init__(self, filename, no_slow=False, pitch=1):
         self.original_filename = filename
         filename = get_file(filename)
+        pitch = pitch
         global is_slow
         if not no_slow and is_slow:
-            filename = SlowDownSound(filename)
+            pitch /= 2
+        if not pitch in (0, 1):
+            filename = ChangeSoundPitch(filename, pitch)
         super().__init__(filename)
         self.set_volume(options["volume"])
 

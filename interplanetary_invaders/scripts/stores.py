@@ -1,6 +1,7 @@
 import random
 from copy import copy
 import pygame
+import humanize
 from interplanetary_invaders.scripts.confirm import confirmExit
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts.maps import MapPoint
@@ -12,6 +13,7 @@ from interplanetary_invaders.scripts.utils import fix_path, divide_list
 from interplanetary_invaders.scripts.get_file import get_file
 from interplanetary_invaders.scripts.congrats import congrats
 from interplanetary_invaders.scripts.info import display_info
+from interplanetary_invaders.scripts.transition import black_out, fade_in
 from interplanetary_invaders.scripts import joystick
 
 pygame.init()
@@ -96,10 +98,13 @@ class StoreUI:
         self.purchase_rect.midbottom = self.buy_rect.move(0, -5).midbottom
         self.exit_rect = pygame.Rect(0, 0, 275, 50)
         self.exit_rect.midbottom = self.purchase_rect.move(0, -5).midtop
-        pygame.mixer.music.load(get_file(fix_path("audio/music/stores.ogg")))
+        pygame.mixer.music.load(get_file(fix_path("audio/music/Store.ogg")))
         pygame.mixer.music.play(-1)
         
     def main(self):
+        background = self.display.copy()
+        self.draw()
+        fade_in(self.display, 3, background)
         while not self.done:
             self.events()
             self.draw()
@@ -262,10 +267,10 @@ class StoreUI:
             self.display.blit(pygame.transform.scale(self.images[selected.icon], (100, 100)), pic_rect)
             pygame.draw.rect(self.display, (0, 0, 0), pic_rect, 1)
             retro_text(pic_rect.move(225, 0).midtop, self.display, 14, selected.title, anchor="midtop", bold=True)
-            retro_text(pic_rect.move(225, 20).midtop, self.display, 15, f"Cost: {selected.cost} Loot", anchor="midtop", bold=True)
+            retro_text(pic_rect.move(225, 20).midtop, self.display, 15, f"Cost: {humanize.intcomma(selected.cost)} Loot", anchor="midtop", bold=True)
             for e, l in enumerate(selected.description.split("\n")):
                 retro_text(pic_rect.move(230, 35 + e * 12).midtop, self.display, 12, l, anchor="midtop")
-            retro_text(self.data_rect.midbottom, self.display, 15, "Press <Y> for info", anchor="midbottom")
+            retro_text(self.data_rect.midbottom, self.display, 15, "Press Y for info", anchor="midbottom")
 
             color = (0, 175, 0)
             if self.purchase_rect.collidepoint(pygame.mouse.get_pos()):
@@ -281,8 +286,8 @@ class StoreUI:
             color = (150, 0, 0)
         pygame.draw.rect(self.display, color, self.exit_rect)
         pygame.draw.rect(self.display, (0, 0, 0), self.exit_rect, 1)
-        retro_text(self.exit_rect.move(1, 1).center, self.display, 15, "Press <ESC> to Exit", anchor="center", color=(0, 0, 0), font="sans")
-        retro_text(self.exit_rect.center, self.display, 15, "Press <ESC> to Exit", anchor="center", font="sans")
+        retro_text(self.exit_rect.move(1, 1).center, self.display, 15, "Press ESC to Exit", anchor="center", color=(0, 0, 0), font="sans")
+        retro_text(self.exit_rect.center, self.display, 15, "Press ESC to Exit", anchor="center", font="sans")
 
     def update(self):
         pygame.display.update()

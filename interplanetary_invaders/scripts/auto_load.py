@@ -6,7 +6,8 @@ import time
 import pygame
 
 from interplanetary_invaders.scripts.get_file import get_file
-from interplanetary_invaders.scripts.utils import colorize, fix_path, lerp
+from interplanetary_invaders.scripts.sprites import extract_sprites
+from interplanetary_invaders.scripts.utils import colorize, fix_path, lerp, remove_extension
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders import __version__
@@ -19,24 +20,19 @@ BAR_HEIGHT = 30
 HUE_BLUE = 240
 HUE_CYAN = 180
 
-def remove_extension(filename):
-    """Remove the extension from a filename string"""
-    return filename[:filename.index(".")]
-
 def fetch_images(display):
     """Collect images from the IMAGE_PATH and return dictionary
 with pygame.Surface objects as values and their names as keys"""
     names = []
     images = []
     num = 0
-    print("Loading... \n")
     mx = 0
     display.fill((0, 0, 0))
     retro_text(display.get_rect().move(0, -30).center, display, 18, "LOADING...", anchor="center")
     for x in range(10):
         g = 255 * x / 10
-        retro_text(display.get_rect().move(0, 60 - x).midtop, display, 22, "INTERPLANETARY INVADERS", anchor="center", bold=True, color=(g, g, g))
-        retro_text(display.get_rect().move(0, 85 - x).midtop, display, 18, f"V{__version__}", anchor="center", bold=True, color=(g, g, g))
+        retro_text(display.get_rect().move(0, 60 - x).midtop, display, 22, "INTERPLANETARY INVADERS", anchor="center", bold=True, color=(0, g, 0))
+        retro_text(display.get_rect().move(0, 85 - x).midtop, display, 18, f"V{__version__}", anchor="center", bold=True, color=(0, g * .75, 0))
     if joystick.hasJoystick:
         retro_text(display.get_rect().move(0, 200).center, display, 18, "Detected Joystick:", anchor="center", bold=True)
         retro_text(display.get_rect().move(0, 225).center, display, 20, '"' + joystick.name + '"', anchor="center")
@@ -61,7 +57,12 @@ with pygame.Surface objects as values and their names as keys"""
                 num += 1
                 name = remove_extension(collect_file)
                 img = pygame.image.load(root + os.sep + collect_file)
-                if (name.startswith("spinning") and not "RGBA" in name):
+                store_img = True
+                print(f"\rLoading image {colorize(num, 'blue' if num!=mx else 'green')} of {colorize(mx, 'green')}  %s" % colorize(collect_file + (" " * (40 - len(collect_file))), 'bold'), flush=True, end="")
+                if name.startswith("NoA_"):
+                    name = name.split("NoA_")[1]
+                    img = img.convert()
+                elif (name.startswith("spinning") and not "RGBA" in name):
                     img = img.convert()
                     img.set_colorkey((0, 0, 0))
                 else:
@@ -70,16 +71,22 @@ with pygame.Surface objects as values and their names as keys"""
                             img = img.convert()
                         else:
                             img = img.convert_alpha()
-                    if name.startswith("ROT_"):
-                        name = name[4:]
-                        x = 0
-                        for r in range(-90, 91):
-                            x += 1
-                            names.append(name + str(int(r % 360)))
-                            images.append(pygame.transform.rotate(img, r))
-                names.append(name)
-                images.append(img)
-                print(f"\rLoaded {colorize(num, 'blue' if num!=mx else 'green')} / {colorize(mx, 'green')} images   %s" % colorize(collect_file + (" " * (40 - len(collect_file))), 'bold'), flush=True, end="")
+                if name.startswith("ROT_"):
+                    name = name[4:]
+                    x = 0
+                    for r in range(-90, 91):
+                        x += 1
+                        names.append(name + str(int(r % 360)))
+                        images.append(pygame.transform.rotate(img, r))
+                if name.endswith("_sheet"):
+                    name = name.split("_sheet")[0]
+                    for e, surf in enumerate(extract_sprites(img)):
+                        names.append(name + str(e + 1))
+                        images.append(surf)
+                    store_img = False
+                if store_img:
+                    names.append(name)
+                    images.append(img)
             if time.time() - LastRefresh >= .025:
                 LastRefresh = time.time()
                 barRect.w = int((BAR_WIDTH * (num / mx)) * 10) / 10

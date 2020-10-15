@@ -2,7 +2,7 @@ import sys
 import pygame
 from interplanetary_invaders.scripts import saves
 from interplanetary_invaders.scripts.retro_text import retro_text
-from interplanetary_invaders.scripts.transition import transition
+from interplanetary_invaders.scripts.transition import black_out
 from interplanetary_invaders.scripts import screenshot
 from interplanetary_invaders.scripts import joystick
 
@@ -81,6 +81,6 @@ def confirmExit(display, profile, num):
                 pygame.quit()
                 sys.exit()
             if name == "Exit":
-                transition(display, 5)
+                black_out(display, 5)
                 pygame.quit()
                 sys.exit()

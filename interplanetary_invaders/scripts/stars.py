@@ -27,7 +27,7 @@ class Star:
         if ColorType == 1:
             self.color = (random.randint(0, 50), random.randint(130, 255), random.randint(175, 255))
         if ColorType == 2:
-            self.color = (220, random.randint(220, 255), random.randint(220, 255))
+            self.color = (220, random.randint(210, 255), random.randint(210, 255))
 
     def get_center(self):
         return (round(self.center[0]), round(self.center[1]))
@@ -42,7 +42,7 @@ def main():
     while len(stars) < 400:
         stars.append(Star())
     for star in stars:
-        star.center += star.velocity * ((star.dist_from_center() + 1) / 15)
+        star.center += star.velocity + ((star.velocity / 5) * ((star.dist_from_center() ** 2 + 1) / 500))
         size = star.size * star.dist_from_center() / 500
         rect = pygame.Rect(0, 0, size * scale, size * scale)
         rect.center = star.center

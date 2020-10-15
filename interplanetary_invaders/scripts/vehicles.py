@@ -72,6 +72,11 @@ class Zapper:
         self.always_beam = False
         self.general_acc = 20
         self.im_back = False
+        self.invincible = False        
+        self.invincible_time = 0
+        self.even_frame = True
+        self.damage_sound = Sound("audio/takeDamage.wav", True)
+        self.fire_sound_pitches = (.95, 1, 1.05)
 
     def send_to_ground(self):
         if self.dry:
@@ -98,9 +103,19 @@ class Zapper:
         rect.topleft = self.pos
         return rect
 
+    def make_invincible(self, no_sound=False):
+        if self.dead:
+            return
+        self.invincible = True
+        self.invincible_time = .75
+        if not no_sound:
+            self.damage_sound.play()
+
     def draw(self, surf):
         """Render the Zapper"""
         if not self.dead:
+            if self.invincible and not self.even_frame:
+                return
             if self.rotate:
                 line_len = 50
                 start_pos = Vector2(self.fire_from) + self.pos
@@ -137,11 +152,9 @@ class Zapper:
             obj.damage /= 10
         self.lasers.append(obj)
         if not self.whimp:
-            sound = "audio/laser.wav"
-            if self.current_items:
-                if "Green Laser" in self.current_items:
-                    sound = "audio/greenlaser.wav"
-            Sound(sound, True).play()
+            pitch = random.choice(self.fire_sound_pitches)
+            obj.fire_sound.__init__(obj.fire_sound.original_filename, pitch=pitch)
+            obj.fire_sound.play()
         return obj
 
     def events(self, event):
@@ -153,6 +166,11 @@ class Zapper:
 
     def update(self, time_passed):
         """Update Zapper"""
+        self.even_frame = not self.even_frame
+        if self.invincible:
+            self.invincible_time -= time_passed
+            if self.invincible_time < 0:
+                self.invincible = False
         for item in self.current_items:
             self.current_items[item].total_time += time_passed
         self.just_fired = False
@@ -320,4 +338,4 @@ class JupiterHover(Zapper):
         self.friction = .5
         self.send_to_ground()
         self.weapon_power = .75
-        self.death_sound = Sound(fix_path("audio/jupiter_hover_explode.wav"))
+        self.death_sound = Sound(fix_path("audio/jupiter_hover_explode.wav"), True)

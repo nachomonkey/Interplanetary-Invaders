@@ -11,10 +11,10 @@ from interplanetary_invaders.scripts import joystick
 credits_text = """
 ---Interplanetary Invaders---
 
-Developed & Created by:
+-Developed & Created by-
 NachoMonkey
 
-Sound FX:
+-Sound FX-
 NachoMonkey
 
 Flak Sound [MODIFIED]:
@@ -28,7 +28,7 @@ spoonsandlessspoons (see README.md)
 
 Animations, 3d images: NachoMonkey
 
-Photo Credits
+-Photo Credits-
 
 The following images are
 in images/bitmap/map_images:
@@ -55,13 +55,13 @@ venus_backdrop[4-5].png: NASA
 
 images/bitmaps/(un)lock_exoplanets: NASA
 
-Other contributers:
+-Other contributers-
 XracerX"""
 
 
 def run_credits(display, images):
 #    pygame.mixer.music.stop()
-    pygame.mixer.music.load(get_file(fix_path("audio/music/stores.ogg")))
+    pygame.mixer.music.load(get_file(fix_path("audio/music/Credits.ogg")))
     pygame.mixer.music.play(-1)
     clock = pygame.time.Clock()
     done = False

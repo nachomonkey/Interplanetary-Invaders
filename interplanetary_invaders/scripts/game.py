@@ -15,7 +15,7 @@ from interplanetary_invaders.scripts import items
 from interplanetary_invaders.scripts import screenshot
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders.scripts.retro_text import retro_text
-from interplanetary_invaders.scripts.transition import transition
+from interplanetary_invaders.scripts.transition import black_out, fade_in
 from interplanetary_invaders.scripts.pause_menu import pause_menu
 from interplanetary_invaders.scripts.gameobject import GameObject
 from interplanetary_invaders.scripts.utils import fix_path, colorize, num_or_rand
@@ -184,7 +184,10 @@ class Game:
             self.free_item()
         self.brought_items = bool(self.player.items)
         self.AddKilledAlien(True)
+        pygame.mixer.music.fadeout(500)
+
         self.keepGoing()
+
         self.combos.append(self.combo)
         self.gls.stop()
         self.ls.stop()
@@ -345,6 +348,10 @@ class Game:
         mx_temp_diff = 15   # +/- mx_temp_diff
         mx_temp_change = .1
         temp_dir = 0
+        has_transition = False
+        pygame.mixer.music.load(get_file(fix_path("audio/music/Briefing.ogg")))
+        pygame.mixer.music.play(-1)
+        background = self.Display.copy()
         while not done:
             if not random.randint(0, 10):
                 temp_dir = random.randint(0, 1)
@@ -377,12 +384,12 @@ class Game:
             self.display.blit(pygame.transform.scale(self.images[f"spinning{mission.planet.name}{frame}"], (size, size)), r2)
             pos = [155, 350]
             size = 14
-            retro_text((60, 90), self.display, 18, "Planetary Specs:", res = 14, font = "Sans")
-            retro_text((60, 110), self.display, 16, f"Gravity: {mission.planet.gravity} G", res = 14)
-            t, tr = retro_text((60, 125), self.display, 16, f"Surf. Temperature: {mission.temperature + round(temp_diff, 2)} F", res = 14, render = False)
+            retro_text((60, 90), self.display, 18, "Planetary Specs:", res=14, font="Sans")
+            retro_text((60, 110), self.display, 16, f"Gravity: {mission.planet.gravity} G", res=14)
+            t, tr = retro_text((60, 125), self.display, 15, f"Surf. Temperature: {mission.temperature + round(temp_diff, 1)} F", res=14, render=False)
             self.display.blit(pygame.transform.scale(t, (round(t.get_width() * .65), 16)), tr.topleft)
             for y, text in enumerate(mission.briefing.split("\n")):
-                retro_text((pos[0], pos[1] + y * size), self.display, size, text, res = 13, font = "Sans")
+                retro_text((pos[0], pos[1] + y * size), self.display, size, text, res=13, font="Sans")
             if frame_time >= next_frame:
                 frame += 1
                 frame_time = 0
@@ -398,6 +405,9 @@ class Game:
             frame_time += time_passed
             star_frame_time += time_passed
             self.Display.blit(pygame.transform.scale(self.display, SIZE), (0, 0))
+            if not has_transition:
+                has_transition = True
+                fade_in(self.Display, 3, background)
             pygame.display.update()
         joystick.Reset()
 
@@ -467,7 +477,7 @@ class Game:
                 event.key = None
             if event.type == pygame.QUIT and not self.brought_items:
                 exit_game()
-            if event.type == pygame.KEYUP or joystick.WasEvent():
+            if event.type == pygame.KEYUP or joystick.WasEvent() and not self.player.dead:
                 if (event.key == pygame.K_LSHIFT or joystick.EndEvent("A")) and "Flak Bursts" in self.player.current_items and self.player.completeness == 1:
                     self.flaks.append(Flak(self.images, self.player.get_rect().center, self.mission, time.time() - self.charging, self.player.rotation))
                     if "2x Fire Rate" in self.player.current_items:
@@ -491,9 +501,10 @@ class Game:
                 if (event.key == pygame.K_LSHIFT or joystick.StartEvent("A")) and "Flak Bursts" in self.player.current_items:
                     self.charging = time.time()
                     self.crg = True
-                for e, item in enumerate(self.player.items):
-                    if event.key == NUM_KEYS[e] or event.key == NUMPAD_KEYS[e]:
-                        self.activate_item(e)
+                if not self.player.dead:
+                    for e, item in enumerate(self.player.items):
+                        if event.key == NUM_KEYS[e] or event.key == NUMPAD_KEYS[e]:
+                            self.activate_item(e)
                 if (event.key == pygame.K_DOWN or joystick.JustWentHalfDown()) and self.player.hover:
                     self.player.goToGround()
             self.player.events(event)
@@ -774,7 +785,7 @@ class Game:
                     cx2, cy2 = f.get_rect().center
                     dist = math.hypot(cx1 - cx2, cy1 - cy2)
                     damage = 2 * ((128 - dist) / 128)
-                    if damage > 0:
+                    if damage > 0 and not self.player.invincible:
                         if not self.player.shield:
                             self.player.health -= damage
                             if self.player.health < 0:
@@ -783,6 +794,7 @@ class Game:
                             self.player.shield -= damage
                             if self.player.shield < 0:
                                 self.player.shield = 0
+                        self.player.make_invincible()
                         self.add_points(round(-150 * damage), f.get_rect().move(0, -100).center)
                 hitSome = False
                 for a in self.aliens + self.GOs:
@@ -887,14 +899,16 @@ class Game:
                     self.GOs.remove(go)
                 if go.type in ("rock", "laser") and not go.dead and not go in self.player.hitBy:
                     self.player.hitBy.append(go)
-                    if self.player.shield > 0:
-                        self.player.shield -= .5
-                        if self.player.shield < 0:
-                            self.player.shield = 0
-                            self.add_points(-75, go.get_rect().center)
-                    else:
-                        self.player.health -= .5
-                        self.add_points(-100, go.get_rect().center)
+                    if not self.player.invincible:
+                        self.player.make_invincible()
+                        if self.player.shield > 0:
+                            self.player.shield -= .5
+                            if self.player.shield < 0:
+                                self.player.shield = 0
+                                self.add_points(-75, go.get_rect().center)
+                        else:
+                            self.player.health -= .5
+                            self.add_points(-100, go.get_rect().center)
                 if go.type == "block" and not go.dead:
                     Sound(fix_path("audio/item.wav")).play()
                     self.GOs.remove(go)
@@ -920,13 +934,14 @@ class Game:
                 cx2, cy2 = go.get_rect().center
                 dist = math.hypot(cx1 - cx2, cy1 - cy2)
                 damage = ((128 - dist) / 128)
-                if damage > 0:
+                if damage > 0 and not self.player.invincible:
                     if self.player.shield:
                         self.player.shield -= damage / 2
                     else:
                         self.player.health -= damage
                     if self.player.shield < 0:
                         self.player.shield = 0
+                    self.player.make_invincible()
                     self.add_points(round(-150 * damage), go.get_rect().move(0, -100).center)
                 for g in self.GOs:
                     if g.type in ("moneyBag", "mine"):
@@ -996,14 +1011,16 @@ class Game:
                         go.lifetime = go.max_lifetime + 1
             if r1.colliderect(r2) and not alien in self.player.hitBy:
                 if alien.grounded:
-                    if self.player.shield:
-                        self.player.shield -= alien.impact_damage[1]
-                        if self.player.shield < 0:
-                            self.player.shield = 0
-                    else:
-                        self.player.health -= alien.impact_damage[0]
                     self.player.hitBy.append(alien)
-                    self.add_points(-150, alien.get_rect().center)
+                    if not self.player.invincible:
+                        if self.player.shield:
+                            self.player.shield -= alien.impact_damage[1]
+                            if self.player.shield < 0:
+                                self.player.shield = 0
+                        else:
+                            self.player.health -= alien.impact_damage[0]
+                        self.player.make_invincible()
+                        self.add_points(-150, alien.get_rect().center)
                 if not alien.dead:
                     if self.player.shield:
                         self.player.shield = 0
@@ -1015,6 +1032,8 @@ class Game:
                     alien.explode_sound.play()
             for laser in self.player.lasers:
                 if alien.get_rect().colliderect(laser.get_rect()) and alien.hitBy != laser and not laser.dead and alien.dead != 1:
+                    if not alien.dead:
+                        alien.play_hit_sound()
                     alien.health -= laser.damage
                     if alien.dead == 2 and not alien.grounded:
                         self.doubleDie(alien)
@@ -1060,7 +1079,7 @@ class Game:
             if not self.ran_out_of_aliens and not added_time:
                 self.next_alien = num_or_rand(self.next_wave.rate, True)
         if self.endgame:
-            transition(self.Display, 2)
+            black_out(self.Display, 2)
             self.done = True
         self.time_passed = (CLOCK.tick(60) / 1000) * self.time_dilation
         if self.notimer:
@@ -1168,8 +1187,8 @@ class Flak:
             if self.frame_time >= self.frame_rate:
                 self.frame_time = 0
                 self.frame += 1
-                if self.frame >= 61:
-                    self.frame = 60
+                if self.frame >= 57:
+                    self.frame = 56
                     self.kill = True
         if self.get_rect2().bottom >= self.mission.ground and self.first_run > 5 and not self.dead:
             self.dead = True

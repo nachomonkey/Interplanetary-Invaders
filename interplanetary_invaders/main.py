@@ -34,11 +34,12 @@ from interplanetary_invaders.scripts import stores
 from interplanetary_invaders.scripts.achievements import ACHIEVEMENTS
 from interplanetary_invaders.scripts.get_file import get_file
 from interplanetary_invaders.scripts.utils import colorize
+from interplanetary_invaders.scripts.transition import black_out
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders.scripts import game
 import time 
 
-print(colorize(f"Your data directory is: {get_file('data')}", "bold"))
+print(colorize(f"Your data directory is: {get_file('data')}", "bold"), "\n")
 
 pygame.init()
 
@@ -66,13 +67,17 @@ class Main:
         self.images, num = auto_load.fetch_images(self.Display)
         pygame.event.set_blocked(False)
         t2 = time.time()
+        self.first_time = True
         print(colorize(f"Loaded {num} images in {round(t2-t1, 2)} seconds", "green"))
         self.menu()
         self.cat = []
 
     def menu(self):
         self.Menu = menu.Menu(self.Display, self.images)
-        self.Menu.text = ""
+        if self.first_time:
+            self.first_time = False
+        else:
+            self.Menu.text = ""
         self.Menu.main()
         self.profile_selected = self.Menu.profile_selected
         self.profile = saves.load_profile(self.profile_selected)
@@ -91,6 +96,7 @@ class Main:
             mission, point = Map.main()
             old_mission = mission
             if Map.toMenu:
+                background = self.Display.copy()
                 self.menu()
                 point = None
                 continue
@@ -147,6 +153,7 @@ class Main:
             saves.save_data(self.profile_selected, self.profile)
             del play
             if lw.exit:
+                black_out(self.Display, 1)
                 pygame.quit()
                 sys.exit()
 
