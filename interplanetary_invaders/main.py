@@ -63,9 +63,7 @@ class Main:
         pygame.display.set_caption("Interplanetary Invaders")
         pygame.display.set_icon(pygame.image.load(get_file("icon.png")))
         t1 = time.time()
-        pygame.event.set_blocked(True)       # Don't need events when loading
         self.images, num = auto_load.fetch_images(self.Display)
-        pygame.event.set_blocked(False)
         t2 = time.time()
         self.first_time = True
         print(colorize(f"Loaded {num} images in {round(t2-t1, 2)} seconds", "green"))
@@ -153,7 +151,7 @@ class Main:
             saves.save_data(self.profile_selected, self.profile)
             del play
             if lw.exit:
-                black_out(self.Display, 1)
+                black_out(self.Display, 2)
                 pygame.quit()
                 sys.exit()
 

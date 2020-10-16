@@ -12,7 +12,7 @@ FONT_CACHE = {}
 def font_checksum(size, font, italic, bold, underline):
     return str(size) + font + str(italic) + str(bold) + str(underline)
 
-def retro_text(pos, display, size, text, font="monospace", color=(255, 255, 255),  italic=False, bold=False, AA=False, underline=False, anchor="topleft", render=True, res=13, smooth=False, eraseColor=None):
+def retro_text(pos, surface, size, text, font="monospace", color=(255, 255, 255),  italic=False, bold=False, AA=False, underline=False, anchor="topleft", render=True, res=13, smooth=False, eraseColor=None):
     if len(FONT_CACHE) > MAX_FONTS:
         FONT_CACHE.clear()
     font = font.lower()
@@ -37,6 +37,6 @@ def retro_text(pos, display, size, text, font="monospace", color=(255, 255, 255)
     setattr(TextRect, anchor, pos)
     if render:
         if eraseColor:
-            pygame.draw.rect(display, eraseColor, TextRect)
-        display.blit(Text, TextRect)
+            pygame.draw.rect(surface, eraseColor, TextRect)
+        surface.blit(Text, TextRect)
     return Text, TextRect

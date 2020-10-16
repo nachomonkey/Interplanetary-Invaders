@@ -40,6 +40,7 @@ with pygame.Surface objects as values and their names as keys"""
             retro_text(display.get_rect().move(0, 240).center, display, 20, "Unsupported Joystick", anchor="center", bold=True, color=(255, 0, 0))
     borderRect = pygame.Rect(0, 0, BAR_WIDTH + 10, BAR_HEIGHT + 5)
     borderRect.center = display.get_rect().center
+    pygame.draw.rect(display, (100, 100, 100), borderRect, 1)
     barRect = borderRect.copy()
     barRect.h = BAR_HEIGHT
     barRect.center = borderRect.center
@@ -94,11 +95,14 @@ with pygame.Surface objects as values and their names as keys"""
                 hue = lerp(HUE_BLUE, HUE_CYAN, num / mx)
                 color.hsva = (hue, 100, 100, 100)
                 pygame.draw.rect(display, color, barRect)
-                for x in range(0, BAR_WIDTH, BAR_WIDTH // 10):
+                for x in range(0, BAR_WIDTH, BAR_WIDTH // 10)[1:]:
                     X_Val = barRect.x + x
                     pygame.draw.line(display, (0, 0, 0), (X_Val, borderRect.y), (X_Val, borderRect.y + borderRect.h), 1)
-                pygame.draw.rect(display, (25, 25, 25), borderRect, 1)
                 text, text_rect = retro_text(display.get_rect().move(0, 30).center, display, 18, f"{round(num/mx*100)}%", anchor="center", eraseColor=(0, 0, 0))
                 pygame.display.update([barRect, text_rect])
+
+                # This makes pygame rerender the screen when the window is brought up
+                for event in pygame.event.get():
+                    pass
     print()
     return dict(zip(names, images)), num

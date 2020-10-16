@@ -71,7 +71,7 @@ def run_credits(display, images):
         text.append(list(retro_text((400, 24 * e + 10), display, 14, x, font = "sans", anchor = "midtop", res = 11)))
     scroll = -600
     scroll_rate = 55
-    total_length = 1200
+    total_length = 1400
     while not done:
         for event in pygame.event.get():
             joystick.Update(event)
@@ -101,6 +101,11 @@ def run_credits(display, images):
                 r2.center = line[1].center
                 line[1] = r2
             display.blit(line[0], (line[1][0], line[1][1] - scroll))
+        img = images["nachomonkeylogo"]
+        img_rect = img.get_rect()
+        img_rect.centerx = display.get_width() // 2
+        img_rect.top = total_length - img_rect.height - scroll - 10
+        display.blit(img, img_rect)
         scroll += scroll_rate * time_passed
         pygame.display.update()
         time_passed = clock.tick(60) / 1000

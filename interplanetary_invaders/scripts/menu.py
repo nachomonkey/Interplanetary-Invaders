@@ -39,7 +39,7 @@ def build_bar(surf, pos, linepos, subticks=8, width=100, height=25, startmark="O
 from interplanetary_invaders.scripts import saves
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts.credits import run_credits
-from interplanetary_invaders.scripts.transition import black_out
+from interplanetary_invaders.scripts.transition import black_out, fade_in
 from interplanetary_invaders.scripts.utils import fix_path, colorize
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders.scripts import screenshot
@@ -73,16 +73,17 @@ class Menu:
             return
         if not options:
             if not os.path.exists(fix_path(get_file("data/menuStarsCache"))):
-                for x in range(300):
-                    stars.main()
-                with shelve.open(fix_path(get_file("data/menuStarsCache"))) as data:
-                    data["stars"] = stars.stars
+                self.write_stars()
             else:
                 with shelve.open(fix_path(get_file("data/menuStarsCache"))) as data:
-                    stars.stars = data["stars"]
-                pygame.mixer.music.stop()
-                pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.ogg")))
-                pygame.mixer.music.play(-1)
+                    if data.get("version") == __version__:
+                        stars.stars = data["stars"]
+                    else:
+                        data.close()
+                        self.write_stars()
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load(fix_path(get_file("audio/music/MainMenu.ogg")))
+            pygame.mixer.music.play(-1)
         self.frame = 1
         self.frame_rate = 1 / 120
         self.frame_time = 0
@@ -116,6 +117,18 @@ class Menu:
         if not self.options_lock:
             pygame.mixer.music.fadeout(1000)
             black_out(self.display, 5)
+
+    def write_stars(self):
+        print("\n", colorize("Generating Star Data...", "bold"), "\n", sep="")
+        background = self.display.copy()
+        self.display.fill((0, 0, 0))
+        retro_text((self.display.get_width() // 2, self.display.get_height() // 2), self.display, 30, "Please Wait...", anchor="center")
+        fade_in(self.display, 3, background)
+        for x in range(300):
+            stars.main()
+        with shelve.open(fix_path(get_file("data/menuStarsCache"))) as data:
+            data["stars"] = stars.stars
+            data["version"] = __version__
 
     def events(self):
         for event in pygame.event.get():

@@ -20,15 +20,20 @@ def fade_in(display, speed=1, background=None):
     pygame.event.set_blocked(True)
     target_surf = display.copy()
     ratio = display.get_width() / display.get_height()
-    for e, y in enumerate(range(0, target_surf.get_height(), speed)):
-        if y > 75 and e % 16:
-            continue
-        if y > 150 and e % 8:
-            continue
-        if y > 250 and e % 4:
-            continue
-        if y > 400 and e % 2:
-            continue
+    y_range = list(range(0, target_surf.get_height(), speed))
+    if y_range:
+        if y_range[-1] != target_surf.get_height():
+            y_range.append(target_surf.get_height())
+    for e, y in enumerate(y_range):
+        if y != target_surf.get_height():
+            if y > 75 and e % 16:
+                continue
+            if y > 150 and e % 8:
+                continue
+            if y > 250 and e % 4:
+                continue
+            if y > 400 and e % 2:
+                continue
         scale = (round(ratio * y), y)
         if not background:
             display.fill((0, 0, 0))
