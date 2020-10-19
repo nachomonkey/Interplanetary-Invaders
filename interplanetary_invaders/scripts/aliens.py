@@ -72,11 +72,13 @@ class Alien:
         self.hit_sound_name = "audio/alienHit.wav"
         self.hit_pitches = (.8, 1, 1.2)
         self.dead_phase_rate = 0.025
+        self.just_hurt = False
 
         self.drop_velocity = Vector2()
 
     def post_init(self):
         self.pos[0] = -self.size[0]
+        self.last_health = self.health
 
     def play_hit_sound(self):
         if self.hit_sound_name:
@@ -141,7 +143,8 @@ class Alien:
 
     def draw(self, surf):
         if not self.dead:
-            surf.blit(pygame.transform.scale(self.images[f"{self.name}{self.phase}"], self.size), self.pos)
+            image = self.images[f"{self.name}{self.phase}"]
+            surf.blit(pygame.transform.scale(image, self.size), self.pos)
         if self.dead == 2 and not self.grounded:
             rot = round(self.velocity.angle_to(Vector2()) * self.direction) % 360
             try:
@@ -177,8 +180,14 @@ class Alien:
             rect2.w *= self.health / self.start_health
             pygame.draw.rect(surf, (0, 0, 0), rect1)
             pygame.draw.rect(surf, (0, 255, 0), rect2)
+            surf.blit(self.images["alien_bar_shading"], rect1)
 
     def update(self, time_passed):
+        if self.just_hurt:
+            self.just_hurt = False
+        if self.last_health != self.health:
+            self.last_health = self.health
+            self.just_hurt = True
         if self.next_fire < 0:
             rect = self.get_rect()
             center = rect.center
@@ -298,6 +307,7 @@ class YellowAlien(Alien):
         self.explode_on_ground_impact = True
         self.death_sound = Sound(fix_path("audio/yellowAlienDie.wav"))
         self.explode_sound = Sound(fix_path("audio/alienExplode2.wav"))
+        self.dead_frame_rate = 0.01
         self.post_init()
 
 class GreenAlien(Alien):

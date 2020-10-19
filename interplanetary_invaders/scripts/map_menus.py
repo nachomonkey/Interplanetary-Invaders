@@ -135,9 +135,14 @@ class SpaceMap:
                                 self.focused = e
             if event.type == pygame.MOUSEBUTTONUP:
                 self.start_click = None
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LALT:
+                    pygame.event.set_grab(True)
             if event.type == pygame.KEYDOWN or joystick.WasEvent():
                 if not hasattr(event, 'key'):
                     event.key = None
+                if event.key == pygame.K_LALT:
+                    pygame.event.set_grab(False)
                 if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     self.done = True
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or joystick.GoEvent():
@@ -152,12 +157,13 @@ class SpaceMap:
                         self.speed = 2
                 if event.key == pygame.K_F2 or joystick.JustPressedLB():
                     screenshot.capture(self.profile_number, self.Display)
-                if event.key == pygame.K_COMMA or joystick.JustPressedLT():
+                shift = pygame.key.get_mods() & pygame.KMOD_SHIFT
+                if event.key == pygame.K_COMMA or joystick.JustPressedLT() or (event.key == pygame.K_TAB and shift):
                     if self.focused == None:
                         self.focused = 0
                     self.focused = (self.focused + 1) % len(self.planets)
                     self.target_zoom = 1.5
-                if event.key == pygame.K_PERIOD or joystick.JustPressedRT() or event.key == pygame.K_TAB:
+                if event.key == pygame.K_PERIOD or joystick.JustPressedRT() or (event.key == pygame.K_TAB and not shift):
                     if self.focused == None:
                         self.focused = 0
                     self.focused = (self.focused - 1) % len(self.planets)

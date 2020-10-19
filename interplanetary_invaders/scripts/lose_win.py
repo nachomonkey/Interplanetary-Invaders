@@ -4,8 +4,8 @@ from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts.confirm import confirmExit
 from interplanetary_invaders.scripts import screenshot
 from interplanetary_invaders.scripts.sound import Sound
-from interplanetary_invaders.scripts.utils import fix_path
-from interplanetary_invaders.scripts.transition import black_out
+from interplanetary_invaders.scripts.utils import fix_path, clamp
+from interplanetary_invaders.scripts.transition import black_out, fade_in
 from interplanetary_invaders.scripts import joystick
 
 pygame.init()
@@ -23,8 +23,11 @@ class LoseWin:
         self.time_passed = 0
         self.anim_done = False
         self.done = False
-        self.text = ["Save + Continue", "Save + Exit"]
-        self.top_selected = True
+        self.text = ["Retry", "Return to Map", "Exit Game"]
+        if mode == "won":
+            self.text = self.text[1:]
+        self.options_range = (0, len(self.text) - 1)
+        self.selected_option = 0
         self.money_old, self.money_new, self.bonus, self.bonus1, self.acc, self.lost, self.maxcombo = money
         try:
             self.acc_per = self.acc.count(True) / len(self.acc)
@@ -39,14 +42,19 @@ class LoseWin:
         if mode == "won":
             self.money_sound.play(-1)
         self.exit = False
+        self.retry = False
         self.stopped = False
 
     def main(self):
+        self.draw()
+        fade_in(self.display, 3)
         while not self.done:
             self.events()
             self.draw()
             self.update()
-        return self.exit
+        if not (self.retry or self.exit):
+            black_out(self.display, 3)
+        return self.retry, self.exit
 
     def events(self):
         for event in pygame.event.get():
@@ -59,22 +67,25 @@ class LoseWin:
                 if event.key == pygame.K_ESCAPE or joystick.BackEvent():
                     self.money_old = self.money_new
                 if event.key == pygame.K_TAB:
-                    self.top_selected = not self.top_selected
+                    self.selected_option += 1
+                    if self.selected_option > self.options_range[1]:
+                        self.selected_option = self.options_range[0]
                 if event.key == pygame.K_UP or joystick.JustWentUp():
-                    self.top_selected = True
+                    self.selected_option = clamp(self.selected_option - 1, *self.options_range)
                 if event.key == pygame.K_DOWN or joystick.JustWentDown():
-                    self.top_selected = False
+                    self.selected_option = clamp(self.selected_option + 1, *self.options_range)
                 if event.key == pygame.K_y or joystick.JustPressedY():
                     self.info()
                 if event.key == pygame.K_RETURN or joystick.JustPressedA():
                     self.stopped = True
+                    self.done = True
                     if self.mode == "won":
                         self.register_sound.play()
                     self.money_sound.stop()
-                    if self.top_selected:
-                        self.done = True
-                    else:
-                        self.done = True
+                    text = self.text[self.selected_option]
+                    if text == "Retry":
+                        self.retry = True
+                    if text == "Exit Game":
                         self.exit = True
 
     def info(self):
@@ -118,14 +129,12 @@ Max Combo: {self.maxcombo}"""
         rect.center = self.display.get_rect().center
         self.display.blit(pygame.transform.scale(self.images[f"you_{self.mode}{self.frame}"], (400, 200)), rect)
         rect.move_ip(50, 0)
-        pos = rect.left - 20, rect.bottom
-        colors = [(255, 255, 175), (255, 255, 255)]
-        if not self.top_selected:
-            pos = rect.left - 20, rect.bottom + 20
-            colors.reverse()
-        self.display.blit(self.images["bullet"], pos)
-        retro_text(rect.bottomleft, self.display, 14, self.text[0], anchor="topleft", color=colors[0])
-        retro_text((rect.left, rect.bottom + 20), self.display, 14, self.text[1], anchor="topleft", color=colors[1])
+        for e, text in enumerate(self.text):
+            color = (255, 255, 255)
+            if e == self.selected_option:
+                color = (255, 255, 175)
+            retro_text(rect.move(0, 20  * e).bottomleft, self.display, 14, text, anchor="topleft", color=color)
+        self.display.blit(self.images["bullet"], (rect.left - 20, rect.bottom + 20 * self.selected_option))
         if self.mode == "won":
             retro_text((400, 25), self.display, 14, "Loot:", anchor="center")
             retro_text((400, 50), self.display, 14, round(self.money_old), anchor="center")

@@ -10,7 +10,7 @@ class Laser:
     """Laser object represent the projectiles fired by the Zapper"""
     def __init__(self, center, images, rotation = 0):
         self.images = images
-        testSurf = pygame.Surface((32, 16))
+        testSurf = pygame.Surface((10, 16))
         self.size = pygame.transform.rotate(testSurf, -rotation).get_size()
         rect = pygame.Rect((0, 0), self.size)
         rect.center = center
@@ -85,4 +85,4 @@ class GreenLaser(Laser):
         self.laserType = "greenlaser"
         self.green = True
         self.impactAnimationName = "GreenImpact"
-        self.fire_sound = Sound("audio/greenLaser.wav", True)
+        self.fire_sound = Sound("audio/greenlaser.wav", True)

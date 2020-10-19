@@ -262,7 +262,8 @@ class Zapper:
         self.pos[0] += self.velocity[0]
         self.pos[1] += self.velocity[1]
         self.rect = self.get_rect()
-        self.rect.bottom -= ((self.rect.bottom - self.target_alt) * self.alt_change_speed * self.time_passed)
+        if not self.dead:
+            self.rect.bottom -= ((self.rect.bottom - self.target_alt) * self.alt_change_speed * self.time_passed)
         self.pos[1] = self.rect.top
         self.rect = self.get_rect()
 

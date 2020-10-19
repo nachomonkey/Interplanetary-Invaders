@@ -35,8 +35,8 @@ class GameObject:
             self.size = (32, 32)
         self.rect_size = self.size
         if self.type == "laser":
-            self.size = (32, 32)
-            self.rect_size = (16, 32)
+            self.size = (10, 32)
+            self.rect_size = (10, 32)
         rect = pygame.Rect((0, 0), self.size)
         rect.center = center
         self.pos = list(rect.topleft)
@@ -156,9 +156,10 @@ class GameObject:
             surf.blit(self.images[f"money_explosion_t{(self.ser_num % 5) + 1}{self.frame}"], rect2)
         if self.type in ("shield", "block", "heart", "mine", "laser", "moneyBag") and not self.dead:
             t = self.type
+            size = (32, 32)
             if t == "laser":
                 t = "bluelaser"
-            size = (32, 32)
+                size = self.size
             if t == "moneyBag":
                 size = self.size
             surf.blit(pygame.transform.scale(self.images[f"{t}{self.frame}"],

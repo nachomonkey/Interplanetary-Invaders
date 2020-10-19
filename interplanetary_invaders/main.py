@@ -89,16 +89,19 @@ class Main:
 
     def main(self):
         point = None
+        retry = False
+        mission = None
         while True:
-            Map = maps.Map(self.images, self.Display, self.profile, self.profile_selected, point)
-            mission, point = Map.main()
-            old_mission = mission
-            if Map.toMenu:
-                background = self.Display.copy()
-                self.menu()
-                point = None
-                continue
-            play = game.Game(self.display, self.Display, self.images, mission, self.profile, self.profile_selected)
+            if not retry:
+                Map = maps.Map(self.images, self.Display, self.profile, self.profile_selected, point)
+                mission, point = Map.main()
+                old_mission = mission
+                if Map.toMenu:
+                    background = self.Display.copy()
+                    self.menu()
+                    point = None
+                    continue
+            play = game.Game(self.display, self.Display, self.images, mission, self.profile, self.profile_selected, retry)
             score, mode, acc, maxcombo, im_back = play.main()
             if play.toMenu:
                 self.menu()
@@ -150,6 +153,7 @@ class Main:
             self.profile = r
             saves.save_data(self.profile_selected, self.profile)
             del play
+            retry = lw.retry
             if lw.exit:
                 black_out(self.Display, 2)
                 pygame.quit()

@@ -6,12 +6,14 @@ from interplanetary_invaders.scripts import joystick
 
 pygame.init()
 
-platform = "OS"
+platform = "System"
 
 if sys.platform.startswith("win"):
     platform = "Windows"
 if sys.platform == "linux":
     platform = "Linux"
+if sys.platform == "darwin":
+    platform = "Mac"
 
 def pause_menu(display, images, data, index, exit_lock = False):
     from interplanetary_invaders.scripts.menu import Menu

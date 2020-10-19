@@ -53,7 +53,10 @@ POINTS_SPEED = 20
 POINTS_LIFETIME = 1.5
 POINTS_FADETIME = 1.2
 
-def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), back=(10, 10, 10), width=150, height=20, r=True):
+def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255, 0), back=(10, 10, 10), width=150, height=20, r=True, cover=None):
+    if cover:
+        if cover.get_size() != (width, height):
+            print(colorize("draw_bar: cover image is invalid size!", "warning"))
     if prog <= 0 and shield <= 0:
         return
     if prog < 0:
@@ -72,25 +75,30 @@ def draw_bar(prog, center, surf, max_health, max_shield, shield=0, color=(0, 255
     else:
         rect.w *= prog / max_health
         rect3.w *= shield / max_shield
+    pygame.draw.rect(surf, (0, 0, 0), rect2.inflate(2, 2), 1)
+    pygame.draw.rect(surf, (0, 200, 200), rect2.inflate(4, 4), 1)
     pygame.draw.rect(surf, back, rect2)
     pygame.draw.rect(surf, color, rect)
     if shield:
         pygame.draw.rect(surf, (0, 100, 150), rect3)
-    for x in range(0, width, 11):
+    for x in range(0, width, 15):
+        if not x:
+            continue
         pygame.draw.line(surf, (0, 0, 0), (rect.left + x, rect.top), (rect.left + x, rect.bottom - 1), 1)
-
+    if cover:
+        surf.blit(cover, rect2)
 
 def exit_game():
     """Exit Game"""
     pygame.quit()
     sys.exit()
 
-MAIN_TEXT_COLOR = (200, 200, 200)
+MAIN_TEXT_COLOR = (205, 205, 205)
 
 class Game:
     """This class runs the game, and contains the game's logic"""
 
-    def __init__(self, display, Display, images, mission, profile, profile_selected):
+    def __init__(self, display, Display, images, mission, profile, profile_selected, retry=False):
         """Initialize Game Class"""
         self.Display = Display
         self.display = display
@@ -98,6 +106,7 @@ class Game:
         self.mission = mission()
         self.mission_type = mission
         self.profile, self.profile_selected = profile, profile_selected
+        self.retry = retry
         self.toMenu = False
         self.aliens = []
         self.alien_time = 0
@@ -139,6 +148,8 @@ class Game:
         self.mst = 0
         self.volcanoes = []
         self.current_money_sound = None
+        self.health_bar_cover = pygame.transform.scale(self.images["bar_shading"], (150, 20))
+        self.small_bar_cover = pygame.transform.scale(self.images["bar_shading"], (225, 6))
         screenshot.options = saves.load_options()
         if self.mission.planet.name == "Venus":
             for x in range(2):
@@ -165,17 +176,19 @@ class Game:
 
     def main(self):
         """Running this method runs the game"""
-        self.briefing(self.mission)
-        global CAT, mission
-        c = CAT
-        ca = None
-        if c and self.mission.__class__ == mission.__class__:
-            ca = c
-        inv = Inventory(self.Display, self.images, self.profile, ca, None)
-        self.profile, cat, player, sel = inv.main()
-        CAT = sel
-        mission = self.mission
-        itms = cat[-1]
+        global CAT, mission, player
+        itms = []
+        if not self.retry:
+            self.briefing(self.mission)
+            c = CAT
+            ca = None
+            if c and self.mission.__class__ == mission.__class__:
+                ca = c
+            inv = Inventory(self.Display, self.images, self.profile, ca, None)
+            self.profile, cat, player, sel = inv.main()
+            CAT = sel
+            mission = self.mission
+            itms = cat[-1]
         self.player = player([400, 431], self.images, self.mission)
         for r, i in itms:
             if i:
@@ -292,6 +305,7 @@ class Game:
         joystick.Reset()
 
     def free_item(self):
+        self.draw()
         display = self.Display.copy()
         rect = pygame.Rect(0, 0, 600, 400)
         rect.center = self.display.get_rect().center
@@ -431,7 +445,9 @@ class Game:
                 break
         return pos
 
-    def add_points(self, amount, pos, mseg = False):
+    def add_points(self, amount, pos, mseg=False):
+        if self.player.dead and not mseg:
+            return
         if not mseg:
             if self.player.current_items and amount > 0:
                 if "2x Money Bonus" in self.player.current_items:
@@ -597,7 +613,8 @@ class Game:
             self.points.remove(b)
         lightning_on = len(self.aliens) > 0
         if "Lightning" in self.player.current_items and (pygame.key.get_pressed()[pygame.K_SPACE] or joystick.CurrentState.X):
-            lightning.run(self.player.get_rect().center, self.aliens, self.GOs, self.player, self.display, self.time_passed)
+            if not self.player.dead:
+                lightning.run(self.player.get_rect().center, self.aliens, self.GOs, self.player, self.display, self.time_passed)
             if lightning_on:
                 if lightning.GREEN_ON:
                     self.gls.set_volume(1)
@@ -609,44 +626,46 @@ class Game:
             self.ls.set_volume(0)
             self.gls.set_volume(0)
         self.player.draw(self.display)
-        retro_text((602, 2), self.display, 18, "Health:", anchor = "midtop", color = (0, 0, 0))
-        retro_text((600, 0), self.display, 18, "Health:", anchor = "midtop", color=MAIN_TEXT_COLOR)
-        retro_text((602, 77), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color = (0, 0, 0))
-        retro_text((600, 75), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color=MAIN_TEXT_COLOR)
-        retro_text((402, 2), self.display, 16, f"Aliens Killed: {min(self.aliens_killed, self.mission.aliens)} / {self.mission.aliens}", anchor = "midtop", font = "impact", color = (0, 0, 0))
-        retro_text((400, 0), self.display, 16, f"Aliens Killed: {min(self.aliens_killed, self.mission.aliens)} / {self.mission.aliens}", anchor = "midtop", font = "impact", color=MAIN_TEXT_COLOR)
-        if self.combo:
-            retro_text((402, 28), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=(0, 0, 0))
-            retro_text((400, 30), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=MAIN_TEXT_COLOR)
+        if not self.player.dead:
+            retro_text((602, 7), self.display, 18, "Health:", anchor = "midtop", color = (0, 0, 0))
+            retro_text((600, 5), self.display, 18, "Health:", anchor = "midtop", color=MAIN_TEXT_COLOR)
+            retro_text((602, 77), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color = (0, 0, 0))
+            retro_text((600, 75), self.display, 18, f"Loot: {self.score}", anchor = "midtop", color=MAIN_TEXT_COLOR)
+            retro_text((402, 2), self.display, 16, f"Aliens Killed: {min(self.aliens_killed, self.mission.aliens)} / {self.mission.aliens}", anchor = "midtop", font = "impact", color = (0, 0, 0))
+            retro_text((400, 0), self.display, 16, f"Aliens Killed: {min(self.aliens_killed, self.mission.aliens)} / {self.mission.aliens}", anchor = "midtop", font = "impact", color=MAIN_TEXT_COLOR)
+            if self.combo:
+                retro_text((400, 35), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=(0, 0, 0))
+                retro_text((400, 33), self.display, 16, f"Combo: {self.combo}", anchor="midtop", font="impact", color=MAIN_TEXT_COLOR)
         color = (0, 255, 0)
         if (self.player.health / self.player.max_health) <= .5:
             color = (200, 200, 0)
         if (self.player.health / self.player.max_health) <= .3:
             color = (200, 0, 0)
-        draw_bar(self.player.health, (600, 40), self.display, self.player.max_health, self.player.max_shield, self.player.shield, color=color)
+        draw_bar(self.player.health, (600, 40), self.display, self.player.max_health, self.player.max_shield, self.player.shield if not self.player.dead else 0, color=color, cover=self.health_bar_cover)
         color = (150, 35, 0)
         if self.mission.items <= self.mission.items_dropped:
             color = (210, 200, 0)
-        draw_bar(self.item_progress, (400, 20), self.display, 1, 1, color=color, back=(30, 30, 30), width=300, height=6, r=False)
-        draw_bar(self.mission.getProgTillNextItem(self.aliens_killed), (400, 27), self.display, 1, 1, color=(0, 150, 0), back=(30, 30, 30), width=300, height=6, r=False)
-        image = "itemHolder"
-        minus = 0
-        if self.i10l:
-            image = "itemHolder10"
-            minus = 45
-        self.display.blit(self.images[image], (550 - minus, 100))
-        for e, item in enumerate(self.player.items):
-            pos = (552 - minus + (e * 19), 102)
-            self.display.blit(self.images[item.image], pos)
-            pos2 = list(pos)
-            pos2[1] += 18
-            retro_text(pos2, self.display, 14, e + 1, anchor = "topleft")
-        Items = self.player.current_items
-        for e, item in enumerate(self.player.current_items):
-            self.display.blit(self.images[Items[item].image], (525, 140 + e * 20))
-            n1, n2 = str(float(round(Items[item].length - Items[item].total_time, 2))).split(".")
-            text = ".".join((n1, n2.ljust(2, "0")))
-            retro_text((600, 140 + e * 20), self.display, 18, text, anchor = "midtop")
+        if not self.player.dead:
+            draw_bar(self.item_progress, (400, 22), self.display, 1, 1, color=color, back=(30, 30, 30), width=225, height=6, r=False, cover=self.small_bar_cover)
+            draw_bar(self.mission.getProgTillNextItem(self.aliens_killed), (400, 32), self.display, 1, 1, color=(0, 150, 0), back=(30, 30, 30), width=225, height=6, r=False, cover=self.small_bar_cover)
+            image = "itemHolder"
+            minus = 0
+            if self.i10l:
+                image = "itemHolder10"
+                minus = 45
+            self.display.blit(self.images[image], (550 - minus, 100))
+            for e, item in enumerate(self.player.items):
+                pos = (552 - minus + (e * 19), 102)
+                self.display.blit(self.images[item.image], pos)
+                pos2 = list(pos)
+                pos2[1] += 18
+                retro_text(pos2, self.display, 14, e + 1, anchor = "topleft")
+            Items = self.player.current_items
+            for e, item in enumerate(self.player.current_items):
+                self.display.blit(self.images[Items[item].image], (525, 140 + e * 20))
+                n1, n2 = str(float(round(Items[item].length - Items[item].total_time, 2))).split(".")
+                text = ".".join((n1, n2.ljust(2, "0")))
+                retro_text((600, 140 + e * 20), self.display, 18, text, anchor = "midtop")
         for flak in self.flaks:
             flak.draw(self.display)
         if self.sf:
@@ -875,7 +894,7 @@ class Game:
             if go.lifetime > go.max_lifetime and go.type == "mine" and not go.dead:
                 kaboom = True
             if go.get_rect().colliderect(self.player.get_rect()):
-                if go.type == "moneyBag" and not go.dead:
+                if go.type == "moneyBag" and not go.dead and not self.player.dead:
                     if go.amount != None:
                         self.add_points(go.amount, go.get_rect().center)
                     else:
@@ -890,14 +909,14 @@ class Game:
                     self.add_points(150, go.get_rect().center)
                     Sound(fix_path("audio/heart.wav")).play()
                     del self.GOs[self.GOs.index(go)]
-                if go.type == "shield" and not go.dead:
+                if go.type == "shield" and not go.dead and not self.player.dead:
                     Sound(fix_path("audio/shield.wav")).play()
                     self.add_points(150, go.get_rect().center)
                     self.player.shield += 1
                     if self.player.shield > self.player.max_shield:
                         self.player.shield = self.player.max_shield
                     self.GOs.remove(go)
-                if go.type in ("rock", "laser") and not go.dead and not go in self.player.hitBy:
+                if go.type in ("rock", "laser") and not go.dead and not go in self.player.hitBy and not self.player.dead:
                     self.player.hitBy.append(go)
                     if not self.player.invincible:
                         self.player.make_invincible()
@@ -909,7 +928,10 @@ class Game:
                         else:
                             self.player.health -= .5
                             self.add_points(-100, go.get_rect().center)
-                if go.type == "block" and not go.dead:
+                            if go.type == "rock":
+                                go.frame = 1
+                                go.dead = True
+                if go.type == "block" and not go.dead and not self.player.dead:
                     Sound(fix_path("audio/item.wav")).play()
                     self.GOs.remove(go)
                     if go.value == None:

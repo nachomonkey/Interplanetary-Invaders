@@ -30,6 +30,12 @@ python3 -m interplanetary_invaders
 interplanetary-invaders
 ```
 
+**If you cloned the repository:**
+
+```bash
+python3 run_game.py
+```
+
 ## Playing the game
 
  ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/wiki_data/screenshot_gameplay1.png  "Gameplay Screenshot")

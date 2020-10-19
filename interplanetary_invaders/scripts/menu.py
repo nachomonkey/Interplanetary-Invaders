@@ -317,7 +317,8 @@ of Interplanetary Invaders; \nerrors may occur", "warning"))
             pygame.display.update()
 
     def draw_stars(self):
-        star_surf = pygame.transform.rotate(pygame.transform.scale(stars.main(), stars.REG_SIZE), self.star_rotation)
+        surf = stars.main()
+        star_surf = pygame.transform.rotate(pygame.transform.scale(surf, stars.REG_SIZE), self.star_rotation)
         star_rect = star_surf.get_rect()
         star_rect.center = (400, 300)
         self.display.blit(star_surf, star_rect)

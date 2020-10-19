@@ -44,6 +44,7 @@ with pygame.Surface objects as values and their names as keys"""
     barRect = borderRect.copy()
     barRect.h = BAR_HEIGHT
     barRect.center = borderRect.center
+    barRect.x += 2
     LastRefresh = 0
     pygame.display.update()
     for data in os.walk(IMAGE_PATH):
