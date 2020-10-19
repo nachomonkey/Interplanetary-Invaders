@@ -1,7 +1,7 @@
-from pkg_resources import resource_filename
-from interplanetary_invaders.scripts.utils import fix_path
 import os
 import pathlib
+from pkg_resources import resource_filename
+from interplanetary_invaders.scripts.utils import fix_path
 
 SOUND_PATH = fix_path("data/sound-cache/")
 DEV_RUN = os.path.abspath(".").endswith("interplanetary-invaders")
@@ -19,6 +19,6 @@ def get_file(filename):
             os.mkdir(DIR)
         return DIR+filename
     else:
-        if DEV_RUN:   # Your running this as a devolper
+        if DEV_RUN:   # You're running this as a devolper
             return fix_path("interplanetary_invaders/") + filename # Find it in the current directory
         return resource_filename("interplanetary_invaders", filename) # Find it in the installation

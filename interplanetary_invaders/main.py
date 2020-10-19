@@ -58,10 +58,10 @@ class Main:
         fullscreen = 0
         if self.options["fullscreen"]:
             fullscreen = pygame.FULLSCREEN
+        pygame.display.set_icon(pygame.image.load(get_file("icon.png")))
         self.Display = pygame.display.set_mode((800, 600), fullscreen | pygame.HWACCEL)
         self.display = pygame.Surface((800, 600))
         pygame.display.set_caption("Interplanetary Invaders")
-        pygame.display.set_icon(pygame.image.load(get_file("icon.png")))
         t1 = time.time()
         self.images, num = auto_load.fetch_images(self.Display)
         t2 = time.time()
