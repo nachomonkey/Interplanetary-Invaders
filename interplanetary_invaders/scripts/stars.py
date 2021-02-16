@@ -44,10 +44,10 @@ def main():
     for star in stars:
         star.center += star.velocity + ((star.velocity / 5) * ((star.dist_from_center() ** 2 + 1) / 500))
         size = star.size * star.dist_from_center() / 500
-        rect = pygame.Rect(0, 0, size * scale, size * scale)
+        rect = pygame.Rect(0, 0, 10, 10)
         rect.center = star.center
         if not surf.get_rect().colliderect(rect):
             stars.remove(star)
             continue
-        pygame.draw.circle(surf, star.color, star.get_center(), round(size * scale))
+        r = pygame.draw.circle(surf, star.color, star.get_center(), round(size * scale))
     return surf

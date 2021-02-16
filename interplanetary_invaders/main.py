@@ -102,6 +102,8 @@ class Main:
                     point = None
                     continue
             play = game.Game(self.display, self.Display, self.images, mission, self.profile, self.profile_selected, retry)
+
+            retry = False
             score, mode, acc, maxcombo, im_back = play.main()
             if play.toMenu:
                 self.menu()
