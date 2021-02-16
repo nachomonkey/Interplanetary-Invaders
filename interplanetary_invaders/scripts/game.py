@@ -653,7 +653,13 @@ class Game:
             if self.i10l:
                 image = "itemHolder10"
                 minus = 45
-            self.display.blit(self.images[image], (550 - minus, 100))
+
+            items_rect = self.images["items"].get_rect()
+            itemholder_rect = self.display.blit(self.images[image], (550 - minus, 100))
+            items_rect.midtop = itemholder_rect.move(0, 3).midbottom
+
+            self.display.blit(self.images["items"], items_rect)
+
             for e, item in enumerate(self.player.items):
                 pos = (552 - minus + (e * 19), 102)
                 self.display.blit(self.images[item.image], pos)
