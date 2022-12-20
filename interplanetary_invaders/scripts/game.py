@@ -398,7 +398,7 @@ class Game:
             self.display.blit(pygame.transform.scale(self.images[f"spinning{mission.planet.name}{frame}"], (size, size)), r2)
             pos = [155, 350]
             size = 14
-            retro_text((60, 90), self.display, 18, "Planetary Specs:", res=14, font="Sans")
+            retro_text((60, 90), self.display, 18, "Planet info:", res=14, font="Sans")
             retro_text((60, 110), self.display, 16, f"Gravity: {mission.planet.gravity} G", res=14)
             t, tr = retro_text((60, 125), self.display, 15, f"Surf. Temperature: {mission.temperature + round(temp_diff, 1)} F", res=14, render=False)
             self.display.blit(pygame.transform.scale(t, (round(t.get_width() * .65), 16)), tr.topleft)
@@ -596,9 +596,17 @@ class Game:
         for go in self.GOs:
             go.draw(self.display)
         for laser in self.player.lasers:
-            laser.draw(self.display)
+            if not laser.dead:
+                laser.draw(self.display)
         for alien in self.aliens:
             alien.draw(self.display)
+
+        # draw dead lasers after aliens so we see the impact effects
+        # really should have a better way to do z-order :/
+        for laser in self.player.lasers:
+            if laser.dead:
+                laser.draw(self.display)
+
         blacklist = []
         for p in self.points:
             (img, rect), p_time = p
@@ -878,7 +886,7 @@ class Game:
                     self.player.lasers.remove(l)
                     go.dead = True
                     go.gotShot = True
-                    go.frame_rate = 1 / 25
+                    go.frame_rate = 1 / 50
                     Sound(fix_path("audio/flak.wav")).play()
             if go.kill:
                 if go.type == "aircraft" and go.gotShot:
@@ -1014,8 +1022,7 @@ class Game:
                      if not alien.hitBy == "lightning":
                          if not alien.health == 0:
                              points += (0 - alien.health) * 5 + ((alien.hitBy.hits - 1) * 10)
-                     alien.phase_rate = .05
-                     alien.phase = 1
+                     alien.die()
                      if alien.dead == 1:
                          if not self.Check_Jackpot(alien):
                              self.add_points(alien.death_amount[0] + points, alien.get_rect().center)

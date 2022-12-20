@@ -23,6 +23,7 @@ class Alien:
         self.pos = list(pos)
         self.phase = 1
         self.phase_rate = .5
+        self.death_anim_frame_rate = 0.05
         self.phase_time = 0
         self.next_fire = -1
         self.fire_time = 0
@@ -71,7 +72,8 @@ class Alien:
         self.post_init()
         self.hit_sound_name = "audio/alienHit.wav"
         self.hit_pitches = (.8, 1, 1.2)
-        self.dead_phase_rate = 0.025
+#        self.dead_phase_rate = 0.025
+        self.dead_phase_rate = (1 / 30)
         self.just_hurt = False
 
         self.drop_velocity = Vector2()
@@ -181,6 +183,10 @@ class Alien:
             pygame.draw.rect(surf, (0, 0, 0), rect1)
             pygame.draw.rect(surf, (0, 255, 0), rect2)
             surf.blit(self.images["alien_bar_shading"], rect1)
+
+    def die(self):
+        self.phase_rate = self.dead_phase_rate
+        self.phase = 1
 
     def update(self, time_passed):
         if self.just_hurt:

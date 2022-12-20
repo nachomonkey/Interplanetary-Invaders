@@ -130,6 +130,8 @@ def scale_images(filename, dest, scale=1):
         pygame.image.save(surf, dest + f"/sprite{str(e).zfill(4)}.png")
         surfs.append(pygame.transform.scale(surf, (int(surf.get_width() * scale), int(surf.get_height() * scale))))
 
+    return
+
     ans = input("Are you sure you want to overwrite the image? [y/N]: ")
 
     if ans.lower() in ("y", "yes"):

@@ -4,6 +4,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import sys
+import time
 
 debugMode = False
 if len(sys.argv) > 1 and __name__ == "__main__":
@@ -33,11 +34,10 @@ from interplanetary_invaders.scripts.planets import *
 from interplanetary_invaders.scripts import stores
 from interplanetary_invaders.scripts.achievements import ACHIEVEMENTS
 from interplanetary_invaders.scripts.get_file import get_file
-from interplanetary_invaders.scripts.utils import colorize
+from interplanetary_invaders.scripts.utils import colorize, set_images
 from interplanetary_invaders.scripts.transition import black_out
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders.scripts import game
-import time 
 
 print(colorize(f"Your data directory is: {get_file('data')}", "bold"), "\n")
 
@@ -51,6 +51,8 @@ if joystick.hasJoystick:
     print(colorize(f"Detected a \"{joystick.name}\" Joystick", "green" if joystick.IsSupported() else "fail"))
     if not joystick.IsSupported():
         print(colorize(f"This joystick may not be supported", "warning"))
+
+images = {}
 
 class Main:
     def __init__(self):
@@ -67,6 +69,9 @@ class Main:
         t2 = time.time()
         self.first_time = True
         print(colorize(f"Loaded {num} images in {round(t2-t1, 2)} seconds", "green"))
+
+        set_images(self.images)
+
         self.menu()
         self.cat = []
 
@@ -81,11 +86,12 @@ class Main:
         self.profile = saves.load_profile(self.profile_selected)
 
     def keepGoing(self, lw):
-        try:
-            lw.main()
-        except KeyboardInterrupt:
-            print(colorize("Nope. Answer the questions", "fail"))
-            self.keepGoing(lw)
+        lw.main()
+#        try:
+#            lw.main()
+#        except KeyboardInterrupt:
+#            print(colorize("Nope. Answer the questions", "fail"))
+#            self.keepGoing(lw)
 
     def main(self):
         point = None

@@ -24,11 +24,12 @@ class Laser:
         self.kill = False
         self.damage = 1
         self.laserType = "laser"
-        self.impactAnimationName = "RedImpact"
-        self.impactAnimationLength = 6
+        self.impactAnimationName = "red_laser_impact"
+        self.impactAnimationLength = 4
         self.impactAnimationFrame = 1
         self.impactAnimationTime = 0
-        self.impactAnimationRate = 1 / 35
+        self.impactAnimationSize = (16, 16)  # size to scale the impact animation to
+        self.impactAnimationRate = 1 / 30
         self.hits = 0
         self.rotation = rotation
         self.green = False
@@ -45,13 +46,15 @@ class Laser:
         self.speed = 0
 
     def draw(self, surf):
-        """Render Laser"""
+        """Draw laser to display surface"""
         if not self.dead:
             surf.blit(pygame.transform.rotate(self.images[f"{self.laserType}{self.phase}"], -self.rotation), self.pos)
         if self.dead:
             if self.impactAnimationFrame > self.impactAnimationLength:
                 self.impactAnimationFrame = self.impactAnimationLength
-            image = pygame.transform.rotate(self.images[f"{self.impactAnimationName}{self.impactAnimationFrame}"], -self.rotation)
+            image = self.images[f"{self.impactAnimationName}{self.impactAnimationFrame}"]
+            image = pygame.transform.scale(image, self.impactAnimationSize)
+            image = pygame.transform.rotate(image, -self.rotation)
             image_rect = image.get_rect()
             image_rect.center = self.get_rect().center
             surf.blit(image, image_rect)
@@ -84,5 +87,5 @@ class GreenLaser(Laser):
         self.damage = 5
         self.laserType = "greenlaser"
         self.green = True
-        self.impactAnimationName = "GreenImpact"
+#        self.impactAnimationName = "GreenImpact"
         self.fire_sound = Sound("audio/greenlaser.wav", True)

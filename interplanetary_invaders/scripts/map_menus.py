@@ -479,7 +479,7 @@ class Map:
         self.text_time = 0
         self.profile_number = profile_number
         self.toMenu = False
-        self.base_rect = pygame.Rect(0, 0, 300, 50)
+        self.base_rect = pygame.Rect(0, 0, 302, 51)
         self.base_rect.midbottom = display.get_rect().midbottom
         self.prev_dist = self.get_dist(self.avatar_pos, self.target_pos)
         self.pause_time = False
@@ -693,7 +693,7 @@ class Map:
         d1 = self.images["empty"].copy()
         d2 = self.images["empty"].copy()
         self.display.blit(self.images["loot_holder"], self.base_rect)
-        retro_text(self.base_rect.center, self.display, 15, f'Loot: {self.profile["money"]}', anchor="center")
+        retro_text(self.base_rect.move(0, 7).center, self.display, 15, f'Loot: {self.profile["money"]}', anchor="center")
         for n, point in enumerate(self.map):
             circle = self.images["nothing16"]
             circle_rect = circle.get_rect()

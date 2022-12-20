@@ -67,7 +67,7 @@ def congrats(display, images, mode, data, profile=None):
         if mode == "ach":   # Short for achievement
             retro_text((400, 250), display, 17, f"{data[0]} Achievement Unlocked!", anchor = "center", font = "Sans")
             retro_text((400, 280), display, 15, data[1], anchor = "center", bold = True, font = "Sans")
-            retro_text((400, 300), display, 15, f"Money Earned: {data[2]}", bold = True, font = "Sans", anchor = "center")
+            retro_text((400, 300), display, 15, f"Loot Earned: {data[2]}", bold = True, font = "Sans", anchor = "center")
         if total_time_passed >= 15:
             done = True
         pygame.display.update()

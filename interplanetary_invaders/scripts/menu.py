@@ -40,7 +40,7 @@ from interplanetary_invaders.scripts import saves
 from interplanetary_invaders.scripts.retro_text import retro_text
 from interplanetary_invaders.scripts.credits import run_credits
 from interplanetary_invaders.scripts.transition import black_out, fade_in
-from interplanetary_invaders.scripts.utils import fix_path, colorize
+from interplanetary_invaders.scripts.utils import fix_path, colorize, get_image
 from interplanetary_invaders.scripts import joystick
 from interplanetary_invaders.scripts import screenshot
 from interplanetary_invaders.scripts.get_file import get_file
@@ -242,7 +242,7 @@ class Menu:
                                         profile["version"] = __version__
                                     else:
                                         print(colorize("Warning: this profile is from a different version \
-of Interplanetary Invaders; \nerrors may occur", "warning"))
+of Interplanetary Invaders; \nerrors may result", "warning"))
                                 profile["new"] = False
                                 saves.save_data(self.profile_selected, profile)
                                 self.done = True
@@ -357,7 +357,7 @@ of Interplanetary Invaders; \nerrors may occur", "warning"))
     def draw_menu(self):
         self.display.fill(0)
         self.draw_stars()
-        logo = pygame.transform.scale(self.images[f"logo{self.frame}"], LOGO_SIZE)
+        logo = pygame.transform.scale(get_image(f"logo{self.frame}"), LOGO_SIZE)
         lrect = logo.get_rect()
         lrect.midtop = (400, 0)
         self.display.blit(logo, lrect)

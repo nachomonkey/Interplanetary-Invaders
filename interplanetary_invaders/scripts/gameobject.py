@@ -274,3 +274,7 @@ class GameObject:
             if self.type == "aircraft":
                 self.jet_sound.stop()
         self.time_passed = time_passed
+
+class BaseVFX:
+    def __init__(self):
+        pass

@@ -23,6 +23,15 @@ COLORS = {"header" : HEADER,
           "underline" : UNDERLINE,
           }
 
+images = {}
+
+def set_images(new_images):
+    global images
+    images = new_images
+
+def get_image(img_name):
+    return images[img_name]
+
 def colorize(text, color):
     """Change some text's color for linux machines"""
     color = COLORS[str(color).lower()]
