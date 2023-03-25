@@ -28,7 +28,7 @@ Installation with `pip` may also create the `interplanetary-invaders` entrypoint
 
 ## Playing the game
 
- ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/docs/screenshot_gameplay1.png  "The Curiosity rover battles carpet bombers on Mars")
+ ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/docs/collage.png)
 
 ##### Controls:
 
