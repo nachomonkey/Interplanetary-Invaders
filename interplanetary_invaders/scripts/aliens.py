@@ -49,7 +49,7 @@ class Alien:
         self.acc = 1.2
         self.drop_from = "LR"
         self.name = "alien"
-        self.exp_names = ["exp", "Exp"]
+        self.exp_names = ["alien_boom", "alien_boom_simple"]
         self.attack_range = (0, 30)
         self.size, self.exp_size = (64, 64), (256, 256)
         self.death_amount = [30, 15, 50, 75]
@@ -275,7 +275,7 @@ class PurpleAlien(Alien):
         self.life_bar = True
         self.health = 2
         self.start_health = 2
-        self.exp_names = ["exp", "pExp"]
+        self.exp_names = ["alien_boom", "purple_alien_boom_simple"]
         self.death_sound = Sound(fix_path("audio/purpleAlienDie.wav"))
         self.impact_damage = [.5, 1]
         self.post_init()

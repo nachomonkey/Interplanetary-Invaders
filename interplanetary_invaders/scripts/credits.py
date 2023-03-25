@@ -1,5 +1,5 @@
-import pygame
 import sys
+import pygame
 
 pygame.init()
 
@@ -9,54 +9,59 @@ from interplanetary_invaders.scripts.get_file import get_file
 from interplanetary_invaders.scripts import joystick
 
 credits_text = """
----Interplanetary Invaders---
-
--Developed & Created by-
+:-:INTERPLANETARY INVADERS:-:
+-----------------------------
+--CREATED & DEVELOPED BY--
 NachoMonkey
 
--Sound FX-
+--SOUND FX--
 NachoMonkey
 
-Flak Sound [MODIFIED]:
-zimbot (see README.md)
+Flak Sound (modified):
+zimbot
 
 Cash Register:
-kiddpark (see README.md)
+kiddpark
 
-Green Alien Crash [MODIFIED]:
-spoonsandlessspoons (see README.md)
+Green Alien Crash (modified):
+spoonsandlessspoons
 
-Animations, 3d images: NachoMonkey
+--GRAPHICS & VFX--
+NachoMonkey
 
--Photo Credits-
+--PHOTO CREDITS--
+Credit to NASA for the maps for:
+Jupiter, Mars, Mercury, the Moon,
+Neptune, Saturn, Uranus, Venus
 
-The following images are
-in images/bitmap/map_images:
+Credit to NASA for the following mission backdrop images:
+mars_backdrop[1-3], mars_cleanzone, mars_encampment[1-2],
+mars_volcano_backdrop (modified), venus_backdrop[1-2],
+venus_backdrop_maatmons, venus_backdrop[4-5]
 
-map_Jupiter.png: NASA
-map_Mars.png: NASA
-map_Mercury.png: NASA
-map_Moon.png: NASA
-map_Neptune.png: NASA
-map_Saturn.png: NASA
-map_Uranus.png: NASA
-map_Venus.png: NASA
+--Other contributers--
+XracerX
 
-The following images are
-in images/bitmap/backdrops
 
-mars_backdrop[1-3].png: NASA
-mars_cleanzone.png: NASA
-mars_encampment[1-2].png: NASA
-mars_volcano_backdrop.png [MODIFIED]: NASA
-venus_backdrop[1-2].png: NASA
-venus_backdrop_maatmons.png: NASA
-venus_backdrop[4-5].png: NASA
+-----------------------
 
-images/bitmaps/(un)lock_exoplanets: NASA
 
--Other contributers-
-XracerX"""
+
+This game was made using pygame
+https://pygame.org
+
+
+
+
+
+
+
+
+
+
+
+thanks for playing!
+"""
 
 
 def run_credits(display, images):
@@ -70,7 +75,7 @@ def run_credits(display, images):
     for e, x in enumerate(credits_text.split("\n")):
         text.append(list(retro_text((400, 24 * e + 10), display, 14, x, font = "sans", anchor = "midtop", res = 11)))
     scroll = -600
-    scroll_rate = 55
+    scroll_rate = 50
     total_length = 1400
     while not done:
         for event in pygame.event.get():
@@ -104,7 +109,7 @@ def run_credits(display, images):
         img = images["nachomonkeylogo"]
         img_rect = img.get_rect()
         img_rect.centerx = display.get_width() // 2
-        img_rect.top = total_length - img_rect.height - scroll - 10
+        img_rect.top = total_length - img_rect.height - scroll - 175
         display.blit(img, img_rect)
         scroll += scroll_rate * time_passed
         pygame.display.update()

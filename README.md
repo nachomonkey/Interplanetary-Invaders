@@ -1,76 +1,67 @@
 # Interplanetary Invaders
 
-
-*Computer game where you battle alien spiders across the solar system*
-
-**Works for Windows and Linux**
+*Fight alien invaders across the solar system. Made in python using pygame.*
 
 ## Installation
 
-Requires:
- * python >= 3.7
- * pygame == 1.9.6
- * humanize
-
-### Installation
+Requires python 3.7 or greater.
 
 ```bash
-python3 -m pip install interplanetary-invaders --user
+python -m pip install interplanetary-invaders --user
 ```
 
-### Execution
+
+
+## Running the game
+
+After installing with `pip`, run the game with its module:
 
 ```bash
-python3 -m interplanetary_invaders
+python -m interplanetary_invaders
 ```
 
-**or**
+Or run the `run_game.py` script to launch it from the repo directory.
 
-```bash
-interplanetary-invaders
-```
+Installation with `pip` may also create the `interplanetary-invaders` entrypoint.
 
-**If you cloned the repository:**
 
-```bash
-python3 run_game.py
-```
 
 ## Playing the game
 
- ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/wiki_data/screenshot_gameplay1.png  "Gameplay Screenshot")
+ ![Gameplay Screenshot](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/docs/screenshot_gameplay1.png  "The Curiosity rover battles carpet bombers on Mars")
 
-After launching the game and selecting **Play**, a list of profiles appears. (Profiles are stored in the data directory). Once a profile
-is selected, map mode is entered. After selecting a mission and continuing through the briefing and inventory menus,
-a mission begins. The controls are **LEFT** and **RIGHT** to move (or **a** and **d**) and **SPACE**, **UP**, or **w** to fire.
+##### Controls:
 
-At some point you will encounter an item (![Item](interplanetary_invaders/images/bitmap/animations/items/block/block1.png  "Item"))
-After touching an item, it will disappear and go into your item storage ( ![Item storage](interplanetary_invaders/images/bitmap/itemHolder.png))
-An icon representing the item will be visible in your item storage.
-Press the number key on your keyboard that equals the one below the item's icon (i.e. If the item is in slot three, it
-will have a "3" under it, and you must press the <**3**> key to activate it.)  You can also press <**Y**> to activate items.  The items vary from mission to mission (and planet to planet).
+Control the game with the arrow keys or WASD keys.
 
-### Hints
+Press **Y** or a specific number key (1-9) to use collected items.
 
-When using the "2x Fire Rate" item without the "Auto Gun" item, it is easiest to fire faster
-by pressing the **UP** key.
+Press **F2** to take screenshots. Screenshots are stored in the user's "data" directory, which is printed on startup.
 
-Press **F2** to take screenshots. Screenshots get stored in your *data* directory. The data directory's path gets printed
-when the game launches.
+##### Notes:
 
-# Acknowledgements
+You may need to acquire "Space Transport Licenses" from the Stores to use heavy vehicles on other planets.
 
-### Game Assets:
+*The game does not have a proper ending at the moment, but I dare you to beat all of the missions.*
 
-* Some images (described in the game's credits) are either directly used or modified versions of NASA images.
-* [Flak Bursts sound](https://freesound.org/people/zimbot/sounds/209984/) (Modified) is by [zimbot](https://freesound.org/people/zimbot/) on https://freesound.org, under the Attribution License.
-* Cash Register sound is by [kiddpark](https://freesound.org/people/kiddpark/) on https://freesound.org, under the Attribution License.
-* The green alien crash sound is a modified version of a sound by [spoonsandlessspoons](https://freesound.org/people/spoonsandlessspoons/) on https://freesound.org, under the Attribution License.
+
+
+## Acknowledgements
+
+### Game assets:
+
+* Credit to NASA for many of the realistic space images used in the game, as described in the credits.
+* [Flak Bursts sound](https://freesound.org/people/zimbot/sounds/209984/) (modified) is by [zimbot](https://freesound.org/people/zimbot/) (CC BY 4.0)
+* Cash Register sound is by [kiddpark](https://freesound.org/people/kiddpark/) (CC BY 4.0)
+* The green alien crash sound was made with a sound by [spoonsandlessspoons](https://freesound.org/people/spoonsandlessspoons/) (CC BY 4.0)
 
 ### Other contributers:
 
 * @XracerX
 
-# License
+
+
+## License
+
 This software is under the GNU GPLv3 License. See the [LICENSE](https://github.com/nachomonkey/Interplanetary-Invaders/blob/master/LICENSE) file for the full license.
 

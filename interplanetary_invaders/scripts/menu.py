@@ -366,8 +366,8 @@ of Interplanetary Invaders; \nerrors may result", "warning"))
         if self.finished:
             self.draw_menu_box(stuff_rect)
             self.draw_items(self.items, self.item_selected, stuff_rect)
-            retro_text(stuff_rect.move(0, 2).bottomright, self.display, 14, f"V{__version__}", anchor="bottomright", color=(10, 10, 10))
-            retro_text(stuff_rect.bottomright, self.display, 14, f"V{__version__}", anchor="bottomright", color=(220, 220, 220))
+            retro_text(stuff_rect.move(0, 2).bottomright, self.display, 14, f"v{__version__}", anchor="bottomright", color=(10, 10, 10))
+            retro_text(stuff_rect.bottomright, self.display, 14, f"v{__version__}", anchor="bottomright", color=(220, 220, 220))
 
     def draw_items(self, items, selected, stuff_rect, x_off = 100):
         for n, x in enumerate(items):
