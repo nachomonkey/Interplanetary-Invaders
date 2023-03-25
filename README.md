@@ -1,6 +1,6 @@
 # Interplanetary Invaders
 
-*Fight alien invaders across the solar system. Made in python using pygame.*
+Shoot off into the solar system after space invaders attack Earth!  But beware, each planet is riddled with new tricks and threats...  Earn new vehicles like NASA's Curiosity rover, conquer intimidating bosses, and shoot many, many lasers.  Realistic physics, diverse power-ups, vivid explosions, and sciency vibes separate this game from your typical space-invaders clone.
 
 ## Installation
 
